@@ -36,11 +36,21 @@ class TestIR:
             TestCase(
                 "quick-start-with_http3",
                 http3_quick_start_manifests(),
-                {"tcp-0.0.0.0-8080": False, "tcp-0.0.0.0-8443": True, "udp-0.0.0.0-8443": True},
+                {
+                    "tcp-0.0.0.0-8080": False,
+                    "tcp-0.0.0.0-8443": True,
+                    "udp-0.0.0.0-8443": True,
+                },
             ),
-            TestCase("http3-only", default_http3_listener_manifest(), {"udp-0.0.0.0-8443": True}),
+            TestCase(
+                "http3-only",
+                default_http3_listener_manifest(),
+                {"udp-0.0.0.0-8443": True},
+            ),
             TestCase("raw-udp", default_udp_listener_manifest(), {}),
-            TestCase("raw-tcp", default_tcp_listener_manifest(), {"tcp-0.0.0.0-8443": False}),
+            TestCase(
+                "raw-tcp", default_tcp_listener_manifest(), {"tcp-0.0.0.0-8443": False}
+            ),
         ]
 
         for case in testcases:
@@ -56,5 +66,5 @@ class TestIR:
                 assert listener is not None
                 assert listener.http3_enabled == http3_enabled
 
-            if case.expectedLog != None:
+            if case.expectedLog is not None:
                 assert case.expectedLog in caplog.text

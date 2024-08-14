@@ -11,8 +11,10 @@ class AcceptanceGrpcWebTest(AmbassadorTest):
         self.target = EGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -20,10 +22,13 @@ name:  ambassador
 config:
     enable_grpc_web: True
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -34,6 +39,7 @@ rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 """
+            ),
         )
 
     def queries(self):

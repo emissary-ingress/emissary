@@ -113,7 +113,9 @@ class V3Cluster(Cacheable):
             )
 
         if cluster.cluster_max_connection_lifetime_ms:
-            cluster_max_connection_lifetime_ms = cluster.cluster_max_connection_lifetime_ms
+            cluster_max_connection_lifetime_ms = (
+                cluster.cluster_max_connection_lifetime_ms
+            )
         else:
             cluster_max_connection_lifetime_ms = cluster.ir.ambassador_module.get(
                 "cluster_max_connection_lifetime_ms", None
@@ -138,7 +140,9 @@ class V3Cluster(Cacheable):
             # Get the list of upstream headers whose casing should be overriden
             # from the Ambassador module. We configure the downstream side of this
             # in v3listener.py
-            header_case_overrides = cluster.ir.ambassador_module.get("header_case_overrides", None)
+            header_case_overrides = cluster.ir.ambassador_module.get(
+                "header_case_overrides", None
+            )
             if (
                 header_case_overrides
                 and not proper_case
@@ -154,7 +158,9 @@ class V3Cluster(Cacheable):
                     rules.append(hdr)
                 if len(rules) > 0:
                     custom_header_rules: Dict[str, Dict[str, dict]] = {
-                        "custom": {"rules": {header.lower(): header for header in rules}}
+                        "custom": {
+                            "rules": {header.lower(): header for header in rules}
+                        }
                     }
                     http_options = self.setdefault("http_protocol_options", {})
                     http_options["header_key_format"] = custom_header_rules
@@ -173,7 +179,9 @@ class V3Cluster(Cacheable):
             if ctx.get("_ambassador_enabled", False):
                 envoy_ctx = {"common_tls_context": {}}
             else:
-                envoy_ctx = V3TLSContext(ctx=ctx, host_rewrite=cluster.get("host_rewrite", None))
+                envoy_ctx = V3TLSContext(
+                    ctx=ctx, host_rewrite=cluster.get("host_rewrite", None)
+                )
 
             if envoy_ctx:
                 fields["transport_socket"] = {
@@ -187,7 +195,9 @@ class V3Cluster(Cacheable):
         keepalive = cluster.get("keepalive", None)
         # in case of empty keepalive for service, we can try to fallback to default
         if keepalive is None:
-            if cluster.ir.ambassador_module and cluster.ir.ambassador_module.get("keepalive", None):
+            if cluster.ir.ambassador_module and cluster.ir.ambassador_module.get(
+                "keepalive", None
+            ):
                 keepalive = cluster.ir.ambassador_module["keepalive"]
 
         if keepalive is not None:
@@ -229,7 +239,10 @@ class V3Cluster(Cacheable):
                 p = urllib.parse.urlparse(u)
                 endpoint = {
                     "address": {
-                        "socket_address": {"address": p.hostname, "port_value": int(p.port)}
+                        "socket_address": {
+                            "address": p.hostname,
+                            "port_value": int(p.port),
+                        }
                     }
                 }
                 if p.scheme:
@@ -242,7 +255,9 @@ class V3Cluster(Cacheable):
         if cluster_circuit_breakers is None:
             return None
 
-        circuit_breakers: Dict[str, List[Dict[str, Union[str, int]]]] = {"thresholds": []}
+        circuit_breakers: Dict[str, List[Dict[str, Union[str, int]]]] = {
+            "thresholds": []
+        }
 
         for circuit_breaker in cluster_circuit_breakers:
             threshold = {}
@@ -274,14 +289,18 @@ class V3Cluster(Cacheable):
         config.clustermap = {}
 
         # Sort by the envoy cluster name (x.envoy_name), not the symbolic IR cluster name (x.name)
-        for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.envoy_name):
+        for ircluster in sorted(
+            config.ir.clusters.values(), key=lambda x: x.envoy_name
+        ):
             # XXX This magic format is duplicated for now in ir.py.
             cache_key = f"V3-{ircluster.cache_key}"
             cached_cluster = config.cache[cache_key]
 
             if cached_cluster is None:
                 # Cache miss.
-                cluster = config.save_element("cluster", ircluster, V3Cluster(config, ircluster))
+                cluster = config.save_element(
+                    "cluster", ircluster, V3Cluster(config, ircluster)
+                )
 
                 # Cheat a bit and force the route's cache key.
                 cluster.cache_key = cache_key

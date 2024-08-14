@@ -19,10 +19,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config
-from ambassador.envoy import EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
+from ambassador import IR, Config  # noqa: E402
+from ambassador.envoy import EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
 
 headerecho_manifests = """
 ---
@@ -122,7 +122,7 @@ def _ambassador_module_header_case_overrides(overrides, proper_case=False):
     if proper_case:
         mod = (
             mod
-            + f"""
+            + """
       proper_case: true
 """
         )
@@ -269,14 +269,14 @@ def test_testsanity():
     failed = False
     try:
         _test_headercaseoverrides_rules(["X-ABC"], expected=["X-Wrong"])
-    except AssertionError as e:
+    except AssertionError:
         failed = True
     assert failed
 
     failed = False
     try:
         _test_headercaseoverrides_rules([], expected=["X-Wrong"])
-    except AssertionError as e:
+    except AssertionError:
         failed = True
     assert failed
 
@@ -291,14 +291,18 @@ def test_headercaseoverrides_basic():
     _test_headercaseoverrides_rules(["X-foo", "X-ABC-Baz"])
     _test_headercaseoverrides_rules(["x-goOd", "X-alSo-good", "Authorization"])
     _test_headercaseoverrides_rules(["x-good", ["hello"]], expected=["x-good"])
-    _test_headercaseoverrides_rules(["X-ABC", "x-foo", 5, {}], expected=["X-ABC", "x-foo"])
+    _test_headercaseoverrides_rules(
+        ["X-ABC", "x-foo", 5, {}], expected=["X-ABC", "x-foo"]
+    )
 
 
 # Test that we always omit header case overrides if proper case is set
 @pytest.mark.compilertest
 def test_headercaseoverrides_propercasefail():
     _test_headercaseoverrides(
-        _ambassador_module_header_case_overrides(["My-OPINIONATED-CASING"], proper_case=True),
+        _ambassador_module_header_case_overrides(
+            ["My-OPINIONATED-CASING"], proper_case=True
+        ),
         [],
         expect_norules=True,
     )
@@ -308,7 +312,9 @@ def test_headercaseoverrides_propercasefail():
         expect_norules=True,
     )
     _test_headercaseoverrides(
-        _ambassador_module_header_case_overrides([{"invalid": "true"}, "X-COOL"], proper_case=True),
+        _ambassador_module_header_case_overrides(
+            [{"invalid": "true"}, "X-COOL"], proper_case=True
+        ),
         [],
         expect_norules=True,
     )
@@ -316,7 +322,7 @@ def test_headercaseoverrides_propercasefail():
 
 class HeaderCaseOverridesTesting:
     def create_module(self, namespace):
-        manifest = f"""
+        manifest = """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -332,7 +338,7 @@ spec:
         apply_kube_artifacts(namespace=namespace, artifacts=manifest)
 
     def create_listeners(self, namespace):
-        manifest = f"""
+        manifest = """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
@@ -464,7 +470,12 @@ spec:
         # Second, test that the request headers sent to the headerecho server
         # have the correct case.
 
-        headers = {"x-Hello": "1", "X-foo-Bar": "1", "x-Lowercase1": "1", "x-lowercase2": "1"}
+        headers = {
+            "x-Hello": "1",
+            "X-foo-Bar": "1",
+            "x-Lowercase1": "1",
+            "x-lowercase2": "1",
+        }
         resp = requests.get(headerecho_url, headers=headers, timeout=5)
         code = resp.status_code
         assert code == 200, f"Expected 200 OK, got {code}"

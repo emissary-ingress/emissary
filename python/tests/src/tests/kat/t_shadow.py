@@ -8,9 +8,7 @@ class ShadowBackend(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        kwargs[
-            "service_manifests"
-        ] = """
+        kwargs["service_manifests"] = """
 ---
 apiVersion: v1
 kind: Service
@@ -66,8 +64,10 @@ class ShadowTestCANFLAKE(MappingTest):
         self.shadow = ShadowBackend()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -112,11 +112,14 @@ prefix: /{self.name}/check/
 rewrite: /check/
 service: {self.shadow.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
         # There should be no Ambassador errors. At all.
-        yield Query(self.parent.url("ambassador/v0/diag/?json=true&filter=errors"), phase=1)
+        yield Query(
+            self.parent.url("ambassador/v0/diag/?json=true&filter=errors"), phase=1
+        )
 
         for i in range(100):
             # First query marks one bucket from 0 - 9. The main target service is just a
@@ -190,4 +193,4 @@ service: {self.shadow.path.fqdn}
                 # assert abs(weighted_total - 50) <= 10, f'weighted buckets should have 50 total calls, got {weighted_total}'
                 assert (
                     weighted_total > 0
-                ), f"weighted buckets should have 50 total calls but got zero"
+                ), "weighted buckets should have 50 total calls but got zero"

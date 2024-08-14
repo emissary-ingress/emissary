@@ -57,7 +57,9 @@ class SecretProcessor(ManagedKubernetesProcessor):
 
         if not any(key in data for key in self.KNOWN_DATA_KEYS):
             # Uh. WTFO?
-            self.logger.debug(f"ignoring K8s Secret {obj.name}.{obj.namespace} with no keys")
+            self.logger.debug(
+                f"ignoring K8s Secret {obj.name}.{obj.namespace} with no keys"
+            )
             return
 
         spec = {

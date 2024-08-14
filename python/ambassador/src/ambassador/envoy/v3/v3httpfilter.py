@@ -44,7 +44,13 @@ AllowedRequestHeaders = frozenset(
 
 # Static header keys normally used in the context of an authorization response.
 AllowedAuthorizationHeaders = frozenset(
-    ["location", "authorization", "proxy-authenticate", "set-cookie", "www-authenticate"]
+    [
+        "location",
+        "authorization",
+        "proxy-authenticate",
+        "set-cookie",
+        "www-authenticate",
+    ]
 )
 
 # This mapping is only used for ambassador/v0.
@@ -207,7 +213,7 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: "V3Config"):
 
     auth_info: Dict[str, Any] = {}
 
-    if errors := auth.ir.aconf.errors.get(auth.rkey):
+    if auth.ir.aconf.errors.get(auth.rkey) is not None:
         # FWIW, this mimics Ambassador Edge Stack's default error response format; see
         # apro.git/cmd/amb-sidecar/filters/handler/middleware.NewErrorResponse().
         #
@@ -255,7 +261,9 @@ end
                 }
             )
 
-        for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
+        for key in list(
+            set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)
+        ):
             allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
         allowed_request_headers = []
@@ -265,7 +273,9 @@ end
 
         if auth.get("add_linkerd_headers", False):
             svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))
-            headers_to_add.append({"key": "l5d-dst-override", "value": svc.hostname_port})
+            headers_to_add.append(
+                {"key": "l5d-dst-override", "value": svc.hostname_port}
+            )
 
         auth_info = {
             "name": "envoy.filters.http.ext_authz",
@@ -280,7 +290,9 @@ end
                     "path_prefix": auth.path_prefix,
                     "authorization_request": {
                         "allowed_headers": {
-                            "patterns": sorted(allowed_request_headers, key=header_pattern_key)
+                            "patterns": sorted(
+                                allowed_request_headers, key=header_pattern_key
+                            )
                         },
                         "headers_to_add": headers_to_add,
                     },
@@ -401,7 +413,9 @@ def V3HTTPFilter_ratelimit(ratelimit: IRRateLimit, v3config: "V3Config"):
     # If here, we must have a ratelimit service configured.
     assert v3config.ratelimit
     config["rate_limit_service"] = dict(v3config.ratelimit)
-    config["@type"] = "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit"
+    config["@type"] = (
+        "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit"
+    )
 
     return {
         "name": "envoy.filters.http.ratelimit",
@@ -492,8 +506,8 @@ def V3HTTPFilter_lua(irfilter: IRFilter, v3config: "V3Config"):
 
     if config_dict:
         config["typed_config"] = config_dict
-        config["typed_config"][
-            "@type"
-        ] = "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+        config["typed_config"]["@type"] = (
+            "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+        )
 
     return config

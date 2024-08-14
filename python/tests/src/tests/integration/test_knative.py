@@ -9,7 +9,11 @@ from ambassador import IR, Config
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler, parse_bool
 from kat.harness import is_knative_compatible
-from tests.integration.utils import create_qotm_mapping, get_code_with_retry, install_ambassador
+from tests.integration.utils import (
+    create_qotm_mapping,
+    get_code_with_retry,
+    install_ambassador,
+)
 from tests.kubeutils import apply_kube_artifacts
 from tests.manifests import qotm_manifests
 from tests.runutils import run_and_assert
@@ -145,7 +149,8 @@ class KnativeTesting:
 
         # Install Ambassador
         install_ambassador(
-            namespace=namespace, envs=[{"name": "AMBASSADOR_KNATIVE_SUPPORT", "value": "true"}]
+            namespace=namespace,
+            envs=[{"name": "AMBASSADOR_KNATIVE_SUPPORT", "value": "true"}],
         )
 
         # Install QOTM
@@ -199,7 +204,9 @@ class KnativeTesting:
         assert code == 404, f"Expected 404, got {code}"
         print(f"{kservice_url} returns 404 with no host")
 
-        code = get_code_with_retry(kservice_url, headers={"Host": "random.host.whatever"})
+        code = get_code_with_retry(
+            kservice_url, headers={"Host": "random.host.whatever"}
+        )
         assert code == 404, f"Expected 404, got {code}"
         print(f"{kservice_url} returns 404 with a random host")
 
@@ -226,7 +233,9 @@ class KnativeTesting:
                 break
 
         assert code == 200, f"Expected 200, got {code}"
-        print(f"{kservice_url} returns 200 OK with host helloworld-go.{namespace}.example.com")
+        print(
+            f"{kservice_url} returns 200 OK with host helloworld-go.{namespace}.example.com"
+        )
 
 
 def test_knative_counters():
@@ -239,10 +248,12 @@ def test_knative_counters():
     ir = IR(aconf, secret_handler=secret_handler)
     feats = ir.features()
 
-    assert feats["knative_ingress_count"] == 1, f"Expected a Knative ingress, did not find one"
+    assert (
+        feats["knative_ingress_count"] == 1
+    ), "Expected a Knative ingress, did not find one"
     assert (
         feats["cluster_ingress_count"] == 0
-    ), f"Expected no Knative cluster ingresses, found at least one"
+    ), "Expected no Knative cluster ingresses, found at least one"
 
 
 @pytest.mark.flaky(reruns=1, reruns_delay=10)

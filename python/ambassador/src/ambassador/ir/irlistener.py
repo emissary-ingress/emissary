@@ -103,7 +103,9 @@ class IRListener(IRResource):
             # Nope, use the default.
             self.bind_address = Config.envoy_bind_address
 
-        ir.logger.debug(f"Listener {self.name} setting up on {self.bind_address}:{self.port}")
+        ir.logger.debug(
+            f"Listener {self.name} setting up on {self.bind_address}:{self.port}"
+        )
 
         pstack = self.get("protocolStack", None)
         protocol = self.get("protocol", None)
@@ -202,7 +204,9 @@ class IRListener(IRResource):
 
         if not hb_namespace and not hb_selector:
             # Bzzt.
-            self.post_error("hostBinding must have at least one of namespace or selector")
+            self.post_error(
+                "hostBinding must have at least one of namespace or selector"
+            )
             return False
 
         if hb_namespace:
@@ -223,12 +227,16 @@ class IRListener(IRResource):
                 # namespace labels!
                 #
                 # (K8s validation should prevent this from happening.)
-                self.post_error("hostBinding.namespace.from=selector is not yet supported")
+                self.post_error(
+                    "hostBinding.namespace.from=selector is not yet supported"
+                )
 
         # OK, after all that, look at the host selector itself.
         if hb_selector:
-            if not "matchLabels" in hb_selector:
-                self.post_error("hostBinding.selector currently supports only matchLabels")
+            if "matchLabels" not in hb_selector:
+                self.post_error(
+                    "hostBinding.selector currently supports only matchLabels"
+                )
                 return False
 
             # This is not a typo -- save hb_selector here. The selector_matches function
@@ -242,15 +250,21 @@ class IRListener(IRResource):
         Returns True IFF this Listener wants to take the given IRHost -- meaning,
         the Host's namespace and selectors match what we want.
         """
-        nsmatch = (self.namespace_literal == "*") or (self.namespace_literal == host.namespace)
+        nsmatch = (self.namespace_literal == "*") or (
+            self.namespace_literal == host.namespace
+        )
 
         if not nsmatch:
             self.ir.logger.debug(
-                "    namespace mismatch (we're %s), DROP %s", self.namespace_literal, host
+                "    namespace mismatch (we're %s), DROP %s",
+                self.namespace_literal,
+                host,
             )
             return False
 
-        if not selector_matches(self.ir.logger, self.host_selector, host.metadata_labels):
+        if not selector_matches(
+            self.ir.logger, self.host_selector, host.metadata_labels
+        ):
             self.ir.logger.debug("    selector mismatch, DROP %s", host)
             return False
 
@@ -293,7 +307,7 @@ class IRListener(IRResource):
 class ListenerFactory:
     @classmethod
     def load_all(cls, ir: "IR", aconf: Config) -> None:
-        amod = ir.ambassador_module
+        # amod = ir.ambassador_module
 
         listeners = aconf.get_config("listeners")
 
@@ -312,7 +326,9 @@ class ListenerFactory:
                     ir.logger.debug(f"ListenerFactory: saving Listener {listener}")
                     ir.save_listener(listener)
                 else:
-                    ir.logger.debug(f"ListenerFactory: not saving inactive Listener {listener}")
+                    ir.logger.debug(
+                        f"ListenerFactory: not saving inactive Listener {listener}"
+                    )
 
     @classmethod
     def finalize(cls, ir: "IR", aconf: Config) -> None:

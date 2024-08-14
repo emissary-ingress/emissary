@@ -12,8 +12,10 @@ class BufferLimitBytesTest(AmbassadorTest):
 
     # Test generating config with an increased buffer and that the lua body() funciton runs to buffer the request body
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -32,6 +34,7 @@ hostname: "*"
 prefix: /foo/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):

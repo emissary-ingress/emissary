@@ -19,10 +19,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config, EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler, SecretHandler, SecretInfo
-from tests.utils import default_listener_manifests
+from ambassador import IR, Config, EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler, SecretHandler, SecretInfo  # noqa: E402
+from tests.utils import default_listener_manifests  # noqa: E402
 
 if TYPE_CHECKING:
     from ambassador.ir.irresource import IRResource  # pragma: no cover
@@ -104,17 +104,23 @@ spec:
     econf = EnvoyConfig.generate(ir)
 
     # check if custom_tags are added
-    assert econf.as_dict()["static_resources"]["listeners"][0]["filter_chains"][0]["filters"][0][
-        "typed_config"
-    ]["tracing"] == {
+    assert econf.as_dict()["static_resources"]["listeners"][0]["filter_chains"][0][
+        "filters"
+    ][0]["typed_config"]["tracing"] == {
         "custom_tags": [
             {"literal": {"value": "avalue"}, "tag": "ltag"},
             {
-                "environment": {"default_value": "efallback", "name": "UNKNOWN_ENV_VAR"},
+                "environment": {
+                    "default_value": "efallback",
+                    "name": "UNKNOWN_ENV_VAR",
+                },
                 "tag": "etag",
             },
             {
-                "request_header": {"default_value": "hfallback", "name": "x-does-not-exist"},
+                "request_header": {
+                    "default_value": "hfallback",
+                    "name": "x-does-not-exist",
+                },
                 "tag": "htag",
             },
         ]
@@ -136,7 +142,9 @@ spec:
     }
 
     ads_config.pop("@type", None)
-    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")])
+    assert_valid_envoy_config(
+        ads_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")]
+    )
     assert_valid_envoy_config(
         bootstrap_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")]
     )

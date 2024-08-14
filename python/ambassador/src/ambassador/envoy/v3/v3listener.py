@@ -19,7 +19,13 @@ from ...ir.irhost import IRHost
 from ...ir.irlistener import IRListener
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...utils import parse_bool
-from .v3route import DictifiedV3Route, V3Route, V3RouteVariants, hostglob_matches, v3prettyroute
+from .v3route import (
+    DictifiedV3Route,
+    V3Route,
+    V3RouteVariants,
+    hostglob_matches,
+    v3prettyroute,
+)
 from .v3tls import V3TLSContext
 
 if TYPE_CHECKING:
@@ -80,7 +86,9 @@ class V3Chain:
             # We process TCPMappings first so in theory there never should be a `Host` here and if there was
             # another TCPMapping for this FilterChain then it would be a duplicate and the first one wins.
             other = next(iter(self.hosts.values()))
-            other_type = "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
+            other_type = (
+                "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
+            )
             tcpmapping.post_error(
                 f"TCPMapping {tcpmapping.name}: discarding because it conflicts with {other_type} {other.name}"
             )
@@ -163,7 +171,7 @@ class V3Chain:
         self.routes[virtual_host].append(route)
 
     def __str__(self) -> str:
-        ctxstr = f" ctx {self.context.name}" if self.context else ""
+        # ctxstr = f" ctx {self.context.name}" if self.context else ""
 
         return f"CHAIN: tls={bool(self.context)} hostglobs={repr(sorted(self.hostglobs()))}"
 
@@ -253,7 +261,9 @@ class V3Listener:
         super().__init__()
 
         self.config = config
-        self._irlistener = irlistener  # We cache the IRListener to use its match method later
+        self._irlistener = (
+            irlistener  # We cache the IRListener to use its match method later
+        )
 
         bindstr = (
             f"-{irlistener.socket_protocol.lower()}-{self.bind_address}"
@@ -287,7 +297,9 @@ class V3Listener:
 
             if proto == "PROXY":
                 # The PROXY protocol needs a listener filter.
-                self.listener_filters.append({"name": "envoy.filters.listener.proxy_protocol"})
+                self.listener_filters.append(
+                    {"name": "envoy.filters.listener.proxy_protocol"}
+                )
 
             if proto == "TLS":
                 # TLS needs a listener filter _and_ we need to remember that this
@@ -298,7 +310,9 @@ class V3Listener:
                 ## When UDP we assume it is http/3 listener and configured for quic which has TLS built into the protocol
                 ## therefore, we only need to add this when socket_protocol is TCP
                 if self.isProtocolTCP():
-                    self.listener_filters.append({"name": "envoy.filters.listener.tls_inspector"})
+                    self.listener_filters.append(
+                        {"name": "envoy.filters.listener.tls_inspector"}
+                    )
 
             if proto == "TCP":
                 # Nothing to do.
@@ -404,20 +418,26 @@ class V3Listener:
                 access_log_obj["additional_request_headers_to_log"] = req_headers
                 access_log_obj["additional_response_headers_to_log"] = resp_headers
                 access_log_obj["additional_response_trailers_to_log"] = trailer_headers
-                access_log_obj[
-                    "@type"
-                ] = "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig"
+                access_log_obj["@type"] = (
+                    "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig"
+                )
                 access_log.append(
-                    {"name": "envoy.access_loggers.http_grpc", "typed_config": access_log_obj}
+                    {
+                        "name": "envoy.access_loggers.http_grpc",
+                        "typed_config": access_log_obj,
+                    }
                 )
             else:
                 # inherently TCP right now
                 # tcp loggers do not support additional headers
-                access_log_obj[
-                    "@type"
-                ] = "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig"
+                access_log_obj["@type"] = (
+                    "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig"
+                )
                 access_log.append(
-                    {"name": "envoy.access_loggers.tcp_grpc", "typed_config": access_log_obj}
+                    {
+                        "name": "envoy.access_loggers.tcp_grpc",
+                        "typed_config": access_log_obj,
+                    }
                 )
 
         # Use sane access log spec in JSON
@@ -455,14 +475,18 @@ class V3Listener:
                 log_format = 'ACCESS [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%" "%UPSTREAM_HOST%"'
 
             if self._log_debug:
-                self.config.ir.logger.debug("V3Listener: Using log_format '%s'" % log_format)
+                self.config.ir.logger.debug(
+                    "V3Listener: Using log_format '%s'" % log_format
+                )
             access_log.append(
                 {
                     "name": "envoy.access_loggers.file",
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
                         "path": self.config.ir.ambassador_module.envoy_log_path,
-                        "log_format": {"text_format_source": {"inline_string": log_format + "\n"}},
+                        "log_format": {
+                            "text_format_source": {"inline_string": log_format + "\n"}
+                        },
                     },
                 }
             )
@@ -500,27 +524,30 @@ class V3Listener:
                 base_http_config["http_filters"].append(v3hf)
 
         if "use_remote_address" in self.config.ir.ambassador_module:
-            base_http_config[
-                "use_remote_address"
-            ] = self.config.ir.ambassador_module.use_remote_address
+            base_http_config["use_remote_address"] = (
+                self.config.ir.ambassador_module.use_remote_address
+            )
 
         if self._l7_depth > 0:
             base_http_config["xff_num_trusted_hops"] = self._l7_depth
 
         if "server_name" in self.config.ir.ambassador_module:
-            base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
+            base_http_config["server_name"] = (
+                self.config.ir.ambassador_module.server_name
+            )
 
         listener_idle_timeout_ms = self.config.ir.ambassador_module.get(
             "listener_idle_timeout_ms", None
         )
         if listener_idle_timeout_ms:
             if "common_http_protocol_options" in base_http_config:
-                base_http_config["common_http_protocol_options"]["idle_timeout"] = "%0.3fs" % (
-                    float(listener_idle_timeout_ms) / 1000.0
+                base_http_config["common_http_protocol_options"]["idle_timeout"] = (
+                    "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
                 )
             else:
                 base_http_config["common_http_protocol_options"] = {
-                    "idle_timeout": "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
+                    "idle_timeout": "%0.3fs"
+                    % (float(listener_idle_timeout_ms) / 1000.0)
                 }
 
         if "headers_with_underscores_action" in self.config.ir.ambassador_module:
@@ -541,29 +568,31 @@ class V3Listener:
 
         if "enable_http10" in self.config.ir.ambassador_module:
             http_options = base_http_config.setdefault("http_protocol_options", {})
-            http_options["accept_http_10"] = self.config.ir.ambassador_module.enable_http10
+            http_options["accept_http_10"] = (
+                self.config.ir.ambassador_module.enable_http10
+            )
 
         if "allow_chunked_length" in self.config.ir.ambassador_module:
-            if self.config.ir.ambassador_module.allow_chunked_length != None:
+            if self.config.ir.ambassador_module.allow_chunked_length is not None:
                 http_options = base_http_config.setdefault("http_protocol_options", {})
-                http_options[
-                    "allow_chunked_length"
-                ] = self.config.ir.ambassador_module.allow_chunked_length
+                http_options["allow_chunked_length"] = (
+                    self.config.ir.ambassador_module.allow_chunked_length
+                )
 
         if "preserve_external_request_id" in self.config.ir.ambassador_module:
-            base_http_config[
-                "preserve_external_request_id"
-            ] = self.config.ir.ambassador_module.preserve_external_request_id
+            base_http_config["preserve_external_request_id"] = (
+                self.config.ir.ambassador_module.preserve_external_request_id
+            )
 
         if "forward_client_cert_details" in self.config.ir.ambassador_module:
-            base_http_config[
-                "forward_client_cert_details"
-            ] = self.config.ir.ambassador_module.forward_client_cert_details
+            base_http_config["forward_client_cert_details"] = (
+                self.config.ir.ambassador_module.forward_client_cert_details
+            )
 
         if "set_current_client_cert_details" in self.config.ir.ambassador_module:
-            base_http_config[
-                "set_current_client_cert_details"
-            ] = self.config.ir.ambassador_module.set_current_client_cert_details
+            base_http_config["set_current_client_cert_details"] = (
+                self.config.ir.ambassador_module.set_current_client_cert_details
+            )
 
         if self.config.ir.tracing:
             base_http_config["generate_request_id"] = True
@@ -579,22 +608,30 @@ class V3Listener:
             if sampling:
                 client_sampling = sampling.get("client", None)
                 if client_sampling is not None:
-                    base_http_config["tracing"]["client_sampling"] = {"value": client_sampling}
+                    base_http_config["tracing"]["client_sampling"] = {
+                        "value": client_sampling
+                    }
 
                 random_sampling = sampling.get("random", None)
                 if random_sampling is not None:
-                    base_http_config["tracing"]["random_sampling"] = {"value": random_sampling}
+                    base_http_config["tracing"]["random_sampling"] = {
+                        "value": random_sampling
+                    }
 
                 overall_sampling = sampling.get("overall", None)
                 if overall_sampling is not None:
-                    base_http_config["tracing"]["overall_sampling"] = {"value": overall_sampling}
+                    base_http_config["tracing"]["overall_sampling"] = {
+                        "value": overall_sampling
+                    }
 
         proper_case: bool = self.config.ir.ambassador_module["proper_case"]
 
         # Get the list of downstream headers whose casing should be overriden
         # from the Ambassador module. We configure the upstream side of this
         # in v3cluster.py
-        header_case_overrides = self.config.ir.ambassador_module.get("header_case_overrides", None)
+        header_case_overrides = self.config.ir.ambassador_module.get(
+            "header_case_overrides", None
+        )
         if header_case_overrides:
             if proper_case:
                 self.config.ir.post_error(
@@ -657,7 +694,9 @@ class V3Listener:
 
     def finalize(self) -> None:
         if self._log_debug:
-            self.config.ir.logger.debug(f"V3Listener {self}: finalize ============================")
+            self.config.ir.logger.debug(
+                f"V3Listener {self}: finalize ============================"
+            )
 
         # We do TCP chains before HTTP chains so that TCPMappings have precedence over Hosts.  This
         # is important because 2.x releases prior to 2.4 required you to create a Host for the
@@ -683,7 +722,9 @@ class V3Listener:
 
         for chain_key, chain in self._chains.items():
             if self._log_debug:
-                self.config.ir.logger.debug(f"    build chain[{repr(chain_key)}]={chain}")
+                self.config.ir.logger.debug(
+                    f"    build chain[{repr(chain_key)}]={chain}"
+                )
 
             for irgroup in chain.hosts.values():
                 if not isinstance(irgroup, IRTCPMappingGroup):
@@ -812,18 +853,27 @@ class V3Listener:
             # of Reject (or empty), we'll skip this host, because the only requests this
             # Listener can ever produce will be rejected. In any other case, we'll set up an
             # HTTPS chain for this Host, as long as we think TLS is OK.
-            host_will_reject_secure = (not host.secure_action) or (host.secure_action == "Reject")
+            host_will_reject_secure = (not host.secure_action) or (
+                host.secure_action == "Reject"
+            )
             if (
                 self._tls_ok
                 and host.context
-                and (not ((self._security_model == "SECURE") and host_will_reject_secure))
+                and (
+                    not ((self._security_model == "SECURE") and host_will_reject_secure)
+                )
             ):
                 self.config.ir.logger.debug("      accept SECURE")
-                self.add_chain("https", host.context, host.hostname, host.sni).add_httphost(host)
+                self.add_chain(
+                    "https", host.context, host.hostname, host.sni
+                ).add_httphost(host)
 
             # Same idea on the insecure side: only skip the Host if the Listener's securityModel
             # is INSECURE but the Host's insecure_action is Reject.
-            if not ((self._security_model == "INSECURE") and (host.insecure_action == "Reject")):
+            if not (
+                (self._security_model == "INSECURE")
+                and (host.insecure_action == "Reject")
+            ):
                 self.config.ir.logger.debug("      accept INSECURE")
                 self.add_chain("http", None, host.hostname, host.sni).add_httphost(host)
 
@@ -836,7 +886,9 @@ class V3Listener:
 
         for chain_key, chain in self._chains.items():
             if self._log_debug:
-                self.config.ir.logger.debug(f"    consider chain[{repr(chain_key)}]={chain}")
+                self.config.ir.logger.debug(
+                    f"    consider chain[{repr(chain_key)}]={chain}"
+                )
 
             # Only look at HTTP(S) chains.
             if not any(isinstance(h, IRHost) for h in chain.hosts.values()):
@@ -844,7 +896,7 @@ class V3Listener:
                 continue
 
             # Remember whether we found an ACME route.
-            found_acme = False
+            # found_acme = False
 
             # The data structure we're walking here is config.route_variants rather than
             # config.routes. There's a one-to-one correspondence between the two, but we use the
@@ -881,31 +933,46 @@ class V3Listener:
                     if self._log_debug:
                         self.config.ir.logger.debug(f"          host={hostname}")
 
-                    if (host.secure_action is not None) and (self._security_model != "INSECURE"):
+                    if (host.secure_action is not None) and (
+                        self._security_model != "INSECURE"
+                    ):
                         # We have a secure action, and we're willing to believe that at least some of
                         # our requests will be secure.
-                        matcher = "always" if (self._security_model == "SECURE") else "xfp-https"
+                        matcher = (
+                            "always"
+                            if (self._security_model == "SECURE")
+                            else "xfp-https"
+                        )
 
                         candidates.append((host, matcher, "Route", rv))
 
-                    if (host.insecure_action is not None) and (self._security_model != "SECURE"):
+                    if (host.insecure_action is not None) and (
+                        self._security_model != "SECURE"
+                    ):
                         # We have an insecure action, and we're willing to believe that at least some of
                         # our requests will be insecure.
-                        matcher = "always" if (self._security_model == "INSECURE") else "xfp-http"
+                        matcher = (
+                            "always"
+                            if (self._security_model == "INSECURE")
+                            else "xfp-http"
+                        )
                         action = host.insecure_action
 
                         candidates.append((host, matcher, action, rv))
 
                     for host, matcher, action, rv in candidates:
-                        route_precedence = rv.route.get("_precedence", None)
+                        # route_precedence = rv.route.get("_precedence", None)
                         extra_info = ""
 
-                        if rv.route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+                        if (
+                            rv.route["match"].get("prefix", None)
+                            == "/.well-known/acme-challenge/"
+                        ):
                             # We need to be sure to route ACME challenges, no matter what else is going
                             # on (this is the infamous ACME hole-puncher mentioned everywhere).
                             extra_info = " (force Route for ACME challenge)"
                             action = "Route"
-                            found_acme = True
+                            # found_acme = True
                         # elif (
                         #     self.config.ir.edge_stack_allowed
                         #     and (route_precedence == -1000000)
@@ -986,7 +1053,9 @@ class V3Listener:
                 continue
 
             if self._log_debug:
-                self._irlistener.logger.debug(f"    build chain[{repr(chain_key)}]={chain}")
+                self._irlistener.logger.debug(
+                    f"    build chain[{repr(chain_key)}]={chain}"
+                )
 
             filter_chain: Optional[Dict[str, Any]] = None
 
@@ -1101,7 +1170,9 @@ class V3Listener:
                     continue
 
                 if self._log_debug:
-                    self._irlistener.logger.debug(f"      adding vhost {repr(host.hostname)}")
+                    self._irlistener.logger.debug(
+                        f"      adding vhost {repr(host.hostname)}"
+                    )
 
                 # Make certain that no internal keys from the route make it into the Envoy
                 # configuration.
@@ -1132,7 +1203,7 @@ class V3Listener:
                         # The default sets the max-age in seconds to be 1 day and supports clients that speak h3 & h3-29 specifications
                         alt_svc_hdr = {
                             "key": "alt-svc",
-                            "value": f'h3=":443"; ma=86400, h3-29=":443"; ma=86400',
+                            "value": 'h3=":443"; ma=86400, h3-29=":443"; ma=86400',
                         }
 
                         vhost["response_headers_to_add"].append({"header": alt_svc_hdr})
@@ -1149,18 +1220,24 @@ class V3Listener:
             http_config = dict(typecast(dict, self._base_http_config))
 
             # ...and unfold our vhosts dict into a list for Envoy.
-            http_config["route_config"] = {"virtual_hosts": list(filter_chain["_vhosts"].values())}
+            http_config["route_config"] = {
+                "virtual_hosts": list(filter_chain["_vhosts"].values())
+            }
 
             # Now that we've saved our vhosts as a list, drop the dict version.
             del filter_chain["_vhosts"]
 
             # Finish up config for this filter chain...
             if parse_bool(
-                self.config.ir.ambassador_module.get("strip_matching_host_port", "false")
+                self.config.ir.ambassador_module.get(
+                    "strip_matching_host_port", "false"
+                )
             ):
                 http_config["strip_matching_host_port"] = True
 
-            if parse_bool(self.config.ir.ambassador_module.get("merge_slashes", "false")):
+            if parse_bool(
+                self.config.ir.ambassador_module.get("merge_slashes", "false")
+            ):
                 http_config["merge_slashes"] = True
 
             if parse_bool(
@@ -1206,7 +1283,9 @@ class V3Listener:
         # We only want to add the buffer limit setting to the listener if specified in the module.
         # Otherwise, we want to leave it unset and allow Envoys Default 1MiB setting.
         if self.per_connection_buffer_limit_bytes:
-            listener["per_connection_buffer_limit_bytes"] = self.per_connection_buffer_limit_bytes
+            listener["per_connection_buffer_limit_bytes"] = (
+                self.per_connection_buffer_limit_bytes
+            )
 
         if self.listener_filters:
             listener["listener_filters"] = self.listener_filters
@@ -1239,7 +1318,9 @@ class V3Listener:
             v3listener = V3Listener(config, irlistener)
             v3listener.finalize()
 
-            config.ir.logger.info(f"V3Listener {v3listener}: generated ===========================")
+            config.ir.logger.info(
+                f"V3Listener {v3listener}: generated ==========================="
+            )
             if config.ir.logger.isEnabledFor(logging.DEBUG):
                 if v3listener._log_debug:
                     for k in sorted(v3listener._chains.keys()):
@@ -1249,7 +1330,9 @@ class V3Listener:
                             config.ir.logger.debug(f"    host {hostname}")
                             routes = chain.routes.get(hostname, [])
                             for r in routes:
-                                config.ir.logger.debug(f"      route {v3prettyroute(r)}")
+                                config.ir.logger.debug(
+                                    f"      route {v3prettyroute(r)}"
+                                )
 
             # Does this listener have any filter chains?
             if v3listener._filter_chains:

@@ -6,13 +6,12 @@ import tempfile
 from base64 import b64encode
 from collections import namedtuple
 
-import pytest
 from OpenSSL import crypto
 
 from ambassador import IR, Cache, Config, EnvoyConfig
 from ambassador.compile import Compile
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler, parse_bool
+from ambassador.utils import NullSecretHandler
 
 logger = logging.getLogger("ambassador")
 
@@ -143,9 +142,7 @@ spec:
                 yaml
                 + """
     {}
-""".format(
-                    module_conf
-                )
+""".format(module_conf)
             )
     else:
         yaml = yaml + " {}\n"
@@ -169,9 +166,7 @@ spec:
             yaml = (
                 yaml
                 + """
-  {}""".format(
-                    mapping_conf
-                )
+  {}""".format(mapping_conf)
             )
     return yaml
 
@@ -272,7 +267,9 @@ def econf_foreach_listener_chain(
         filters = chain["filters"]
         got_count = len(filters)
         got_plural = "" if (got_count == 1) else "s"
-        assert got_count == 1, f"Expected just one filter, got {got_count} filter{got_plural}"
+        assert (
+            got_count == 1
+        ), f"Expected just one filter, got {got_count} filter{got_plural}"
 
         # The http connection manager is the only filter on the chain from the one and only vhost.
         filter = filters[0]
@@ -299,7 +296,11 @@ def econf_foreach_hcm(econf, fn, chain_count=2):
         hcm_info = EnvoyHCMInfo
 
         econf_foreach_listener_chain(
-            listener, fn, chain_count=chain_count, need_name=hcm_info.name, need_type=hcm_info.type
+            listener,
+            fn,
+            chain_count=chain_count,
+            need_name=hcm_info.name,
+            need_type=hcm_info.type,
         )
 
 
@@ -347,7 +348,9 @@ def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
     crl.set_lastUpdate(when)
 
     for revokedCert in revokedCerts:
-        clientCert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(revokedCert, "utf-8"))
+        clientCert = crypto.load_certificate(
+            crypto.FILETYPE_PEM, bytes(revokedCert, "utf-8")
+        )
         r = crypto.Revoked()
         r.set_serial(bytes("{:x}".format(clientCert.get_serial_number()), "ascii"))
         r.set_rev_date(when)
@@ -358,5 +361,7 @@ def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
     key = crypto.load_privatekey(crypto.FILETYPE_PEM, bytes(issuerKey, "utf-8"))
     crl.sign(cert, key, b"sha256")
     return b64encode(
-        (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode("utf-8")
+        (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode(
+            "utf-8"
+        )
     ).decode("utf-8")

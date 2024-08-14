@@ -33,7 +33,9 @@ EnvoyValidationContext = Dict[str, EnvoyValidationElements]
 
 EnvoyTLSParams = Dict[str, Union[str, List[str]]]
 
-EnvoyCommonTLSElements = Union[List[str], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams]
+EnvoyCommonTLSElements = Union[
+    List[str], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams
+]
 EnvoyCommonTLSContext = Dict[str, EnvoyCommonTLSElements]
 
 ElementHandler = Callable[[str, str], None]
@@ -139,8 +141,16 @@ class V3TLSContext(Dict):
         for ctxkey, handler, hkey in [
             ("alpn_protocols", self.update_alpn, "alpn_protocols"),
             ("cert_required", self.__setitem__, "require_client_certificate"),
-            ("min_tls_version", self.update_tls_version, "tls_minimum_protocol_version"),
-            ("max_tls_version", self.update_tls_version, "tls_maximum_protocol_version"),
+            (
+                "min_tls_version",
+                self.update_tls_version,
+                "tls_minimum_protocol_version",
+            ),
+            (
+                "max_tls_version",
+                self.update_tls_version,
+                "tls_maximum_protocol_version",
+            ),
             ("sni", self.__setitem__, "sni"),
         ]:
             value = ctx.get(ctxkey, None)

@@ -20,9 +20,9 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 logger.setLevel(logging.DEBUG)
 
-from ambassador import IR, Cache, Config, EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
+from ambassador import IR, Cache, Config, EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
 
 
 class Builder:
@@ -31,7 +31,9 @@ class Builder:
     ) -> None:
         self.logger = logger
 
-        self.test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "testdata")
+        self.test_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "testdata"
+        )
 
         self.cache: Optional[Cache] = None
 
@@ -48,7 +50,10 @@ class Builder:
         # Load the initial YAML.
         self.apply_yaml(yaml_file, allow_updates=False)
         self.secret_handler = NullSecretHandler(
-            logger, str(tmpdir / "secrets" / "src"), str(tmpdir / "secrets" / "cache"), "0"
+            logger,
+            str(tmpdir / "secrets" / "src"),
+            str(tmpdir / "secrets" / "cache"),
+            "0",
         )
 
         # Save builds to make this simpler to call.
@@ -91,7 +96,9 @@ class Builder:
                 "metadata": {
                     "name": name,
                     "namespace": namespace,
-                    "creationTimestamp": metadata.get("creationTimestamp", "2021-11-19T15:11:45Z"),
+                    "creationTimestamp": metadata.get(
+                        "creationTimestamp", "2021-11-19T15:11:45Z"
+                    ),
                 },
                 "deltaType": dtype,
             }
@@ -179,9 +186,7 @@ class Builder:
             assert (
                 config_type == "complete"
             ), "check_deltas wants an incremental reconfiguration with no cache, which it shouldn't"
-            assert (
-                reset_cache
-            ), "check_deltas with no cache does not want to reset the cache, but it should"
+            assert reset_cache, "check_deltas with no cache does not want to reset the cache, but it should"
         else:
             assert (
                 config_type == "incremental"
@@ -507,7 +512,7 @@ def test_mappings_same_name_delta(tmp_path):
     cluster2_ok = False
     for cluster in econf["static_resources"]["clusters"]:
         cname = cluster.get("name", None)
-        assert cname is not None, f"Error, cluster missing cluster name in econf"
+        assert cname is not None, "Error, cluster missing cluster name in econf"
         # The 6666 in the cluster name comes from the Mapping.spec.service's port
         if cname == "cluster_bar_0_example_com_6666_bar0":
             cluster1_ok = True
@@ -515,7 +520,9 @@ def test_mappings_same_name_delta(tmp_path):
             cluster2_ok = True
         if cluster1_ok and cluster2_ok:
             break
-    assert cluster1_ok and cluster2_ok, "clusters could not be found with the correct envoy config"
+    assert (
+        cluster1_ok and cluster2_ok
+    ), "clusters could not be found with the correct envoy config"
 
     # Update the yaml for these Mappings to simulate a reconfiguration
     # We should properly remove the cache entries for these clusters when that happens.
@@ -527,7 +534,7 @@ def test_mappings_same_name_delta(tmp_path):
     cluster2_ok = False
     for cluster in econf["static_resources"]["clusters"]:
         cname = cluster.get("name", None)
-        assert cname is not None, f"Error, cluster missing cluster name in econf"
+        assert cname is not None, "Error, cluster missing cluster name in econf"
         # We can check the cluster name to identify if the clusters were updated properly
         # because in the deltas for the yaml we applied, we changed the port to 7777
         # If there was an issue removing the initial ones from the cache then we should see
@@ -557,7 +564,9 @@ class MadnessMapping:
         self.service = svc
 
         # This is only OK for service names without any weirdnesses.
-        self.cluster = "cluster_" + re.sub(r"[^0-9A-Za-z_]", "_", self.service) + "_default"
+        self.cluster = (
+            "cluster_" + re.sub(r"[^0-9A-Za-z_]", "_", self.service) + "_default"
+        )
 
     def __str__(self) -> str:
         return f"MadnessMapping {self.name}: {self.pfx} => {self.service}"
@@ -599,7 +608,9 @@ class MadnessOp:
     def __str__(self) -> str:
         return self.name
 
-    def exec(self, builder1: Builder, builder2: Builder, dumpfile: Optional[str] = None) -> bool:
+    def exec(
+        self, builder1: Builder, builder2: Builder, dumpfile: Optional[str] = None
+    ) -> bool:
         verifiers: List[MadnessVerifier] = []
 
         if self.op == "apply":
@@ -662,9 +673,7 @@ class MadnessOp:
         ir, econf = b
 
         ir_has_cluster = ir.has_cluster(self.mapping.cluster)
-        assert (
-            ir_has_cluster
-        ), f"{self.name}: needed IR cluster {self.mapping.cluster}, have only {', '.join(ir.clusters.keys())}"
+        assert ir_has_cluster, f"{self.name}: needed IR cluster {self.mapping.cluster}, have only {', '.join(ir.clusters.keys())}"
 
         return ir_has_cluster
 
@@ -689,9 +698,7 @@ class MadnessOp:
         if current_mappings:
             # There are some active mappings. Make sure that the group exists, that it has the
             # correct mappings, and that the mappings have sane weights.
-            assert (
-                group
-            ), f"{self.name}: needed group 3644d75eb336f323bec43e48d4cfd8a950157607, but none found"
+            assert group, f"{self.name}: needed group 3644d75eb336f323bec43e48d4cfd8a950157607, but none found"
 
             # We expect the mappings to be sorted in the group, because every change to the
             # mappings that are part of the group should result in the whole group being torn
@@ -700,9 +707,7 @@ class MadnessOp:
             found_services = [m.service for m in group.mappings]
 
             match1 = wanted_services == found_services
-            assert (
-                match1
-            ), f"{self.name}: wanted services {wanted_services}, but found {found_services}"
+            assert match1, f"{self.name}: wanted services {wanted_services}, but found {found_services}"
 
             weight_delta = 100 // len(current_mappings)
             wanted_weights: List[int] = [
@@ -713,16 +718,12 @@ class MadnessOp:
             found_weights: List[int] = [m._weight for m in group.mappings]
 
             match2 = wanted_weights == found_weights
-            assert (
-                match2
-            ), f"{self.name}: wanted weights {wanted_weights}, but found {found_weights}"
+            assert match2, f"{self.name}: wanted weights {wanted_weights}, but found {found_weights}"
 
             return match1 and match2
         else:
             # There are no active mappings, so make sure that the group doesn't exist.
-            assert (
-                not group
-            ), f"{self.name}: needed no group 3644d75eb336f323bec43e48d4cfd8a950157607, but found one"
+            assert not group, f"{self.name}: needed no group 3644d75eb336f323bec43e48d4cfd8a950157607, but found one"
             match = True
 
         return match
@@ -791,7 +792,8 @@ def test_cache_madness(tmp_path):
             )
 
         print(
-            "==== EXEC %d: %s => %s" % (i, op, sorted([m.service for m in current_mappings.keys()]))
+            "==== EXEC %d: %s => %s"
+            % (i, op, sorted([m.service for m in current_mappings.keys()]))
         )
         logger.info("======== EXEC %d: %s", i, op)
 

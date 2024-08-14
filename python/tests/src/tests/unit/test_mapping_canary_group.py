@@ -52,14 +52,19 @@ def test_mapping_canary_group_selectors(test_case):
             continue
 
         mg = MappingGroupTestOutput(
-            group_id=g.group_id, host=g.host, prefix=g.prefix, mappings=[m.name for m in g.mappings]
+            group_id=g.group_id,
+            host=g.host,
+            prefix=g.prefix,
+            mappings=[m.name for m in g.mappings],
         )
         mapping_groups.append(mg)
 
     with open(os.path.join(testdata_dir, f"{test_case}_out.yaml"), "r") as f:
         out = yaml.safe_load(f)
 
-    expected_output = [MappingGroupTestOutput(**group_yaml) for group_yaml in out["mapping_groups"]]
+    expected_output = [
+        MappingGroupTestOutput(**group_yaml) for group_yaml in out["mapping_groups"]
+    ]
     assert sorted(mapping_groups, key=lambda g: g.group_id) == sorted(
         expected_output, key=lambda g: g.group_id
     )

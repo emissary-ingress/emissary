@@ -33,7 +33,9 @@ class Empty(AmbassadorTest):
 
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
-        yield Query(self.url("_internal/v0/ping", scheme="http", port=8877), expected=403)
+        yield Query(
+            self.url("_internal/v0/ping", scheme="http", port=8877), expected=403
+        )
         yield Query(self.url("ambassador/v0/check_ready", scheme="http", port=8877))
 
     def check(self):
@@ -59,14 +61,17 @@ class AmbassadorIDTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, """
+        yield (
+            self,
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
   use_ambassador_namespace_for_service_resolution: true
-"""
+""",
+        )
         for prefix, amb_id in (
             ("findme", "[{self.ambassador_id}]"),
             ("findme-array", "[{self.ambassador_id}, missme]"),
@@ -74,8 +79,10 @@ config:
             ("missme", "[missme]"),
             ("missme-array", "[missme1, missme2]"),
         ):
-            yield self.target, self.format(
-                """
+            yield (
+                self.target,
+                self.format(
+                    """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -85,8 +92,9 @@ prefix: /{prefix}/
 service: {self.target.path.fqdn}
 ambassador_id: {amb_id}
             """,
-                prefix=self.format(prefix),
-                amb_id=self.format(amb_id),
+                    prefix=self.format(prefix),
+                    amb_id=self.format(amb_id),
+                ),
             )
 
     def queries(self):
@@ -290,8 +298,10 @@ class ServerNameTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -306,6 +316,7 @@ hostname: "*"
 prefix: /server-name
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -322,8 +333,10 @@ class SafeRegexMapping(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -336,11 +349,14 @@ regex_headers:
   X-Foo: "^[a-z].*"
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
         yield Query(self.url(self.name + "/"), headers={"X-Foo": "hello"})
-        yield Query(self.url(f"need-normalization/../{self.name}/"), headers={"X-Foo": "hello"})
+        yield Query(
+            self.url(f"need-normalization/../{self.name}/"), headers={"X-Foo": "hello"}
+        )
         yield Query(self.url(self.name + "/"), expected=404)
         yield Query(self.url(f"need-normalization/../{self.name}/"), expected=404)
 
@@ -352,4 +368,7 @@ service: http://{self.target.path.fqdn}
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
+                assert (
+                    r.backend.request.headers["x-envoy-original-path"][0]
+                    == f"/{self.name}/"
+                )

@@ -4,26 +4,38 @@ import shutil
 import subprocess
 import sys
 from random import random
-from typing import Any, ClassVar, Generator, List, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    ClassVar,
+    Generator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    Type,
+)
 from typing import cast as typecast
 
 import pytest
 import yaml
 
-# These type: ignores are because, weirdly, the yaml.CSafe* variants don't share
-# a type with their non-C variants. No clue why not.
-yaml_loader = yaml.SafeLoader  # type: ignore
-yaml_dumper = yaml.SafeDumper  # type: ignore
-
-try:
-    yaml_loader = yaml.CSafeLoader  # type: ignore
-    yaml_dumper = yaml.CSafeDumper  # type: ignore
-except AttributeError:
-    pass
-
 import tests.integration.manifests as integration_manifests
 from kat.harness import Name, Node, Query, Test, abstract_test, sanitize
 from kat.utils import ShellCommand
+
+
+# These type: ignores are because, weirdly, the yaml.CSafe* variants don't share
+# a type with their non-C variants. No clue why not.
+yaml_loader: Type[yaml.Loader] = typecast(
+    Type[yaml.Loader],
+    getattr(yaml, "CSafeLoader", yaml.SafeLoader),
+)
+yaml_dumper: Type[yaml.Dumper] = typecast(
+    Type[yaml.Dumper],
+    getattr(yaml, "CSafeDumper", yaml.SafeDumper),
+)
+
 
 AMBASSADOR_LOCAL = """
 ---
@@ -81,7 +93,6 @@ DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
 
 @abstract_test
 class AmbassadorTest(Test):
-
     """
     AmbassadorTest is a top level ambassador test.
     """
@@ -130,9 +141,7 @@ class AmbassadorTest(Test):
       value: "%s"
     - name: AES_LOG_LEVEL
       value: "debug"
-""" % ":".join(
-                amb_debug
-            )
+""" % ":".join(amb_debug)
 
         if self.ambassador_id:
             self.manifest_envs += f"""
@@ -198,7 +207,13 @@ class AmbassadorTest(Test):
             AmbassadorTest.IMAGE_BUILT = True
 
             cmd = ShellCommand(
-                "docker", "ps", "-a", "-f", "label=kat-family=ambassador", "--format", "{{.ID}}"
+                "docker",
+                "ps",
+                "-a",
+                "-f",
+                "label=kat-family=ambassador",
+                "--format",
+                "{{.ID}}",
             )
 
             if cmd.check("find old docker container IDs"):
@@ -212,8 +227,12 @@ class AmbassadorTest(Test):
 
                 if ids:
                     print("Killing old containers...")
-                    ShellCommand.run("kill old containers", "docker", "kill", *ids, verbose=True)
-                    ShellCommand.run("rm old containers", "docker", "rm", *ids, verbose=True)
+                    ShellCommand.run(
+                        "kill old containers", "docker", "kill", *ids, verbose=True
+                    )
+                    ShellCommand.run(
+                        "rm old containers", "docker", "rm", *ids, verbose=True
+                    )
 
             context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
@@ -245,7 +264,14 @@ class AmbassadorTest(Test):
             nsp = getattr(self, "namespace", None) or "default"
 
             cmd = ShellCommand(
-                "tools/bin/kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s
+                "tools/bin/kubectl",
+                "get",
+                "-n",
+                nsp,
+                "-o",
+                "yaml",
+                "secret",
+                self.path.k8s,
             )
 
             if not cmd.check(f"fetch secret for {self.path.k8s}"):
@@ -273,7 +299,15 @@ class AmbassadorTest(Test):
             with open(os.path.join(secret_dir, k), "wb") as f:
                 f.write(base64.decodebytes(bytes(v, "utf8")))
         print("Launching %s container." % self.path.k8s)
-        command = ["docker", "run", "-d", "-l", "kat-family=ambassador", "--name", self.path.k8s]
+        command = [
+            "docker",
+            "run",
+            "-d",
+            "-l",
+            "kat-family=ambassador",
+            "--name",
+            self.path.k8s,
+        ]
 
         envs = [
             "KUBERNETES_SERVICE_HOST=kubernetes",
@@ -385,7 +419,11 @@ class ServiceType(Node):
     use_superpod: bool = True
 
     def __init__(
-        self, service_manifests: str | None = None, namespace: str | None = None, *args, **kwargs
+        self,
+        service_manifests: str | None = None,
+        namespace: str | None = None,
+        *args,
+        **kwargs,
     ) -> None:
         super().__init__(namespace=namespace, *args, **kwargs)
 
@@ -451,7 +489,10 @@ class EGRPC(ServiceType):
             "url",
             Query(
                 "http://%s/echo.EchoService/Echo" % self.path.fqdn,
-                headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "0"},
+                headers={
+                    "content-type": "application/grpc",
+                    "kat-req-echo-requested-status": "0",
+                },
                 expected=200,
                 grpc_type="real",
             ),
@@ -543,7 +584,9 @@ class WebsocketEcho(ServiceType):
 
     def __init__(self, *args, **kwargs) -> None:
         # Do this unconditionally, because that's the point of this class.
-        kwargs["service_manifests"] = integration_manifests.load("websocket_echo_backend")
+        kwargs["service_manifests"] = integration_manifests.load(
+            "websocket_echo_backend"
+        )
         super().__init__(*args, **kwargs)
 
     def requirements(self):

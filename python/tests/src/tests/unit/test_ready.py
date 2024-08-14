@@ -6,9 +6,9 @@ import pytest
 
 logger = logging.getLogger("ambassador")
 
-import ambassador.envoy.v3.v3ready
-from ambassador import IR, Config, EnvoyConfig
-from ambassador.utils import NullSecretHandler
+import ambassador.envoy.v3.v3ready  # noqa: E402
+from ambassador import IR, Config, EnvoyConfig  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
 
 
 def _get_envoy_config() -> EnvoyConfig:
@@ -25,7 +25,9 @@ def _get_envoy_config() -> EnvoyConfig:
     return EnvoyConfig.generate(ir)
 
 
-def _validate_ready_listener_config(econf: EnvoyConfig, expectedPort: int, readyLogEnabled: bool):
+def _validate_ready_listener_config(
+    econf: EnvoyConfig, expectedPort: int, readyLogEnabled: bool
+):
     """
     Helper function that fails if the envoy config does not match an expected ready listener config
     """
@@ -33,11 +35,15 @@ def _validate_ready_listener_config(econf: EnvoyConfig, expectedPort: int, ready
     readyListener = conf["static_resources"]["listeners"][0]
     assert readyListener["address"]["socket_address"]["address"] == "127.0.0.1"
     assert readyListener["address"]["socket_address"]["port_value"] == expectedPort
-    assert readyListener["name"] == "ambassador-listener-ready-127.0.0.1-%d" % expectedPort
+    assert (
+        readyListener["name"] == "ambassador-listener-ready-127.0.0.1-%d" % expectedPort
+    )
 
     filterTypedConfig = readyListener["filter_chains"][0]["filters"][0]["typed_config"]
     assert (
-        filterTypedConfig["http_filters"][0]["typed_config"]["headers"][0]["exact_match"]
+        filterTypedConfig["http_filters"][0]["typed_config"]["headers"][0][
+            "exact_match"
+        ]
         == "/ready"
     )
     if readyLogEnabled:

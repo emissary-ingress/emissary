@@ -29,7 +29,7 @@ class CIDRRange:
         self.address: Optional[str] = None
         self.prefix_len: Optional[int] = None
 
-        prefix: Optional[str] = None
+        # prefix: Optional[str] = None
         pfx_len: Optional[int] = None
         addr: Optional[Union[IPv4Address, IPv6Address]] = None
 
@@ -71,7 +71,11 @@ class CIDRRange:
         is not None, and the prefix_len is not None.
         """
 
-        return (not self.error) and (self.address is not None) and (self.prefix_len is not None)
+        return (
+            (not self.error)
+            and (self.address is not None)
+            and (self.prefix_len is not None)
+        )
 
     def __str__(self) -> str:
         if self:

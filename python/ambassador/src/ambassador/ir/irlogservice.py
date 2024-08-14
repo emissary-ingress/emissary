@@ -30,7 +30,9 @@ class IRLogService(IRResource):
     ) -> None:
         del kwargs  # silence unused-variable warning
 
-        super().__init__(ir=ir, aconf=config, rkey=rkey, kind=kind, name=name, namespace=namespace)
+        super().__init__(
+            ir=ir, aconf=config, rkey=rkey, kind=kind, name=name, namespace=namespace
+        )
 
     def setup(self, ir: "IR", config) -> bool:
         self.service = config.get("service")
@@ -63,7 +65,9 @@ class IRLogService(IRResource):
 
             for header_obj in self.get_additional_headers():
                 if header_obj.get("header_name", "") == "":
-                    self.post_error("Please provide a header name for every additional log header!")
+                    self.post_error(
+                        "Please provide a header name for every additional log header!"
+                    )
                     return False
 
         self.sourced_by(config)

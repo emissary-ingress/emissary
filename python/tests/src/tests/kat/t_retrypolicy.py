@@ -13,8 +13,10 @@ class RetryPolicyTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -24,10 +26,13 @@ prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 timeout_ms: 3000
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -40,10 +45,13 @@ retry_policy:
   retry_on: "5xx"
   num_retries: 4
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -53,6 +61,7 @@ config:
     retry_on: "retriable-4xx"
     num_retries: 4
 """
+            ),
         )
 
     def queries(self):
@@ -109,7 +118,9 @@ config:
         retry_duration = self.get_duration(retry_result)
         conflict_duration = self.get_duration(conflict_result)
 
-        assert retry_duration >= 2, f"retry time {retry_duration} must be at least 2 seconds"
+        assert (
+            retry_duration >= 2
+        ), f"retry time {retry_duration} must be at least 2 seconds"
         assert (
             conflict_duration >= 2
         ), f"conflict time {conflict_duration} must be at least 2 seconds"

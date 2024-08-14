@@ -34,8 +34,10 @@ class LoadBalancerTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -146,6 +148,7 @@ load_balancer:
   cookie:
     name: test-cookie
 """
+            ),
         )
 
     def queries(self):
@@ -203,15 +206,15 @@ spec:
     targetPort: 8080
   selector:
     backend: {backend}
-""".format(
-                backend=backend
-            )
+""".format(backend=backend)
             + super().manifests()
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
@@ -239,6 +242,7 @@ hostname: "*"
 prefix: /{self.name}-generic/
 service: globalloadbalancing-service
 """
+            ),
         )
 
     def queries(self):
@@ -253,7 +257,8 @@ service: globalloadbalancing-service
         # cookie queries
         for i in range(50):
             yield Query(
-                self.url(self.name) + "-header/", cookies=[{"name": "lb-cookie", "value": "yes"}]
+                self.url(self.name) + "-header/",
+                cookies=[{"name": "lb-cookie", "value": "yes"}],
             )
 
         # generic - generic queries
@@ -267,7 +272,8 @@ service: globalloadbalancing-service
         # generic - cookie queries
         for i in range(50):
             yield Query(
-                self.url(self.name) + "-generic/", cookies=[{"name": "lb-cookie", "value": "yes"}]
+                self.url(self.name) + "-generic/",
+                cookies=[{"name": "lb-cookie", "value": "yes"}],
             )
 
     def check(self):
@@ -286,7 +292,9 @@ service: globalloadbalancing-service
         for result in generic_queries:
             assert result.backend
             generic_dict[result.backend.name] = (
-                generic_dict[result.backend.name] + 1 if result.backend.name in generic_dict else 1
+                generic_dict[result.backend.name] + 1
+                if result.backend.name in generic_dict
+                else 1
             )
         assert len(generic_dict) == 3
 
@@ -295,7 +303,9 @@ service: globalloadbalancing-service
         for result in header_queries:
             assert result.backend
             header_dict[result.backend.name] = (
-                header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
+                header_dict[result.backend.name] + 1
+                if result.backend.name in header_dict
+                else 1
             )
         assert len(header_dict) == 3
 
@@ -304,7 +314,9 @@ service: globalloadbalancing-service
         for result in cookie_queries:
             assert result.backend
             cookie_dict[result.backend.name] = (
-                cookie_dict[result.backend.name] + 1 if result.backend.name in cookie_dict else 1
+                cookie_dict[result.backend.name] + 1
+                if result.backend.name in cookie_dict
+                else 1
             )
         assert len(cookie_dict) == 1
 
@@ -385,17 +397,17 @@ spec:
     targetPort: 8080
   selector:
     backend: {backend}
-""".format(
-                backend=backend
-            )
+""".format(backend=backend)
             + super().manifests()
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         for policy in ["ring_hash", "maglev"]:
             self.policy = policy
-            yield self, self.format(
-                """
+            yield (
+                self,
+                self.format(
+                    """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -445,6 +457,7 @@ load_balancer:
   cookie:
     name: lb-cookie
 """
+                ),
             )
 
     def queries(self):
@@ -456,7 +469,8 @@ load_balancer:
             # header queries
             for i in range(50):
                 yield Query(
-                    self.url(self.name) + "-header-{}/".format(policy), headers={"LB-HEADER": "yes"}
+                    self.url(self.name) + "-header-{}/".format(policy),
+                    headers={"LB-HEADER": "yes"},
                 )
 
             # source IP queries

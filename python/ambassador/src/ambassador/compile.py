@@ -13,7 +13,7 @@
 # limitations under the License
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from typing_extensions import NotRequired, TypedDict
 
@@ -29,6 +29,11 @@ from .utils import NullSecretHandler, SecretHandler
 class _CompileResult(TypedDict):
     ir: IR
     xds: NotRequired[EnvoyConfig]
+
+
+def default_file_checker(*_: Any, **__: Any) -> bool:
+    """Default (noop) file checker."""
+    return True
 
 
 def Compile(
@@ -50,13 +55,16 @@ def Compile(
         "xds": the Envoy config
     }
 
+    :param logger: The `logging.Logger` instance to emit compiler messages to
     :param input_text: The input text (WATT snapshot JSON or K8s YAML per 'k8s')
+    :param cache:
+    :param file_checker:
+    :param secret_handler:
     :param k8s: If true, input_text is K8s YAML, otherwise it's WATT snapshot JSON
-    :param ir: Generate the IR IFF True
     """
 
-    if not file_checker:
-        file_checker = lambda path: True
+    if not callable(file_checker):
+        file_checker = default_file_checker
 
     if not secret_handler:
         secret_handler = NullSecretHandler(logger, None, None, "fake")
@@ -72,7 +80,9 @@ def Compile(
 
     aconf.load_all(fetcher.sorted())
 
-    ir = IR(aconf, cache=cache, file_checker=file_checker, secret_handler=secret_handler)
+    ir = IR(
+        aconf, cache=cache, file_checker=file_checker, secret_handler=secret_handler
+    )
 
     out: _CompileResult = {"ir": ir}
 

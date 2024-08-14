@@ -1,10 +1,8 @@
 import logging
-import os
 import sys
 
 import pytest
 
-from ambassador.utils import NullSecretHandler, parse_bool
 
 logging.basicConfig(
     level=logging.INFO,
@@ -14,30 +12,30 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config
-from ambassador.fetch import ResourceFetcher
-from ambassador.fetch.ambassador import AmbassadorProcessor
-from ambassador.fetch.dependency import (
+from ambassador import Config  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.fetch.ambassador import AmbassadorProcessor  # noqa: E402
+from ambassador.fetch.dependency import (  # noqa: E402
     DependencyManager,
     IngressClassesDependency,
     SecretDependency,
     ServiceDependency,
 )
-from ambassador.fetch.k8sobject import (
+from ambassador.fetch.k8sobject import (  # noqa: E402
     KubernetesGVK,
     KubernetesObject,
     KubernetesObjectKey,
     KubernetesObjectScope,
 )
-from ambassador.fetch.k8sprocessor import (
+from ambassador.fetch.k8sprocessor import (  # noqa: E402
     AggregateKubernetesProcessor,
     CountingKubernetesProcessor,
     DeduplicatingKubernetesProcessor,
     KubernetesProcessor,
 )
-from ambassador.fetch.location import LocationManager
-from ambassador.fetch.resource import NormalizedResource, ResourceManager
-from ambassador.utils import parse_yaml
+from ambassador.fetch.location import LocationManager  # noqa: E402
+from ambassador.fetch.resource import NormalizedResource, ResourceManager  # noqa: E402
+from ambassador.utils import parse_yaml  # noqa: E402
 
 
 def k8s_object_from_yaml(yaml: str) -> KubernetesObject:
@@ -152,7 +150,9 @@ class TestKubernetesGVK:
 
 class TestKubernetesObject:
     def test_valid(self):
-        assert valid_knative_ingress.gvk == KubernetesGVK.for_knative_networking("Ingress")
+        assert valid_knative_ingress.gvk == KubernetesGVK.for_knative_networking(
+            "Ingress"
+        )
         assert valid_knative_ingress.namespace == "test"
         assert valid_knative_ingress.name == "helloworld-go"
         assert valid_knative_ingress.scope == KubernetesObjectScope.NAMESPACE
@@ -433,8 +433,12 @@ class TestCountingKubernetesProcessor:
         p = CountingKubernetesProcessor(aconf, valid_mapping.gvk, "test")
 
         assert p.try_process(valid_mapping), "Processor rejected matching resource"
-        assert p.try_process(valid_mapping), "Processor rejected matching resource (again)"
-        assert not p.try_process(valid_knative_ingress), "Processor accepted non-matching resource"
+        assert p.try_process(
+            valid_mapping
+        ), "Processor rejected matching resource (again)"
+        assert not p.try_process(
+            valid_knative_ingress
+        ), "Processor accepted non-matching resource"
 
         assert aconf.get_count("test") == 2, "Processor did not increment counter"
 
@@ -448,6 +452,7 @@ def deps() -> DependencyManager:
             IngressClassesDependency(),
         ]
     )
+
 
 def test_cyclic(deps: DependencyManager) -> None:
     a = deps.for_instance(object())
@@ -463,6 +468,7 @@ def test_cyclic(deps: DependencyManager) -> None:
 
     with pytest.raises(ValueError):
         deps.sorted_watt_keys()
+
 
 def test_sort(deps: DependencyManager) -> None:
     a = deps.for_instance(object())

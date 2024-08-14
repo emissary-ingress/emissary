@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple
 
 from ..config import Config
 from .irbasemapping import IRBaseMapping
@@ -49,7 +49,11 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
     @staticmethod
     def helper_mappings(res: IRResource, k: str) -> Tuple[str, List[dict]]:
         return k, list(
-            reversed(sorted([x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]))
+            reversed(
+                sorted(
+                    [x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]
+                )
+            )
         )
 
     def __init__(
@@ -58,16 +62,24 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
         aconf: Config,
         location: str,
         mapping: IRBaseMapping,
-        rkey: str = "ir.mappinggroup",
+        *_: Any,
         kind: str = "IRTCPMappingGroup",
         name: str = "ir.mappinggroup",
         **kwargs,
     ) -> None:
         # print("IRTCPMappingGroup __init__ (%s %s %s)" % (kind, name, kwargs))
-        del rkey  # silence unused-variable warning
+        # del rkey  # silence unused-variable warning
+
+        self.metadata_labels = dict()
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name, **kwargs
+            ir=ir,
+            aconf=aconf,
+            rkey=mapping.rkey,
+            location=location,
+            kind=kind,
+            name=name,
+            **kwargs,
         )
 
         self.add_dict_helper("mappings", IRTCPMappingGroup.helper_mappings)
@@ -94,7 +106,10 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
         if mismatches:
             self.post_error(
                 "cannot accept new mapping %s with mismatched %s"
-                % (mapping.name, ", ".join(["%s: %s != %s" % (x, y, z) for x, y, z in mismatches]))
+                % (
+                    mapping.name,
+                    ", ".join(["%s: %s != %s" % (x, y, z) for x, y, z in mismatches]),
+                )
             )
             return
 
@@ -212,8 +227,8 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
 
         # self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
-        total_weight = 0.0
-        unspecified_mappings = 0
+        # total_weight = 0.0
+        # unspecified_mappings = 0
 
         # # OK. Save some typing with local variables for default labels and our labels...
         # labels: Dict[str, Any] = self.get('labels', None)
@@ -263,9 +278,9 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
         for mapping in self.mappings:
             mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
-        self.logger.debug(f"Normalizing weights in mappings now...")
+        self.logger.debug("Normalizing weights in mappings now...")
         if not self.normalize_weights_in_mappings():
-            self.post_error(f"Could not normalize mapping weights, ignoring...")
+            self.post_error("Could not normalize mapping weights, ignoring...")
             return []
 
         return list([mapping.cluster for mapping in self.mappings])

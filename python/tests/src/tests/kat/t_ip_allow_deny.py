@@ -88,8 +88,10 @@ spec:
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -100,6 +102,7 @@ config:
     - peer:   127.0.0.1      # peer address must be localhost
     - remote: 99.99.0.0/16   # honors PROXY and XFF
 """
+            ),
         )
 
     def queries(self):
@@ -112,9 +115,15 @@ config:
         yield Query(self.url("localhost/11"), headers={"X-Forwarded-For": "99.99.0.1"})
 
         # 2. Hit /target/ and /localhost/ with X-Forwarded-For specifying something bad, get a 403.
-        yield Query(self.url("target/20"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403)
         yield Query(
-            self.url("localhost/21"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403
+            self.url("target/20"),
+            headers={"X-Forwarded-For": "99.98.0.1"},
+            expected=403,
+        )
+        yield Query(
+            self.url("localhost/21"),
+            headers={"X-Forwarded-For": "99.98.0.1"},
+            expected=403,
         )
 
         # Done. Note that the /localhost/ endpoint is wrapping around to make a localhost call back
@@ -124,11 +133,17 @@ config:
         # We're replacing super()'s requirements deliberately here. Without X-Forwarded-For they can't work.
         yield (
             "url",
-            Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-For": "99.99.0.1"}),
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"X-Forwarded-For": "99.99.0.1"},
+            ),
         )
         yield (
             "url",
-            Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-For": "99.99.0.1"}),
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"X-Forwarded-For": "99.99.0.1"},
+            ),
         )
 
 
@@ -188,8 +203,10 @@ spec:
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -200,6 +217,7 @@ config:
     - peer:   127.0.0.1      # peer address cannot be localhost (weird, huh?)
     - remote: 99.98.0.0/16   # honors PROXY and XFF
 """
+            ),
         )
 
     def queries(self):
@@ -208,16 +226,28 @@ config:
         yield Query(self.url("localhost/01"), expected=403)  # This should _never_ work.
 
         # 1. Hit /target/ and /localhost/ with X-Forwarded-For specifying something bad, get 403s.
-        yield Query(self.url("target/10"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403)
         yield Query(
-            self.url("localhost/11"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403
+            self.url("target/10"),
+            headers={"X-Forwarded-For": "99.98.0.1"},
+            expected=403,
+        )
+        yield Query(
+            self.url("localhost/11"),
+            headers={"X-Forwarded-For": "99.98.0.1"},
+            expected=403,
         )
 
         # 2. Hit /target/ with X-Forwarded-For specifying something not so bad, get a 200. /localhost/
         #    will _still_ get a 403 though.
-        yield Query(self.url("target/20"), headers={"X-Forwarded-For": "99.99.0.1"}, expected=200)
         yield Query(
-            self.url("localhost/21"), headers={"X-Forwarded-For": "99.99.0.1"}, expected=403
+            self.url("target/20"),
+            headers={"X-Forwarded-For": "99.99.0.1"},
+            expected=200,
+        )
+        yield Query(
+            self.url("localhost/21"),
+            headers={"X-Forwarded-For": "99.99.0.1"},
+            expected=403,
         )
 
         # Done. Note that the /localhost/ endpoint is wrapping around to make a localhost call back
@@ -227,9 +257,15 @@ config:
         # We're replacing super()'s requirements deliberately here. Without X-Forwarded-For they can't work.
         yield (
             "url",
-            Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-For": "99.99.0.1"}),
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"X-Forwarded-For": "99.99.0.1"},
+            ),
         )
         yield (
             "url",
-            Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-For": "99.99.0.1"}),
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"X-Forwarded-For": "99.99.0.1"},
+            ),
         )

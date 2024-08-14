@@ -1,6 +1,10 @@
 import pytest
 
-from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests
+from tests.utils import (
+    econf_compile,
+    econf_foreach_cluster,
+    module_and_mapping_manifests,
+)
 
 
 def _test_common_http_protocol_options(yaml, expectations={}):
@@ -29,24 +33,35 @@ def test_cluster_max_connection_lifetime_ms_missing():
 @pytest.mark.compilertest
 def test_cluster_max_connection_lifetime_ms_module_only():
     # If we only set the config on the Module, it should show up.
-    yaml = module_and_mapping_manifests(["cluster_max_connection_lifetime_ms: 2005"], [])
-    _test_common_http_protocol_options(yaml, expectations={"max_connection_duration": "2.005s"})
+    yaml = module_and_mapping_manifests(
+        ["cluster_max_connection_lifetime_ms: 2005"], []
+    )
+    _test_common_http_protocol_options(
+        yaml, expectations={"max_connection_duration": "2.005s"}
+    )
 
 
 @pytest.mark.compilertest
 def test_cluster_max_connection_lifetime_ms_mapping_only():
     # If we only set the config on the Mapping, it should show up.
-    yaml = module_and_mapping_manifests(None, ["cluster_max_connection_lifetime_ms: 2005"])
-    _test_common_http_protocol_options(yaml, expectations={"max_connection_duration": "2.005s"})
+    yaml = module_and_mapping_manifests(
+        None, ["cluster_max_connection_lifetime_ms: 2005"]
+    )
+    _test_common_http_protocol_options(
+        yaml, expectations={"max_connection_duration": "2.005s"}
+    )
 
 
 @pytest.mark.compilertest
 def test_cluster_max_connection_lifetime_ms_mapping_override():
     # If we set the config on the Module and Mapping, the Mapping value wins.
     yaml = module_and_mapping_manifests(
-        ["cluster_max_connection_lifetime_ms: 2005"], ["cluster_max_connection_lifetime_ms: 17005"]
+        ["cluster_max_connection_lifetime_ms: 2005"],
+        ["cluster_max_connection_lifetime_ms: 17005"],
     )
-    _test_common_http_protocol_options(yaml, expectations={"max_connection_duration": "17.005s"})
+    _test_common_http_protocol_options(
+        yaml, expectations={"max_connection_duration": "17.005s"}
+    )
 
 
 @pytest.mark.compilertest
@@ -83,10 +98,12 @@ def test_cluster_idle_timeout_ms_mapping_override():
 def test_both_module():
     # If we set both configs on the Module, both should show up.
     yaml = module_and_mapping_manifests(
-        ["cluster_idle_timeout_ms: 4005", "cluster_max_connection_lifetime_ms: 2005"], None
+        ["cluster_idle_timeout_ms: 4005", "cluster_max_connection_lifetime_ms: 2005"],
+        None,
     )
     _test_common_http_protocol_options(
-        yaml, expectations={"max_connection_duration": "2.005s", "idle_timeout": "4.005s"}
+        yaml,
+        expectations={"max_connection_duration": "2.005s", "idle_timeout": "4.005s"},
     )
 
 
@@ -94,10 +111,12 @@ def test_both_module():
 def test_both_mapping():
     # If we set both configs on the Mapping, both should show up.
     yaml = module_and_mapping_manifests(
-        None, ["cluster_idle_timeout_ms: 4005", "cluster_max_connection_lifetime_ms: 2005"]
+        None,
+        ["cluster_idle_timeout_ms: 4005", "cluster_max_connection_lifetime_ms: 2005"],
     )
     _test_common_http_protocol_options(
-        yaml, expectations={"max_connection_duration": "2.005s", "idle_timeout": "4.005s"}
+        yaml,
+        expectations={"max_connection_duration": "2.005s", "idle_timeout": "4.005s"},
     )
 
 
@@ -108,5 +127,6 @@ def test_both_one_module_one_mapping():
         ["cluster_idle_timeout_ms: 4005"], ["cluster_max_connection_lifetime_ms: 2005"]
     )
     _test_common_http_protocol_options(
-        yaml, expectations={"max_connection_duration": "2.005s", "idle_timeout": "4.005s"}
+        yaml,
+        expectations={"max_connection_duration": "2.005s", "idle_timeout": "4.005s"},
     )

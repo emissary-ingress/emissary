@@ -54,7 +54,13 @@ class IRAmbassadorTLS(IRResource):
         ir.logger.debug("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, enabled=enabled, **kwargs
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            kind=kind,
+            name=name,
+            enabled=enabled,
+            **kwargs,
         )
 
 
@@ -86,7 +92,9 @@ class TLSModuleFactory:
                 **new_args,
             )
 
-            ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
+            ir.logger.debug(
+                "TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json()
+            )
 
         # Next, a TLS module in the Ambassador module overrides any other TLS Module.
         amod = aconf.get_module("ambassador")

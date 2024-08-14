@@ -494,7 +494,9 @@ class Diagnostics:
 
                 element_dict = self.envoy_elements.setdefault(fqkey, {})
                 element_list = element_dict.setdefault(kind, [])
-                element_list.append({k: v for k, v in envoy_element.items() if k[0] != "_"})
+                element_list.append(
+                    {k: v for k, v in envoy_element.items() if k[0] != "_"}
+                )
 
         # Always generate the full group set so that we can look up groups.
         self.groups = {
@@ -608,7 +610,9 @@ class Diagnostics:
             "envoy_elements": self.envoy_elements,
             "errors": self.errors,
             "notices": self.notices,
-            "groups": {key: self.flattened(value) for key, value in self.groups.items()},
+            "groups": {
+                key: self.flattened(value) for key, value in self.groups.items()
+            },
             # 'clusters': { key: value.as_dict() for key, value in self.clusters.items() },
             "tlscontexts": [x.as_dict() for x in self.ir.tls_contexts.values()],
         }

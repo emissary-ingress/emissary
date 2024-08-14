@@ -1,6 +1,10 @@
 import pytest
 
-from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests
+from tests.utils import (
+    econf_compile,
+    econf_foreach_cluster,
+    module_and_mapping_manifests,
+)
 
 
 # Tests if `setting` exists within the cluster config and has `expected` as the value for that setting
@@ -28,7 +32,11 @@ def _test_cluster_subfields(yaml, setting, expectations={}, exists=True):
         else:
             assert setting not in cluster
         for key, expected in expectations.items():
-            print("Checking key: {} for the {} setting in Envoy cluster".format(key, setting))
+            print(
+                "Checking key: {} for the {} setting in Envoy cluster".format(
+                    key, setting
+                )
+            )
             assert key in cluster[setting]
             assert cluster[setting][key] == expected
 
@@ -63,7 +71,9 @@ def test_dns_type_wrong():
 @pytest.mark.compilertest
 def test_logical_dns_type_endpoints():
     # Ensure we use endpoint discovery instead of this value when using the endpoint resolver.
-    yaml = module_and_mapping_manifests(None, ["dns_type: logical_dns", "resolver: endpoint"])
+    yaml = module_and_mapping_manifests(
+        None, ["dns_type: logical_dns", "resolver: endpoint"]
+    )
     # The dns type is listed as just "type"
     _test_cluster_setting(yaml, setting="type", expected="EDS", exists=True)
 

@@ -63,7 +63,11 @@ class AddResponseHeaders(OptionTest):
                         lowercased_headers,
                     )
                 else:
-                    assert actual == [v], "expected %s: %s but got %s" % (k, v, lowercased_headers)
+                    assert actual == [v], "expected %s: %s but got %s" % (
+                        k,
+                        v,
+                        lowercased_headers,
+                    )
 
 
 class UseWebsocket(OptionTest):
@@ -169,5 +173,5 @@ class RemoveResponseHeaders(OptionTest):
     def check(self):
         for r in self.parent.results:
             assert (
-                r.headers.get("x-envoy-upstream-service-time", None) == None
+                r.headers.get("x-envoy-upstream-service-time", None) is None
             ), "x-envoy-upstream-service-time header was meant to be dropped but wasn't"

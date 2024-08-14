@@ -25,12 +25,12 @@ class ConsulPod(ServiceType):
     service_account_name: str
     datacenter_json: str
 
-    def __init__(self, service_account_name: str, datacenter_json: str, *args, **kwargs) -> None:
+    def __init__(
+        self, service_account_name: str, datacenter_json: str, *args, **kwargs
+    ) -> None:
         self.service_account_name = service_account_name
         self.datacenter_json = datacenter_json
-        kwargs[
-            "service_manifests"
-        ] = """
+        kwargs["service_manifests"] = """
 ---
 apiVersion: v1
 kind: Service
@@ -145,8 +145,10 @@ spec:
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.k8s_target, self.format(
-            """
+        yield (
+            self.k8s_target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -188,12 +190,15 @@ requestPolicy:
   insecure:
     action: Route
 """
+            ),
         )
 
     def queries(self):
         # Deregister the Consul services in phase 0.
         yield Query(
-            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"),
+            self.format(
+                "http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"
+            ),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -202,7 +207,9 @@ requestPolicy:
             phase=0,
         )
         yield Query(
-            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"),
+            self.format(
+                "http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"
+            ),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -211,7 +218,9 @@ requestPolicy:
             phase=0,
         )
         yield Query(
-            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"),
+            self.format(
+                "http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"
+            ),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -222,14 +231,24 @@ requestPolicy:
 
         # The K8s service should be OK. The Consul services should 503 since they have no upstreams
         # in phase 1.
-        yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=1)
-        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=503, phase=1)
-        yield Query(self.url(self.format("{self.path.k8s}_consul_ns/")), expected=503, phase=1)
-        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=503, phase=1)
+        yield Query(
+            self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=1
+        )
+        yield Query(
+            self.url(self.format("{self.path.k8s}_consul/")), expected=503, phase=1
+        )
+        yield Query(
+            self.url(self.format("{self.path.k8s}_consul_ns/")), expected=503, phase=1
+        )
+        yield Query(
+            self.url(self.format("{self.path.k8s}_consul_node/")), expected=503, phase=1
+        )
 
         # Register the Consul services in phase 2.
         yield Query(
-            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/register"),
+            self.format(
+                "http://{self.consul_target.path.k8s}:8500/v1/catalog/register"
+            ),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -244,37 +263,56 @@ requestPolicy:
             phase=2,
         )
         yield Query(
-            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/register"),
+            self.format(
+                "http://{self.consul_target.path.k8s}:8500/v1/catalog/register"
+            ),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
                 "Node": self.format("{self.path.k8s}-consul-ns-service"),
-                "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
+                "Address": self.format(
+                    "{self.k8s_ns_target.path.k8s}.consul-test-namespace"
+                ),
                 "Service": {
                     "Service": self.format("{self.path.k8s}-consul-ns-service"),
-                    "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
+                    "Address": self.format(
+                        "{self.k8s_ns_target.path.k8s}.consul-test-namespace"
+                    ),
                     "Port": 80,
                 },
             },
             phase=2,
         )
         yield Query(
-            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/register"),
+            self.format(
+                "http://{self.consul_target.path.k8s}:8500/v1/catalog/register"
+            ),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
                 "Node": self.format("{self.path.k8s}-consul-node"),
                 "Address": self.k8s_target.path.k8s,
-                "Service": {"Service": self.format("{self.path.k8s}-consul-node"), "Port": 80},
+                "Service": {
+                    "Service": self.format("{self.path.k8s}-consul-node"),
+                    "Port": 80,
+                },
             },
             phase=2,
         )
 
         # All services should work in phase 3.
-        yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=3)
-        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=3)
-        yield Query(self.url(self.format("{self.path.k8s}_consul_ns/")), expected=200, phase=3)
-        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=3)
+        yield Query(
+            self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=3
+        )
+        yield Query(
+            self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=3
+        )
+        yield Query(
+            self.url(self.format("{self.path.k8s}_consul_ns/")), expected=200, phase=3
+        )
+        yield Query(
+            self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=3
+        )
 
     def check(self):
         pass

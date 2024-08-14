@@ -37,7 +37,9 @@ class KnativeIngressProcessor(ManagedKubernetesProcessor):
         # to ignore KnativeIngress iff networking.knative.dev/ingress.class is
         # present in annotation. If it's not there, then we accept all ingress
         # classes.
-        ingress_class = annotations.get("networking.knative.dev/ingress.class", self.INGRESS_CLASS)
+        ingress_class = annotations.get(
+            "networking.knative.dev/ingress.class", self.INGRESS_CLASS
+        )
         if ingress_class.lower() != self.INGRESS_CLASS:
             self.logger.debug(
                 f"Ignoring Knative {obj.kind} {obj.name}; set networking.knative.dev/ingress.class "
@@ -54,7 +56,9 @@ class KnativeIngressProcessor(ManagedKubernetesProcessor):
 
         return True
 
-    def _emit_mapping(self, obj: KubernetesObject, rule_count: int, rule: Dict[str, Any]) -> None:
+    def _emit_mapping(
+        self, obj: KubernetesObject, rule_count: int, rule: Dict[str, Any]
+    ) -> None:
         hosts = rule.get("hosts", [])
 
         split_mapping_specs: List[Dict[str, Any]] = []
@@ -82,7 +86,10 @@ class KnativeIngressProcessor(ManagedKubernetesProcessor):
                         "weight": split.get("percent", 100),
                         "prefix": path.get("path", "/"),
                         "timeout_ms": int(
-                            durationpy.from_str(path.get("timeout", "15s")).total_seconds() * 1000
+                            durationpy.from_str(
+                                path.get("timeout", "15s")
+                            ).total_seconds()
+                            * 1000
                         ),
                     }
                 )
@@ -110,13 +117,23 @@ class KnativeIngressProcessor(ManagedKubernetesProcessor):
             self.logger.debug(f"Generated Mapping from Knative {obj.kind}: {mapping}")
             self.manager.emit(mapping)
 
-    def _make_status(self, generation: int = 1, lb_domain: Optional[str] = None) -> Dict[str, Any]:
+    def _make_status(
+        self, generation: int = 1, lb_domain: Optional[str] = None
+    ) -> Dict[str, Any]:
         utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         status = {
             "observedGeneration": generation,
             "conditions": [
-                {"lastTransitionTime": utcnow, "status": "True", "type": "LoadBalancerReady"},
-                {"lastTransitionTime": utcnow, "status": "True", "type": "NetworkConfigured"},
+                {
+                    "lastTransitionTime": utcnow,
+                    "status": "True",
+                    "type": "LoadBalancerReady",
+                },
+                {
+                    "lastTransitionTime": utcnow,
+                    "status": "True",
+                    "type": "NetworkConfigured",
+                },
                 {"lastTransitionTime": utcnow, "status": "True", "type": "Ready"},
             ],
         }
@@ -145,7 +162,10 @@ class KnativeIngressProcessor(ManagedKubernetesProcessor):
         # out-of-cluster ingress to access the service.
         current_lb_domain = None
 
-        if not self.service_dep.ambassador_service or not self.service_dep.ambassador_service.name:
+        if (
+            not self.service_dep.ambassador_service
+            or not self.service_dep.ambassador_service.name
+        ):
             self.logger.warning(
                 f"Unable to set Knative {obj.kind} {obj.name}'s load balancer, could not find Ambassador service"
             )
@@ -165,14 +185,18 @@ class KnativeIngressProcessor(ManagedKubernetesProcessor):
         has_new_lb_domain = current_lb_domain != observed_lb_domain
 
         if has_new_generation or has_new_lb_domain:
-            status = self._make_status(generation=obj.generation, lb_domain=current_lb_domain)
+            status = self._make_status(
+                generation=obj.generation, lb_domain=current_lb_domain
+            )
 
             if status:
                 status_update = (obj.gvk.domain, obj.namespace, status)
                 self.logger.info(
                     f"Updating Knative {obj.kind} {obj.name} status to {status_update}"
                 )
-                self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = status_update
+                self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = (
+                    status_update
+                )
         else:
             self.logger.debug(
                 f"Not reconciling Knative {obj.kind} {obj.name}: observed and current generations are in sync"

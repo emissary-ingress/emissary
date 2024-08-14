@@ -185,9 +185,11 @@ class IRHTTPMapping(IRBaseMapping):
 
         if "add_linkerd_headers" not in new_args:
             # They didn't set it explicitly, so check for the older way.
-            add_linkerd_headers = self.ir.ambassador_module.get("add_linkerd_headers", None)
+            add_linkerd_headers = self.ir.ambassador_module.get(
+                "add_linkerd_headers", None
+            )
 
-            if add_linkerd_headers != None:
+            if add_linkerd_headers is not None:
                 new_args["add_linkerd_headers"] = add_linkerd_headers
 
         # OK. On to set up the headers (since we need them to compute our group ID).
@@ -216,9 +218,9 @@ class IRHTTPMapping(IRBaseMapping):
                         if "*" in hdr_value:
                             # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
                             # and defer the error for later.
-                            new_args[
-                                "_deferred_error"
-                            ] = f":authority exact-match '{hdr_value}' contains *, which cannot match anything."
+                            new_args["_deferred_error"] = (
+                                f":authority exact-match '{hdr_value}' contains *, which cannot match anything."
+                            )
                             ir.logger.debug(
                                 "IRHTTPMapping %s: self.host contains * (%s, :authority)",
                                 name,
@@ -230,7 +232,9 @@ class IRHTTPMapping(IRBaseMapping):
                             # match only itself.)
                             host = hdr_value
                             ir.logger.debug(
-                                "IRHTTPMapping %s: self.host == %s (:authority)", name, self.host
+                                "IRHTTPMapping %s: self.host == %s (:authority)",
+                                name,
+                                self.host,
                             )
                             # DO NOT save the ':authority' match here -- we'll pick it up after we've checked
                             # for hostname, too.
@@ -255,12 +259,16 @@ class IRHTTPMapping(IRBaseMapping):
                 if "*" in host:
                     # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
                     # and defer the error for later.
-                    new_args[
-                        "_deferred_error"
-                    ] = f"host exact-match {host} contains *, which cannot match anything."
-                    ir.logger.debug("IRHTTPMapping %s: self.host contains * (%s, host)", name, host)
+                    new_args["_deferred_error"] = (
+                        f"host exact-match {host} contains *, which cannot match anything."
+                    )
+                    ir.logger.debug(
+                        "IRHTTPMapping %s: self.host contains * (%s, host)", name, host
+                    )
                 else:
-                    ir.logger.debug("IRHTTPMapping %s: self.host == %s (host)", name, self.host)
+                    ir.logger.debug(
+                        "IRHTTPMapping %s: self.host == %s (host)", name, self.host
+                    )
 
         # Finally, check for 'hostname'.
         if "hostname" in kwargs:
@@ -276,7 +284,9 @@ class IRHTTPMapping(IRBaseMapping):
             # No need to be so careful about "*" here, since hostname is defined to be a glob.
             host = kwargs["hostname"]
             host_regex = False
-            ir.logger.debug("IRHTTPMapping %s: self.host gl~ %s (hostname)", name, self.host)
+            ir.logger.debug(
+                "IRHTTPMapping %s: self.host gl~ %s (hostname)", name, self.host
+            )
 
         # If we have a host, include a ":authority" match. We're treating this as if it were
         # an exact match, but that's because the ":authority" match is handling specially by
@@ -290,7 +300,9 @@ class IRHTTPMapping(IRBaseMapping):
 
         if "method" in kwargs:
             hdrs.append(
-                KeyValueDecorator(":method", kwargs["method"], kwargs.get("method_regex", False))
+                KeyValueDecorator(
+                    ":method", kwargs["method"], kwargs.get("method_regex", False)
+                )
             )
 
         if "use_websocket" in new_args:
@@ -336,7 +348,9 @@ class IRHTTPMapping(IRBaseMapping):
             # qualification.
             resolver_kind = "KubernetesBogusResolver"
 
-        service = normalize_service_name(ir, service, namespace, resolver_kind, rkey=rkey)
+        service = normalize_service_name(
+            ir, service, namespace, resolver_kind, rkey=rkey
+        )
         self.ir.logger.debug(f"Mapping {name} service qualified to {repr(service)}")
 
         svc = Service(ir.logger, service)
@@ -447,7 +461,10 @@ class IRHTTPMapping(IRBaseMapping):
         # If we have error response overrides, generate an IR for that too.
         if "error_response_overrides" in self:
             self.error_response_overrides = IRErrorResponse(
-                self.ir, aconf, self.get("error_response_overrides", None), location=self.location
+                self.ir,
+                aconf,
+                self.get("error_response_overrides", None),
+                location=self.location,
             )
             # if self.error_response_overrides.setup(self.ir, aconf):
             if self.error_response_overrides:

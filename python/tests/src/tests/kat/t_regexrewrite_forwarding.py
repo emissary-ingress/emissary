@@ -11,8 +11,10 @@ class RegexRewriteForwardingTest(AmbassadorTest):
         self.target = HTTP(name="foo")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            r"""
+        yield (
+            self.target,
+            self.format(
+                r"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -24,6 +26,7 @@ regex_rewrite:
     pattern: "/foo/baz"
     substitution: "/baz/foo"
 """
+            ),
         )
 
     def queries(self):
@@ -34,11 +37,17 @@ regex_rewrite:
     def check(self):
         assert self.results[0].backend
         assert self.results[0].backend.request
-        assert self.results[0].backend.request.headers["x-envoy-original-path"][0] == f"/foo/bar"
+        assert (
+            self.results[0].backend.request.headers["x-envoy-original-path"][0]
+            == "/foo/bar"
+        )
         assert self.results[0].backend.request.url.path == "/foo/bar"
         assert self.results[1].backend
         assert self.results[1].backend.request
-        assert self.results[1].backend.request.headers["x-envoy-original-path"][0] == f"/foo/baz"
+        assert (
+            self.results[1].backend.request.headers["x-envoy-original-path"][0]
+            == "/foo/baz"
+        )
         assert self.results[1].backend.request.url.path == "/baz/foo"
 
 
@@ -49,8 +58,10 @@ class RegexRewriteForwardingWithExtractAndSubstituteTest(AmbassadorTest):
         self.target = HTTP(name="foo")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            r"""
+        yield (
+            self.target,
+            self.format(
+                r"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -62,6 +73,7 @@ regex_rewrite:
     pattern: "/foo/([0-9]*)/list"
     substitution: "/bar/\\1"
 """
+            ),
         )
 
     def queries(self):
@@ -75,13 +87,13 @@ regex_rewrite:
         assert self.results[0].backend.request
         assert (
             self.results[0].backend.request.headers["x-envoy-original-path"][0]
-            == f"/foo/123456789/list"
+            == "/foo/123456789/list"
         )
         assert self.results[0].backend.request.url.path == "/bar/123456789"
         assert self.results[1].backend
         assert self.results[1].backend.request
         assert (
             self.results[1].backend.request.headers["x-envoy-original-path"][0]
-            == f"/foo/987654321/list"
+            == "/foo/987654321/list"
         )
         assert self.results[1].backend.request.url.path == "/bar/987654321"

@@ -20,3 +20,16 @@ from .diagnostics import Diagnostics
 from .envoy import EnvoyConfig
 from .ir import IR
 from .VERSION import Commit, Version
+
+
+__all__ = (
+    "IR",
+    "Cache",
+    "Config",
+    "Scout",
+    "Commit",
+    "Version",
+    "EnvoyConfig",
+    "Diagnostics",
+    "ScoutNotice",
+)

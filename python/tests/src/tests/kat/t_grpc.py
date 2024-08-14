@@ -18,8 +18,10 @@ class AcceptanceGrpcTest(AmbassadorTest):
         # name:  ambassador
         # # """)
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -30,13 +32,17 @@ rewrite: ""   # This means to leave the prefix unaltered.
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 """
+            ),
         )
 
     def queries(self):
         # [0]
         yield Query(
             self.url("echo.EchoService/Echo"),
-            headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "0"},
+            headers={
+                "content-type": "application/grpc",
+                "kat-req-echo-requested-status": "0",
+            },
             expected=200,
             grpc_type="real",
         )
@@ -44,7 +50,10 @@ service: {self.target.path.k8s}
         # [1]
         yield Query(
             self.url("echo.EchoService/Echo"),
-            headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "7"},
+            headers={
+                "content-type": "application/grpc",
+                "kat-req-echo-requested-status": "7",
+            },
             expected=200,
             grpc_type="real",
         )
@@ -110,7 +119,10 @@ spec:
         # [0]
         yield Query(
             self.url("echo.EchoService/Echo"),
-            headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "0"},
+            headers={
+                "content-type": "application/grpc",
+                "kat-req-echo-requested-status": "0",
+            },
             expected=200,
             grpc_type="real",
         )
@@ -118,7 +130,10 @@ spec:
         # [1]
         yield Query(
             self.url("echo.EchoService/Echo"),
-            headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "7"},
+            headers={
+                "content-type": "application/grpc",
+                "kat-req-echo-requested-status": "7",
+            },
             expected=200,
             grpc_type="real",
         )

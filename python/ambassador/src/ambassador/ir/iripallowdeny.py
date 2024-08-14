@@ -19,7 +19,10 @@ class IRIPAllowDeny(IRFilter):
     action: str
     principals: List[Tuple[str, "CIDRRange"]]
 
-    EnvoyTypeMap: ClassVar[Dict[str, str]] = {"remote": "remote_ip", "peer": "direct_remote_ip"}
+    EnvoyTypeMap: ClassVar[Dict[str, str]] = {
+        "remote": "remote_ip",
+        "peer": "direct_remote_ip",
+    }
 
     def __init__(
         self,
@@ -77,7 +80,9 @@ class IRIPAllowDeny(IRFilter):
         action = action.upper()
 
         if (action != "ALLOW") and (action != "DENY"):
-            raise RuntimeError(f"IRIPAllowDeny action must be ALLOW or DENY, not {action}")
+            raise RuntimeError(
+                f"IRIPAllowDeny action must be ALLOW or DENY, not {action}"
+            )
 
         self.action = action
         self.principals = []

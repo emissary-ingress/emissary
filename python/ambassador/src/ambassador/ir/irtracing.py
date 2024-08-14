@@ -32,7 +32,9 @@ class IRTracing(IRResource):
     ) -> None:
         del kwargs  # silence unused-variable warning
 
-        super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace)
+        super().__init__(
+            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace
+        )
         self.cluster = None
 
     def setup(self, ir: "IR", aconf: Config) -> bool:
@@ -50,7 +52,9 @@ class IRTracing(IRResource):
         if number_configs != 1:
             self.post_error(
                 RichStatus.fromError(
-                    "exactly one TracingService is supported, got {}".format(number_configs),
+                    "exactly one TracingService is supported, got {}".format(
+                        number_configs
+                    ),
                     module=aconf,
                 )
             )
@@ -60,12 +64,16 @@ class IRTracing(IRResource):
 
         service = config.get("service")
         if not service:
-            self.post_error(RichStatus.fromError("service field is required in TracingService"))
+            self.post_error(
+                RichStatus.fromError("service field is required in TracingService")
+            )
             return False
 
         driver = config.get("driver")
         if not driver:
-            self.post_error(RichStatus.fromError("driver field is required in TracingService"))
+            self.post_error(
+                RichStatus.fromError("driver field is required in TracingService")
+            )
             return False
 
         self.namespace = config.get("namespace", self.namespace)
@@ -99,11 +107,14 @@ class IRTracing(IRResource):
                 driver_config["collector_endpoint"] = "/api/v2/spans"
             if not driver_config.get("collector_endpoint_version"):
                 driver_config["collector_endpoint_version"] = "HTTP_JSON"
-            if not "trace_id_128bit" in driver_config:
+            if "trace_id_128bit" not in driver_config:
                 # Make 128-bit traceid the default
                 driver_config["trace_id_128bit"] = True
             # validate
-            if driver_config["collector_endpoint_version"] not in ["HTTP_JSON", "HTTP_PROTO"]:
+            if driver_config["collector_endpoint_version"] not in [
+                "HTTP_JSON",
+                "HTTP_PROTO",
+            ]:
                 self.post_error(
                     RichStatus.fromError(
                         "collector_endpoint_version must be one of HTTP_JSON, HTTP_PROTO'"

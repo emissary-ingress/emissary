@@ -12,8 +12,8 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config
-from ambassador.fetch import ResourceFetcher
+from ambassador import Config  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
 
 yaml = """
 ---

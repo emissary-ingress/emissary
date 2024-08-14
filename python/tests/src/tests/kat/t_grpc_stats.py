@@ -9,8 +9,10 @@ class AcceptanceGrpcStatsTest(AmbassadorTest):
         self.target = EGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -20,10 +22,13 @@ config:
         all_methods: true
         upstream_stats: true
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -34,10 +39,13 @@ rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  metrics
@@ -46,6 +54,7 @@ prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
 """
+            ),
         )
 
     def queries(self):
@@ -53,7 +62,10 @@ service: http://127.0.0.1:8877
         for i in range(10):
             yield Query(
                 self.url("echo.EchoService/Echo"),
-                headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "0"},
+                headers={
+                    "content-type": "application/grpc",
+                    "kat-req-echo-requested-status": "0",
+                },
                 grpc_type="real",
                 phase=1,
             )
@@ -61,7 +73,10 @@ service: http://127.0.0.1:8877
         for i in range(10):
             yield Query(
                 self.url("echo.EchoService/Echo"),
-                headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "13"},
+                headers={
+                    "content-type": "application/grpc",
+                    "kat-req-echo-requested-status": "13",
+                },
                 grpc_type="real",
                 phase=1,
             )
@@ -111,8 +126,10 @@ class GrpcStatsTestOnlySelectedServices(AmbassadorTest):
         self.target = EGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -125,10 +142,13 @@ config:
             - name: echo.EchoService
               method_names: [Echo]
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -139,10 +159,13 @@ rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  metrics
@@ -151,6 +174,7 @@ prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
 """
+            ),
         )
 
     def queries(self):
@@ -158,7 +182,10 @@ service: http://127.0.0.1:8877
         for i in range(10):
             yield Query(
                 self.url("echo.EchoService/Echo"),
-                headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "0"},
+                headers={
+                    "content-type": "application/grpc",
+                    "kat-req-echo-requested-status": "0",
+                },
                 grpc_type="real",
                 phase=1,
             )
@@ -166,7 +193,10 @@ service: http://127.0.0.1:8877
         for i in range(10):
             yield Query(
                 self.url("echo.EchoService/Echo"),
-                headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "13"},
+                headers={
+                    "content-type": "application/grpc",
+                    "kat-req-echo-requested-status": "13",
+                },
                 grpc_type="real",
                 phase=1,
             )
@@ -212,8 +242,10 @@ class GrpcStatsTestNoUpstreamAllMethodsFalseInvalidKeys(AmbassadorTest):
         self.target = EGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -224,10 +256,13 @@ config:
         upstream_stats: false
         i_will_not_break_envoy: true
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -238,10 +273,13 @@ rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  metrics
@@ -250,6 +288,7 @@ prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
 """
+            ),
         )
 
     def queries(self):
@@ -257,7 +296,10 @@ service: http://127.0.0.1:8877
         for i in range(10):
             yield Query(
                 self.url("echo.EchoService/Echo"),
-                headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "0"},
+                headers={
+                    "content-type": "application/grpc",
+                    "kat-req-echo-requested-status": "0",
+                },
                 grpc_type="real",
                 phase=1,
             )
@@ -265,7 +307,10 @@ service: http://127.0.0.1:8877
         for i in range(10):
             yield Query(
                 self.url("echo.EchoService/Echo"),
-                headers={"content-type": "application/grpc", "kat-req-echo-requested-status": "13"},
+                headers={
+                    "content-type": "application/grpc",
+                    "kat-req-echo-requested-status": "13",
+                },
                 grpc_type="real",
                 phase=1,
             )
@@ -288,7 +333,10 @@ service: http://127.0.0.1:8877
         ]
 
         # these metrics SHOULD NOT be there based on the filter config
-        absent_metrics = ["envoy_cluster_grpc_upstream_rq_time", "envoy_cluster_grpc_EchoService_0"]
+        absent_metrics = [
+            "envoy_cluster_grpc_upstream_rq_time",
+            "envoy_cluster_grpc_EchoService_0",
+        ]
 
         # check if the metrics are there
         for metric in metrics:

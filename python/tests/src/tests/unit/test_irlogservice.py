@@ -11,10 +11,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("emissary-ingress")
 
-from ambassador import IR, Config, EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
-from tests.utils import default_listener_manifests
+from ambassador import IR, Config, EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
+from tests.utils import default_listener_manifests  # noqa: E402
 
 SERVICE_NAME = "cool-log-svcname"
 
@@ -50,12 +50,14 @@ def _get_envoy_config(yaml):
 
 def _get_logfilter_http_default_conf():
     return {
-        "@type": f"type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig",
+        "@type": "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig",
         "common_config": {
             "transport_api_version": "V3",
             "log_name": "logservice",
             "grpc_service": {
-                "envoy_grpc": {"cluster_name": "cluster_logging_cool_log_svcname_default"}
+                "envoy_grpc": {
+                    "cluster_name": "cluster_logging_cool_log_svcname_default"
+                }
             },
             "buffer_flush_interval": "1s",
             "buffer_size_bytes": 16384,
@@ -68,12 +70,14 @@ def _get_logfilter_http_default_conf():
 
 def _get_logfilter_tcp_default_conf():
     return {
-        "@type": f"type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig",
+        "@type": "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig",
         "common_config": {
             "transport_api_version": "V3",
             "log_name": "logservice",
             "grpc_service": {
-                "envoy_grpc": {"cluster_name": "cluster_logging_cool_log_svcname_default"}
+                "envoy_grpc": {
+                    "cluster_name": "cluster_logging_cool_log_svcname_default"
+                }
             },
             "buffer_flush_interval": "1s",
             "buffer_size_bytes": 16384,
@@ -111,7 +115,7 @@ spec:
     econf = _get_envoy_config(yaml)
     conf = _get_log_config(econf.as_dict(), driver)
 
-    assert conf == False
+    assert conf is False
 
     errors = econf.ir.aconf.errors
     assert "ir.logservice" in errors
@@ -169,9 +173,18 @@ spec:
     config = _get_logfilter_http_default_conf()
     config["common_config"]["buffer_flush_interval"] = "33s"
     config["common_config"]["buffer_size_bytes"] = 9999
-    config["additional_request_headers_to_log"] = ["x-dino-power", "x-dino-request-power"]
-    config["additional_response_headers_to_log"] = ["x-dino-power", "x-dino-response-power"]
-    config["additional_response_trailers_to_log"] = ["x-dino-power", "x-dino-trailer-power"]
+    config["additional_request_headers_to_log"] = [
+        "x-dino-power",
+        "x-dino-request-power",
+    ]
+    config["additional_response_headers_to_log"] = [
+        "x-dino-power",
+        "x-dino-response-power",
+    ]
+    config["additional_response_trailers_to_log"] = [
+        "x-dino-power",
+        "x-dino-trailer-power",
+    ]
 
     assert conf.get("typed_config") == config
 
@@ -206,7 +219,7 @@ spec:
     econf = _get_envoy_config(yaml)
     conf = _get_log_config(econf.as_dict(), driver)
 
-    assert conf == False
+    assert conf is False
 
     errors = econf.ir.aconf.errors
     assert "ir.logservice" in errors
@@ -278,7 +291,7 @@ spec:
     econf = _get_envoy_config(yaml)
     conf = _get_log_config(econf.as_dict(), driver)
 
-    assert conf == False
+    assert conf is False
 
     errors = econf.ir.aconf.errors
     assert "ir.logservice" in errors
@@ -356,7 +369,7 @@ spec:
     econf = _get_envoy_config(yaml)
     conf = _get_log_config(econf.as_dict(), driver)
 
-    assert conf == False
+    assert conf is False
 
     errors = econf.ir.aconf.errors
     assert "ir.logservice" in errors

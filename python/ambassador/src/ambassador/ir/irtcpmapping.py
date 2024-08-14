@@ -53,7 +53,9 @@ class IRTCPMapping(IRBaseMapping):
         # such here, unlike most kinds of IRResource. So. Shallow copy the keys
         # we're going to allow from the incoming kwargs...
 
-        new_args = {x: kwargs[x] for x in kwargs.keys() if x in IRTCPMapping.AllowedKeys}
+        new_args = {
+            x: kwargs[x] for x in kwargs.keys() if x in IRTCPMapping.AllowedKeys
+        }
 
         # XXX The resolver lookup code is duplicated from IRBaseMapping.setup --
         # needs to be fixed after 1.6.1.
@@ -72,7 +74,9 @@ class IRTCPMapping(IRBaseMapping):
             # qualification.
             resolver_kind = "KubernetesBogusResolver"
 
-        service = normalize_service_name(ir, service, namespace, resolver_kind, rkey=rkey)
+        service = normalize_service_name(
+            ir, service, namespace, resolver_kind, rkey=rkey
+        )
         ir.logger.debug(f"TCPMapping {name} service normalized to {repr(service)}")
 
         # ...and then init the superclass.
@@ -92,7 +96,9 @@ class IRTCPMapping(IRBaseMapping):
             **new_args,
         )
 
-        ir.logger.debug("IRTCPMapping %s: self.host = %s", name, self.get("host") or "i'*'")
+        ir.logger.debug(
+            "IRTCPMapping %s: self.host = %s", name, self.get("host") or "i'*'"
+        )
 
     @staticmethod
     def group_class() -> Type[IRBaseMappingGroup]:

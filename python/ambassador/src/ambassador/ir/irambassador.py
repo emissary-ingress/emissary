@@ -134,7 +134,9 @@ class IRAmbassador(IRResource):
             listener_idle_timeout_ms=None,
             liveness_probe={"enabled": True},
             readiness_probe={"enabled": True},
-            diagnostics={"enabled": True},  # TODO(lukeshu): In getambassador.io/v3alpha2, change
+            diagnostics={
+                "enabled": True
+            },  # TODO(lukeshu): In getambassador.io/v3alpha2, change
             # the default to {"enabled": False}.  See the related
             # comment in crd_module.go.
             use_proxy_proto=False,
@@ -185,7 +187,8 @@ class IRAmbassador(IRResource):
             elif ctx.get("hosts", None):
                 # This is a termination context
                 self.logger.debug(
-                    "TLSContext %s is a termination context, enabling TLS termination" % ctx.name
+                    "TLSContext %s is a termination context, enabling TLS termination"
+                    % ctx.name
                 )
                 self.service_port = Constants.SERVICE_PORT_HTTPS
 
@@ -213,9 +216,13 @@ class IRAmbassador(IRResource):
             if "envoy_validation_timeout" in amod:
                 # ...then set our timeout from it.
                 try:
-                    self.envoy_validation_timeout = int(amod["envoy_validation_timeout"])
+                    self.envoy_validation_timeout = int(
+                        amod["envoy_validation_timeout"]
+                    )
                 except ValueError:
-                    self.post_error("envoy_validation_timeout must be an integer number of seconds")
+                    self.post_error(
+                        "envoy_validation_timeout must be an integer number of seconds"
+                    )
 
         # If we don't have a default label domain, force it to 'ambassador'.
         if not self.get("default_label_domain"):
@@ -270,15 +277,23 @@ class IRAmbassador(IRResource):
             # Only one of config['individual_method_stats_allowlist'] or
             # config['stats_for_all_methods'] can be set.
             if "services" in grpc_stats:
-                config["individual_method_stats_allowlist"] = {"services": grpc_stats["services"]}
+                config["individual_method_stats_allowlist"] = {
+                    "services": grpc_stats["services"]
+                }
             else:
-                config["stats_for_all_methods"] = bool(grpc_stats.get("all_methods", False))
+                config["stats_for_all_methods"] = bool(
+                    grpc_stats.get("all_methods", False)
+                )
 
             if "upstream_stats" in grpc_stats:
                 config["enable_upstream_stats"] = bool(grpc_stats["upstream_stats"])
 
             self.grpc_stats = IRFilter(
-                ir=ir, aconf=aconf, kind="ir.grpc_stats", name="grpc_stats", config=config
+                ir=ir,
+                aconf=aconf,
+                kind="ir.grpc_stats",
+                name="grpc_stats",
+                config=config,
             )
             self.grpc_stats.sourced_by(amod)
             ir.save_filter(self.grpc_stats)
@@ -305,7 +320,9 @@ class IRAmbassador(IRResource):
 
         # Buffer.
         if amod and ("buffer" in amod):
-            self.buffer = IRBuffer(ir=ir, aconf=aconf, location=self.location, **amod.buffer)
+            self.buffer = IRBuffer(
+                ir=ir, aconf=aconf, location=self.location, **amod.buffer
+            )
 
             if self.buffer:
                 ir.save_filter(self.buffer)
@@ -350,13 +367,19 @@ class IRAmbassador(IRResource):
 
         if self.get("load_balancer", None) is not None:
             if not IRHTTPMapping.validate_load_balancer(self["load_balancer"]):
-                self.post_error("Invalid load_balancer specified: {}".format(self["load_balancer"]))
+                self.post_error(
+                    "Invalid load_balancer specified: {}".format(self["load_balancer"])
+                )
                 return False
 
         if self.get("circuit_breakers", None) is not None:
-            if not IRBaseMapping.validate_circuit_breakers(self.ir, self["circuit_breakers"]):
+            if not IRBaseMapping.validate_circuit_breakers(
+                self.ir, self["circuit_breakers"]
+            ):
                 self.post_error(
-                    "Invalid circuit_breakers specified: {}".format(self["circuit_breakers"])
+                    "Invalid circuit_breakers specified: {}".format(
+                        self["circuit_breakers"]
+                    )
                 )
                 return False
 

@@ -80,7 +80,9 @@ class V3Config(EnvoyConfig):
 
         return d
 
-    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, "ClustermapEntry"]]:
+    def split_config(
+        self,
+    ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, "ClustermapEntry"]]:
         ads_config = {
             "@type": "/envoy.config.bootstrap.v3.Bootstrap",
             "static_resources": self.static_resources,

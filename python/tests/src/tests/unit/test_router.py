@@ -57,7 +57,11 @@ def test_suppress_envoy_headers():
 @pytest.mark.compilertest
 def test_tracing_service():
     # If we have a tracing service, we should see start_child_span
-    yaml = module_and_mapping_manifests(None, []) + "\n" + zipkin_tracing_service_manifest()
+    yaml = (
+        module_and_mapping_manifests(None, [])
+        + "\n"
+        + zipkin_tracing_service_manifest()
+    )
     _test_router(yaml, expectations={"start_child_span": True})
 
 

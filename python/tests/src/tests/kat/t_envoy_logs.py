@@ -17,8 +17,10 @@ class EnvoyLogTest(AmbassadorTest):
         self.log_format = 'MY_REQUEST %RESPONSE_CODE% "%REQ(:AUTHORITY)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%UPSTREAM_HOST%"'
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -28,12 +30,15 @@ config:
   envoy_log_path: {self.log_path}
   envoy_log_format: {self.log_format}
 """
+            ),
         )
 
     def check(self):
         access_log_entry_regex = re.compile("^MY_REQUEST 200 .*")
 
-        cmd = ShellCommand("tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path)
+        cmd = ShellCommand(
+            "tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path
+        )
         if not cmd.check("check envoy access log"):
             pytest.exit("envoy access log does not exist")
 
@@ -52,8 +57,10 @@ class EnvoyLogJSONTest(AmbassadorTest):
         self.log_path = "/tmp/ambassador/ambassador.log"
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -66,12 +73,15 @@ config:
     duration: "%DURATION%"
   envoy_log_type: json
 """
+            ),
         )
 
     def check(self):
         access_log_entry_regex = re.compile('^({"duration":|{"protocol":)')
 
-        cmd = ShellCommand("tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path)
+        cmd = ShellCommand(
+            "tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path
+        )
         if not cmd.check("check envoy access log"):
             pytest.exit("envoy access log does not exist")
 
@@ -90,8 +100,10 @@ class EnvoyLogTypeJSONTest(AmbassadorTest):
         self.log_path = "/tmp/ambassador/ambassador.log"
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -104,12 +116,15 @@ config:
     duration: "%DURATION%"
   envoy_log_type: typed_json
 """
+            ),
         )
 
     def check(self):
         access_log_entry_regex = re.compile('^({"duration":|{"protocol":)')
 
-        cmd = ShellCommand("tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path)
+        cmd = ShellCommand(
+            "tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path
+        )
         if not cmd.check("check envoy access log"):
             pytest.exit("envoy access log does not exist")
 

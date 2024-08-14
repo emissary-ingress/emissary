@@ -48,7 +48,13 @@ class Resource(Cacheable):
     _referenced_by: Dict[str, "Resource"]
 
     def __init__(
-        self, rkey: str, location: str, *, kind: str, serialization: Optional[str] = None, **kwargs
+        self,
+        rkey: str,
+        location: str,
+        *,
+        kind: str,
+        serialization: Optional[str] = None,
+        **kwargs,
     ) -> None:
         if not rkey:
             raise Exception("Resource requires rkey")
@@ -162,7 +168,11 @@ class Resource(Cacheable):
 
     @classmethod
     def from_dict(
-        cls: Type[R], rkey: str, location: str, serialization: Optional[str], attrs: Dict
+        cls: Type[R],
+        rkey: str,
+        location: str,
+        serialization: Optional[str],
+        attrs: Dict,
     ) -> R:
         """
         Create a Resource or subclass thereof from a dictionary. The new Resource's rkey
@@ -191,7 +201,9 @@ class Resource(Cacheable):
 
         # print("%s.from_dict: %s => %s" % (cls, attrs['kind'], resource_class))
 
-        return resource_class(rkey, location=location, serialization=serialization, **attrs)
+        return resource_class(
+            rkey, location=location, serialization=serialization, **attrs
+        )
 
     @classmethod
     def from_yaml(cls: Type[R], rkey: str, location: str, serialization: str) -> R:

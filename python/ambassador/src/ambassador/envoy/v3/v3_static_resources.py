@@ -24,7 +24,7 @@ class V3StaticResources(dict):
 
         self.update(
             {
-                "listeners": [l.as_dict() for l in config.listeners],
+                "listeners": [listener.as_dict() for listener in config.listeners],
                 "clusters": config.clusters,
             }
         )

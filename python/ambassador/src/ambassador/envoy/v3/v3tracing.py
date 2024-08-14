@@ -41,7 +41,9 @@ class V3Tracing(dict):
         # IR code. The other tracers are configured by their short name and then 'envoy.' is
         # appended above.
         if name.lower() == "envoy.zipkin":
-            driver_config["@type"] = "type.googleapis.com/envoy.config.trace.v3.ZipkinConfig"
+            driver_config["@type"] = (
+                "type.googleapis.com/envoy.config.trace.v3.ZipkinConfig"
+            )
             # In xDS v3 the old Zipkin-v1 API can only be specified as the implicit default; it
             # cannot be specified explicitly.
             # https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=http_json_v1
@@ -49,11 +51,15 @@ class V3Tracing(dict):
             if driver_config["collector_endpoint_version"] == "HTTP_JSON_V1":
                 del driver_config["collector_endpoint_version"]
         elif name.lower() == "envoy.tracers.datadog":
-            driver_config["@type"] = "type.googleapis.com/envoy.config.trace.v3.DatadogConfig"
+            driver_config["@type"] = (
+                "type.googleapis.com/envoy.config.trace.v3.DatadogConfig"
+            )
             if not driver_config.get("service_name"):
                 driver_config["service_name"] = "ambassador"
         elif name.lower() == "envoy.opentelemetry":
-            driver_config["@type"] = "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig"
+            driver_config["@type"] = (
+                "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig"
+            )
             if not driver_config.get("service_name"):
                 driver_config["service_name"] = "ambassador"
         else:
@@ -68,4 +74,6 @@ class V3Tracing(dict):
         config.tracing = None
 
         if config.ir.tracing:
-            config.tracing = config.save_element("tracing", config.ir.tracing, V3Tracing(config))
+            config.tracing = config.save_element(
+                "tracing", config.ir.tracing, V3Tracing(config)
+            )

@@ -76,9 +76,7 @@ ALLOWED_ENVOY_FMT_TOKENS = [
     "LOCAL_REPLY_BODY",
     "FILTER_CHAIN_NAME",
 ]
-ENVOY_FMT_TOKEN_REGEX = (
-    "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
-)
+ENVOY_FMT_TOKEN_REGEX = "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
 
 
 # IRErrorResponse implements custom error response bodies using Envoy's HTTP response_map filter.
@@ -184,17 +182,17 @@ class IRErrorResponse(IRFilter):
 
                 status_code_str: str = str(code)
             except ValueError as e:
-                self.post_error(f"IRErrorResponse: on_status_code: %s" % e)
+                self.post_error("IRErrorResponse: on_status_code: %s" % e)
                 continue
 
             # Try to parse `body` (a required field) as an object.
             ir_body = error_response.get("body", None)
             if ir_body is None:
-                self.post_error(f"IRErrorResponse: body: field must exist")
+                self.post_error("IRErrorResponse: body: field must exist")
                 continue
             if not isinstance(ir_body, dict):
                 self.post_error(
-                    f"IRErrorResponse: body: field must be an object, found %s" % ir_body
+                    "IRErrorResponse: body: field must be an object, found %s" % ir_body
                 )
                 continue
 
@@ -277,7 +275,7 @@ class IRErrorResponse(IRFilter):
                     body_format_override["text_format"] = str(ir_text_format)
                     format_body = str(ir_text_format)
                 except ValueError as e:
-                    self.post_error(f"IRErrorResponse: text_format: %s" % e)
+                    self.post_error("IRErrorResponse: text_format: %s" % e)
             elif ir_json_format is not None:
                 # Verify that the json_format field is an object
                 if not isinstance(ir_json_format, dict):
@@ -324,7 +322,9 @@ class IRErrorResponse(IRFilter):
             if ir_content_type is not None:
                 # Content type is optional, but it must be a string if set.
                 if not isinstance(ir_content_type, str):
-                    self.post_error(f"IRErrorResponse: content_type: field must be a string")
+                    self.post_error(
+                        "IRErrorResponse: content_type: field must be a string"
+                    )
                     continue
 
                 body_format_override["content_type"] = ir_content_type
@@ -337,8 +337,10 @@ class IRErrorResponse(IRFilter):
             bad_token = False
             for i in matches:
                 # i[0] is first group in regex match which will contain the command operator name
-                if not i[0] in ALLOWED_ENVOY_FMT_TOKENS:
-                    self.post_error(f"IRErrorResponse: Invalid Envoy command token: {i[0]}")
+                if i[0] not in ALLOWED_ENVOY_FMT_TOKENS:
+                    self.post_error(
+                        f"IRErrorResponse: Invalid Envoy command token: {i[0]}"
+                    )
                     bad_token = True
 
             if bad_token:
@@ -350,7 +352,9 @@ class IRErrorResponse(IRFilter):
 
         # If nothing could be parsed successfully, post an error.
         if len(all_mappers) == 0:
-            self.post_error(f"IRErrorResponse: no valid error response mappers could be parsed")
+            self.post_error(
+                "IRErrorResponse: no valid error response mappers could be parsed"
+            )
             return None
 
         return all_mappers

@@ -40,13 +40,17 @@ class SimpleMapping(MappingTest):
 
             yield cls(
                 st,
-                unique(v for v in variants(OptionTest) if not getattr(v, "isolated", False)),
+                unique(
+                    v for v in variants(OptionTest) if not getattr(v, "isolated", False)
+                ),
                 name="{self.target.name}-all",
             )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -55,6 +59,7 @@ hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -69,7 +74,10 @@ service: http://{self.target.path.fqdn}
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
+                assert (
+                    r.backend.request.headers["x-envoy-original-path"][0]
+                    == f"/{self.name}/"
+                )
 
 
 class SimpleMappingIngress(MappingTest):
@@ -117,7 +125,10 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
+                assert (
+                    r.backend.request.headers["x-envoy-original-path"][0]
+                    == f"/{self.name}/"
+                )
 
 
 # Disabled SimpleMappingIngressDefaultBackend since adding a default fallback mapping would break other
@@ -257,9 +268,13 @@ spec:
     def queries(self):
         yield Query(self.parent.url(self.name + "/"), expected=404)
         yield Query(
-            self.parent.url(self.name + "/"), headers={"Host": "inspector.internal"}, expected=404
+            self.parent.url(self.name + "/"),
+            headers={"Host": "inspector.internal"},
+            expected=404,
         )
-        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
+        yield Query(
+            self.parent.url(self.name + "/"), headers={"Host": "inspector.external"}
+        )
 
 
 class HostHeaderMapping(MappingTest):
@@ -271,8 +286,10 @@ class HostHeaderMapping(MappingTest):
             yield cls(st, name="{self.target.name}")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -281,14 +298,19 @@ prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 host: inspector.external
 """
+            ),
         )
 
     def queries(self):
         yield Query(self.parent.url(self.name + "/"), expected=404)
         yield Query(
-            self.parent.url(self.name + "/"), headers={"Host": "inspector.internal"}, expected=404
+            self.parent.url(self.name + "/"),
+            headers={"Host": "inspector.internal"},
+            expected=404,
         )
-        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
+        yield Query(
+            self.parent.url(self.name + "/"), headers={"Host": "inspector.external"}
+        )
         # Test that a host header with a port value that does match the listener's configured port is not
         # stripped for the purpose of routing, so it does not match the Mapping. This is the default behavior,
         # and can be overridden using `strip_matching_host_port`, tested below.
@@ -308,8 +330,10 @@ class InvalidPortMapping(MappingTest):
             yield cls(st, name="{self.target.name}")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -318,6 +342,7 @@ hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}:80.invalid
 """
+            ),
         )
 
     def queries(self):
@@ -330,7 +355,9 @@ service: http://{self.target.path.fqdn}:80.invalid
             for error in error_list:
                 if error.find(error_string) != -1:
                     found_error = True
-        assert found_error, "could not find the relevant error - {}".format(error_string)
+        assert found_error, "could not find the relevant error - {}".format(
+            error_string
+        )
 
 
 class WebSocketMapping(MappingTest):
@@ -341,8 +368,10 @@ class WebSocketMapping(MappingTest):
         MappingTest.init(self, WebsocketEcho())
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -352,16 +381,20 @@ prefix: /{self.name}/
 service: {self.target.path.fqdn}
 use_websocket: true
 """
+            ),
         )
 
     def queries(self):
         yield Query(self.parent.url(self.name + "/"), expected=404)
 
-        yield Query(self.parent.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"])
+        yield Query(
+            self.parent.url(self.name + "/", scheme="ws"),
+            messages=["one", "two", "three"],
+        )
 
     def check(self):
-        assert self.results[-1].messages == ["one", "two", "three"], "invalid messages: %s" % repr(
-            self.results[-1].messages
+        assert self.results[-1].messages == ["one", "two", "three"], (
+            "invalid messages: %s" % repr(self.results[-1].messages)
         )
 
 
@@ -420,8 +453,10 @@ class HostRedirectMapping(MappingTest):
         MappingTest.init(self, HTTP())
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -473,33 +508,48 @@ regex_redirect:
   substitution: /images/\\1
 redirect_response_code: 308
 """
+            ),
         )
 
     def queries(self):
         # [0]
-        yield Query(self.parent.url(self.name + "/anything?itworked=true"), expected=301)
+        yield Query(
+            self.parent.url(self.name + "/anything?itworked=true"), expected=301
+        )
 
         # [1]
-        yield Query(self.parent.url(self.name.upper() + "/anything?itworked=true"), expected=404)
+        yield Query(
+            self.parent.url(self.name.upper() + "/anything?itworked=true"), expected=404
+        )
 
         # [2]
-        yield Query(self.parent.url(self.name + "-2/anything?itworked=true"), expected=301)
+        yield Query(
+            self.parent.url(self.name + "-2/anything?itworked=true"), expected=301
+        )
 
         # [3]
-        yield Query(self.parent.url(self.name.upper() + "-2/anything?itworked=true"), expected=301)
+        yield Query(
+            self.parent.url(self.name.upper() + "-2/anything?itworked=true"),
+            expected=301,
+        )
 
         # [4]
         yield Query(self.parent.url(self.name + "-3/foo/anything"), expected=302)
 
         # [5]
-        yield Query(self.parent.url(self.name + "-4/foo/bar/baz/anything"), expected=307)
+        yield Query(
+            self.parent.url(self.name + "-4/foo/bar/baz/anything"), expected=307
+        )
 
         # [6]
-        yield Query(self.parent.url(self.name + "-5/assets/abcd0000f123/images"), expected=308)
+        yield Query(
+            self.parent.url(self.name + "-5/assets/abcd0000f123/images"), expected=308
+        )
 
         # [7]
         yield Query(
-            self.parent.url(self.name + "-5/assets/abcd0000f123/images?itworked=true"), expected=308
+            self.parent.url(self.name + "-5/assets/abcd0000f123/images?itworked=true"),
+            expected=308,
         )
 
     def check(self):
@@ -518,7 +568,9 @@ redirect_response_code: 308
 
         # [3]
         assert self.results[3].headers["Location"] == [
-            self.format("http://foobar.com/" + self.name.upper() + "-2/anything?itworked=true")
+            self.format(
+                "http://foobar.com/" + self.name.upper() + "-2/anything?itworked=true"
+            )
         ], f"Unexpected Location {self.results[3].headers['Location']}"
 
         # [4]
@@ -552,7 +604,9 @@ class CanaryMapping(MappingTest):
     def variants(cls) -> Generator[Node, None, None]:
         for v in variants(ServiceType):
             for w in (0, 10, 50, 100):
-                yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
+                yield cls(
+                    v, v.clone("canary"), w, name="{self.target.name}-{self.weight}"
+                )
 
     # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
@@ -564,8 +618,10 @@ class CanaryMapping(MappingTest):
         self.weight = weight
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -574,9 +630,12 @@ hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
-        yield self.canary, self.format(
-            """
+        yield (
+            self.canary,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -586,6 +645,7 @@ prefix: /{self.name}/
 service: http://{self.canary.path.fqdn}
 weight: {self.weight}
 """
+            ),
         )
 
     def queries(self):
@@ -627,7 +687,9 @@ class CanaryDiffMapping(MappingTest):
     def variants(cls) -> Generator[Node, None, None]:
         for v in variants(ServiceType):
             for w in (0, 10, 50, 100):
-                yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
+                yield cls(
+                    v, v.clone("canary"), w, name="{self.target.name}-{self.weight}"
+                )
 
     # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
@@ -639,8 +701,10 @@ class CanaryDiffMapping(MappingTest):
         self.weight = weight
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -650,9 +714,12 @@ prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 host_rewrite: canary.1.example.com
 """
+            ),
         )
-        yield self.canary, self.format(
-            """
+        yield (
+            self.canary,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -663,6 +730,7 @@ service: http://{self.canary.path.fqdn}
 host_rewrite: canary.2.example.com
 weight: {self.weight}
 """
+            ),
         )
 
     def queries(self):
@@ -708,8 +776,10 @@ class AddRespHeadersMapping(MappingTest):
         MappingTest.init(self, HTTPBin())
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -729,10 +799,13 @@ add_response_headers:
     foo:
         value: Foo
 """
+            ),
         )
 
     def queries(self):
-        yield Query(self.parent.url(self.name) + "/response-headers?zoo=Zoo&test=Test&koo=Koot")
+        yield Query(
+            self.parent.url(self.name) + "/response-headers?zoo=Zoo&test=Test&koo=Koot"
+        )
 
     def check(self):
         for r in self.results:
@@ -752,8 +825,10 @@ class RemoveReqHeadersMapping(MappingTest):
         MappingTest.init(self, HTTPBin())
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -765,6 +840,7 @@ remove_request_headers:
 - zoo
 - aoo
 """
+            ),
         )
 
     def queries(self):
@@ -792,8 +868,10 @@ class AddReqHeadersMapping(MappingTest):
             yield cls(st, name="{self.target.name}")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -813,6 +891,7 @@ add_request_headers:
     foo:
         value: Foo
 """
+            ),
         )
 
     def queries(self):

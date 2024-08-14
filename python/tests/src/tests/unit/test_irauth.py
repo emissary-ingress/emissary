@@ -12,17 +12,17 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config, EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
-from tests.utils import default_listener_manifests
+from ambassador import IR, Config, EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
+from tests.utils import default_listener_manifests  # noqa: E402
 
 
 def _assert_ext_auth_disabled(route):
     assert route
     per_filter_config = route.get("typed_per_filter_config")
     assert per_filter_config.get("envoy.filters.http.ext_authz")
-    assert per_filter_config.get("envoy.filters.http.ext_authz").get("disabled") == True
+    assert per_filter_config.get("envoy.filters.http.ext_authz").get("disabled") is True
 
 
 def _get_ext_auth_config(yaml):
@@ -73,7 +73,7 @@ spec:
     conf = econf.as_dict()
     ext_auth_config = _get_ext_auth_config(conf)
 
-    assert ext_auth_config == False
+    assert ext_auth_config is False
 
     errors = econf.ir.aconf.errors["mycoolauthservice.default.1"]
     assert (
@@ -164,7 +164,7 @@ spec:
     conf = econf.as_dict()
     ext_auth_config = _get_ext_auth_config(conf)
 
-    assert ext_auth_config == False
+    assert ext_auth_config is False
 
     errors = econf.ir.aconf.errors["mycoolauthservice.default.1"]
     assert (

@@ -284,7 +284,9 @@ class ReconfigStats:
         self.last_timer_log = when or time.perf_counter()
 
     @staticmethod
-    def isofmt(when: Optional[PerfCounter], now_pc: PerfCounter, now_dt: datetime.datetime) -> str:
+    def isofmt(
+        when: Optional[PerfCounter], now_pc: PerfCounter, now_dt: datetime.datetime
+    ) -> str:
         if not when:
             return "(none)"
 
@@ -298,12 +300,22 @@ class ReconfigStats:
         now_dt = datetime.datetime.now()
 
         for what, when in self.reconfigures:
-            self.logger.info(f"CACHE: {what} reconfigure at {self.isofmt(when, now_pc, now_dt)}")
+            self.logger.info(
+                f"CACHE: {what} reconfigure at {self.isofmt(when, now_pc, now_dt)}"
+            )
 
         for what in ["incremental", "complete"]:
             self.logger.info(f"CACHE: {what} count: {self.counts[what]}")
 
-        self.logger.info(f"CACHE: incrementals outstanding: {self.incrementals_outstanding}")
-        self.logger.info(f"CACHE: incremental checks: {self.checks}, errors {self.errors}")
-        self.logger.info(f"CACHE: last_complete {self.isofmt(self.last_complete, now_pc, now_dt)}")
-        self.logger.info(f"CACHE: last_check {self.isofmt(self.last_check, now_pc, now_dt)}")
+        self.logger.info(
+            f"CACHE: incrementals outstanding: {self.incrementals_outstanding}"
+        )
+        self.logger.info(
+            f"CACHE: incremental checks: {self.checks}, errors {self.errors}"
+        )
+        self.logger.info(
+            f"CACHE: last_complete {self.isofmt(self.last_complete, now_pc, now_dt)}"
+        )
+        self.logger.info(
+            f"CACHE: last_check {self.isofmt(self.last_check, now_pc, now_dt)}"
+        )

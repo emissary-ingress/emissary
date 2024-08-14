@@ -1,5 +1,4 @@
 import logging
-import typing
 from typing import Any, Dict, List
 
 import pytest
@@ -12,10 +11,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config, EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
-from tests.utils import default_listener_manifests
+from ambassador import IR, Config, EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
+from tests.utils import default_listener_manifests  # noqa: E402
 
 
 def _get_cluster_config(clusters, name):
@@ -200,7 +199,13 @@ spec:
         {  # check that we can set hostname on a http health check
             "name": "healthcheck_http_hostname",
             "input": baseYaml.format(
-                [{"health_check": {"http": {"path": "/health", "hostname": "dummy.example"}}}]
+                [
+                    {
+                        "health_check": {
+                            "http": {"path": "/health", "hostname": "dummy.example"}
+                        }
+                    }
+                ]
             ),
             "expected": [
                 {
@@ -319,9 +324,18 @@ spec:
                     "http_health_check": {
                         "path": "/health",
                         "request_headers_to_add": [
-                            {"header": {"key": "fruit-one", "value": "banana"}, "append": False},
-                            {"header": {"key": "fruit-two", "value": "orange"}, "append": True},
-                            {"header": {"key": "fruit-three", "value": "peach"}, "append": True},
+                            {
+                                "header": {"key": "fruit-one", "value": "banana"},
+                                "append": False,
+                            },
+                            {
+                                "header": {"key": "fruit-two", "value": "orange"},
+                                "append": True,
+                            },
+                            {
+                                "header": {"key": "fruit-three", "value": "peach"},
+                                "append": True,
+                            },
                         ],
                     }
                 },
@@ -335,7 +349,11 @@ spec:
                         "health_check": {
                             "http": {
                                 "path": "/health",
-                                "remove_request_headers": ["fruit-one", "fruit-two", "fruit-three"],
+                                "remove_request_headers": [
+                                    "fruit-one",
+                                    "fruit-two",
+                                    "fruit-three",
+                                ],
                             }
                         }
                     }
@@ -345,14 +363,20 @@ spec:
                 {
                     "http_health_check": {
                         "path": "/health",
-                        "request_headers_to_remove": ["fruit-one", "fruit-two", "fruit-three"],
+                        "request_headers_to_remove": [
+                            "fruit-one",
+                            "fruit-two",
+                            "fruit-three",
+                        ],
                     }
                 },
             ],
         },
         {  # Test that we throw out the health check config when there is no endpoint resolver
             "name": "healthcheck_no_endpoint",
-            "input": noEndpointYaml.format([{"health_check": {"http": {"path": "/health"}}}]),
+            "input": noEndpointYaml.format(
+                [{"health_check": {"http": {"path": "/health"}}}]
+            ),
             "expected": None,
         },
     ]
@@ -361,14 +385,19 @@ spec:
         caseYaml = case["input"]
         testName = case["name"]
         econf = _get_envoy_config(caseYaml)
+        assert hasattr(econf, "clusters")
         cluster = _get_cluster_config(econf.clusters, "cluster_coolsvcname_default")
-        assert cluster != False
+        assert cluster is not False
 
         expectedChecks = case["expected"]
         if expectedChecks is None:
-            assert "health_checks" not in cluster, "Failed healthcheck test {}".format(testName)
+            assert "health_checks" not in cluster, "Failed healthcheck test {}".format(
+                testName
+            )
         else:
-            assert "health_checks" in cluster, "Failed healthcheck test {}".format(testName)
+            assert "health_checks" in cluster, "Failed healthcheck test {}".format(
+                testName
+            )
 
             hc = cluster["health_checks"]
             for i in range(0, len(hc)):
@@ -380,17 +409,25 @@ spec:
                 if "grpc_health_check" in expected:
                     try:
                         check_grpc_healthcheck(
-                            expected["grpc_health_check"], actual["grpc_health_check"], testName
+                            expected["grpc_health_check"],
+                            actual["grpc_health_check"],
+                            testName,
                         )
                     except KeyError:
-                        assert True == False, "Failed healthcheck test {}".format(testName)
+                        assert True is False, "Failed healthcheck test {}".format(
+                            testName
+                        )
                 if "http_health_check" in expected:
                     try:
                         check_http_healthcheck(
-                            expected["http_health_check"], actual["http_health_check"], testName
+                            expected["http_health_check"],
+                            actual["http_health_check"],
+                            testName,
                         )
                     except KeyError:
-                        assert True == False, "Failed healthcheck test {}".format(testName)
+                        assert True is False, "Failed healthcheck test {}".format(
+                            testName
+                        )
 
 
 # Runs a bunch of assert statments to check that the expected
@@ -402,19 +439,21 @@ def check_healthcheck_defaults(expected, actual, testName):
             actual["healthy_threshold"] == expected["healthy_threshold"]
         ), "Failed healthcheck test {}".format(testName)
     else:
-        assert actual["healthy_threshold"] == 1, "Failed healthcheck test {}".format(testName)
-
-    if "interval" in expected:
-        assert actual["interval"] == expected["interval"], "Failed healthcheck test {}".format(
+        assert actual["healthy_threshold"] == 1, "Failed healthcheck test {}".format(
             testName
         )
+
+    if "interval" in expected:
+        assert (
+            actual["interval"] == expected["interval"]
+        ), "Failed healthcheck test {}".format(testName)
     else:
         assert actual["interval"] == "5s", "Failed healthcheck test {}".format(testName)
 
     if "timeout" in expected:
-        assert actual["timeout"] == expected["timeout"], "Failed healthcheck test {}".format(
-            testName
-        )
+        assert (
+            actual["timeout"] == expected["timeout"]
+        ), "Failed healthcheck test {}".format(testName)
     else:
         assert actual["timeout"] == "3s", "Failed healthcheck test {}".format(testName)
 
@@ -423,7 +462,9 @@ def check_healthcheck_defaults(expected, actual, testName):
             actual["unhealthy_threshold"] == expected["unhealthy_threshold"]
         ), "Failed healthcheck test {}".format(testName)
     else:
-        assert actual["unhealthy_threshold"] == 2, "Failed healthcheck test {}".format(testName)
+        assert actual["unhealthy_threshold"] == 2, "Failed healthcheck test {}".format(
+            testName
+        )
 
 
 # Runs a bunch of assert statments to check that the expected
@@ -448,14 +489,19 @@ def check_http_healthcheck(expected, actual, testName):
     if expected is not None:
         assert actual is not None, "Failed healthcheck test {}".format(testName)
 
-        assert actual["path"] == expected["path"], "Failed healthcheck test {}".format(testName)
+        assert actual["path"] == expected["path"], "Failed healthcheck test {}".format(
+            testName
+        )
 
         if "host" in expected:
-            assert actual["host"] == expected["host"], "Failed healthcheck test {}".format(testName)
+            assert (
+                actual["host"] == expected["host"]
+            ), "Failed healthcheck test {}".format(testName)
 
         if "request_headers_to_remove" in expected:
             assert (
-                actual["request_headers_to_remove"] == expected["request_headers_to_remove"]
+                actual["request_headers_to_remove"]
+                == expected["request_headers_to_remove"]
             ), "Failed healthcheck test {}".format(testName)
 
         if "request_headers_to_add" in expected:

@@ -39,7 +39,7 @@ class ShellCommand:
         try:
             self.proc.check_returncode()
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def check(self, what: str) -> bool:

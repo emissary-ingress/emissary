@@ -13,8 +13,10 @@ class LogicalDnsType(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -24,6 +26,7 @@ service: {self.target.path.fqdn}
 hostname: "*"
 dns_type: logical_dns
 """
+            ),
         )
 
     def queries(self):
@@ -42,8 +45,10 @@ class LogicalDnsTypeEndpoint(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -54,6 +59,7 @@ hostname: "*"
 dns_type: logical_dns
 resolver: endpoint
 """
+            ),
         )
 
     def queries(self):
@@ -72,8 +78,10 @@ class DnsTtl(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -83,6 +91,7 @@ hostname: "*"
 service: {self.target.path.fqdn}
 respect_dns_ttl: true
 """
+            ),
         )
 
     def queries(self):
@@ -101,8 +110,10 @@ class DnsTtlEndpoint(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -113,6 +124,7 @@ service: {self.target.path.fqdn}
 respect_dns_ttl: true
 resolver: endpoint
 """
+            ),
         )
 
     def queries(self):
@@ -131,8 +143,10 @@ class DnsTtlDnsType(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -143,6 +157,7 @@ service: {self.target.path.fqdn}
 respect_dns_ttl: true
 dns_type: logical_dns
 """
+            ),
         )
 
     def queries(self):

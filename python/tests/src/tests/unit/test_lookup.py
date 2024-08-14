@@ -11,10 +11,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config
-from ambassador.fetch import ResourceFetcher
-from ambassador.ir.irbuffer import IRBuffer
-from ambassador.utils import NullSecretHandler
+from ambassador import IR, Config  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.ir.irbuffer import IRBuffer  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
 
 yaml = """
 ---
@@ -78,27 +78,44 @@ def test_lookup():
     assert t1.lookup("max_request_words", 77) == 1
     assert t1.lookup("max_request_words", default_key="altered") == 2
     assert t1.lookup("max_request_words", 77, default_key="altered") == 2
-    assert t1.lookup("max_request_words", default_key="altered2") == None
+    assert t1.lookup("max_request_words", default_key="altered2") is None
     assert t1.lookup("max_request_words", 77, default_key="altered2") == 77
 
     assert t1.lookup("max_request_words", default_class="test_resource") == 3
     assert t1.lookup("max_request_words", 77, default_class="test_resource") == 3
     assert t1.lookup("max_request_words", 77, default_class="test_resource2") == 1
-    assert t1.lookup("max_request_words", default_key="altered", default_class="test_resource") == 4
     assert (
-        t1.lookup("max_request_words", 77, default_key="altered", default_class="test_resource")
+        t1.lookup(
+            "max_request_words", default_key="altered", default_class="test_resource"
+        )
         == 4
     )
     assert (
-        t1.lookup("max_request_words", default_key="altered2", default_class="test_resource")
-        == None
+        t1.lookup(
+            "max_request_words",
+            77,
+            default_key="altered",
+            default_class="test_resource",
+        )
+        == 4
     )
     assert (
-        t1.lookup("max_request_words", 77, default_key="altered2", default_class="test_resource")
+        t1.lookup(
+            "max_request_words", default_key="altered2", default_class="test_resource"
+        )
+        is None
+    )
+    assert (
+        t1.lookup(
+            "max_request_words",
+            77,
+            default_key="altered2",
+            default_class="test_resource",
+        )
         == 77
     )
 
-    assert t1.lookup("funk") == None
+    assert t1.lookup("funk") is None
     assert t1.lookup("funk", 77) == 77
 
     assert t1.lookup("funk", default_class="test_resource") == 8
@@ -113,16 +130,25 @@ def test_lookup():
     assert t2.lookup("max_request_words", 77) == 3
     assert t2.lookup("max_request_words", default_key="altered") == 4
     assert t2.lookup("max_request_words", 77, default_key="altered") == 4
-    assert t2.lookup("max_request_words", default_key="altered2") == None
+    assert t2.lookup("max_request_words", default_key="altered2") is None
     assert t2.lookup("max_request_words", 77, default_key="altered2") == 77
 
     assert t2.lookup("max_request_words", default_class="/") == 1
     assert t2.lookup("max_request_words", 77, default_class="/") == 1
     assert t2.lookup("max_request_words", 77, default_class="/2") == 1
     assert t2.lookup("max_request_words", default_key="altered", default_class="/") == 2
-    assert t2.lookup("max_request_words", 77, default_key="altered", default_class="/") == 2
-    assert t2.lookup("max_request_words", default_key="altered2", default_class="/") == None
-    assert t2.lookup("max_request_words", 77, default_key="altered2", default_class="/") == 77
+    assert (
+        t2.lookup("max_request_words", 77, default_key="altered", default_class="/")
+        == 2
+    )
+    assert (
+        t2.lookup("max_request_words", default_key="altered2", default_class="/")
+        is None
+    )
+    assert (
+        t2.lookup("max_request_words", 77, default_key="altered2", default_class="/")
+        == 77
+    )
 
     assert t2.lookup("funk") == 8
     assert t2.lookup("funk", 77) == 8

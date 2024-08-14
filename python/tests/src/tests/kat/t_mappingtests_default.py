@@ -18,8 +18,10 @@ class HostHeaderMappingStripMatchingHostPort(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -34,12 +36,17 @@ prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 host: myhostname.com
 """
+            ),
         )
 
     def queries(self):
         # Sanity test that a missing or incorrect hostname does not route, and it does route with a correct hostname.
         yield Query(self.url(self.name + "/"), expected=404)
-        yield Query(self.url(self.name + "/"), headers={"Host": "yourhostname.com"}, expected=404)
+        yield Query(
+            self.url(self.name + "/"),
+            headers={"Host": "yourhostname.com"},
+            expected=404,
+        )
         yield Query(self.url(self.name + "/"), headers={"Host": "myhostname.com"})
         # Test that a host header with a port value that does match the listener's configured port is correctly
         # stripped for the purpose of routing, and matches the mapping.
@@ -50,7 +57,9 @@ host: myhostname.com
         # Test that a host header with a port value that does _not_ match the listener's configured does not have its
         # port value stripped for the purpose of routing, so it does not match the mapping.
         yield Query(
-            self.url(self.name + "/"), headers={"Host": "myhostname.com:11875"}, expected=404
+            self.url(self.name + "/"),
+            headers={"Host": "myhostname.com:11875"},
+            expected=404,
         )
 
 
@@ -64,8 +73,10 @@ class MergeSlashesDisabled(AmbassadorTest):
         self.target = HTTPBin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -75,6 +86,7 @@ prefix: /{self.name}/status/
 rewrite: /status/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -96,8 +108,10 @@ class MergeSlashesEnabled(AmbassadorTest):
         self.target = HTTPBin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -113,6 +127,7 @@ prefix: /{self.name}/status/
 rewrite: /status/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -134,8 +149,10 @@ class RejectRequestsWithEscapedSlashesDisabled(AmbassadorTest):
         self.target = HTTPBin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -145,6 +162,7 @@ prefix: /{self.name}/status/
 rewrite: /status/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -169,8 +187,10 @@ class RejectRequestsWithEscapedSlashesEnabled(AmbassadorTest):
         self.target = HTTPBin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -186,6 +206,7 @@ prefix: /{self.name}/status/
 rewrite: /status/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -209,8 +230,10 @@ class LinkerdHeaderMapping(AmbassadorTest):
         self.target_add_linkerd_header_only = HTTP(name="addlinkerdonly")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -256,6 +279,7 @@ add_request_headers:
 remove_request_headers:
 - x-evilness
 """
+            ),
         )
 
     def queries(self):
@@ -302,7 +326,9 @@ remove_request_headers:
         assert self.results[1].backend.request.headers["fruit"] == ["orange"]
         assert "x-evil-header" not in self.results[1].backend.request.headers
         assert len(self.results[1].backend.request.headers["x-evilness"]) > 0
-        assert self.results[1].backend.request.headers["x-evilness"] == ["more evilness"]
+        assert self.results[1].backend.request.headers["x-evilness"] == [
+            "more evilness"
+        ]
 
         # [2]
         assert self.results[2].backend
@@ -314,7 +340,9 @@ remove_request_headers:
         assert len(self.results[2].backend.request.headers["x-evil-header"]) > 0
         assert self.results[2].backend.request.headers["x-evil-header"] == ["evilness"]
         assert len(self.results[2].backend.request.headers["x-evilness"]) > 0
-        assert self.results[2].backend.request.headers["x-evilness"] == ["more evilness"]
+        assert self.results[2].backend.request.headers["x-evilness"] == [
+            "more evilness"
+        ]
 
 
 class SameMappingDifferentNamespaces(AmbassadorTest):

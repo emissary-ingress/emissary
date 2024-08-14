@@ -13,7 +13,9 @@ class ErrorResponseOnStatusCode(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, f"""
+        yield (
+            self,
+            f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -74,42 +76,59 @@ error_response_overrides:
 - on_status_code: 503
   body:
     text_format: ''
-"""
+""",
+        )
 
     def queries(self):
         # [0]
         yield Query(self.url("does-not-exist/"), expected=404)
         # [1]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "401"}, expected=401
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "401"},
+            expected=401,
         )
         # [2]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "403"}, expected=403
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "403"},
+            expected=403,
         )
         # [3]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
         # [4]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "418"}, expected=418
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "418"},
+            expected=418,
         )
         # [5]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "500"}, expected=500
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "500"},
+            expected=500,
         )
         # [6]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "501"}, expected=501
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "501"},
+            expected=501,
         )
         # [7]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "503"},
+            expected=503,
         )
         # [8]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "504"},
+            expected=504,
         )
         # [9]
         yield Query(self.url("target/"))
@@ -168,7 +187,9 @@ error_response_overrides:
         ], f"unexpected Content-Type: {self.results[8].headers}"
 
         # [9] should just succeed
-        assert self.results[9].text == None, f"unexpected response body: {self.results[9].text}"
+        assert (
+            self.results[9].text is None
+        ), f"unexpected response body: {self.results[9].text}"
 
         # [10] envoy-generated 503, since the upstream is 'invalidservice'.
         assert (
@@ -176,7 +197,9 @@ error_response_overrides:
         ), f"unexpected response body: {self.results[10].text}"
 
         # [11] envoy-generated 503, with an empty body override
-        assert self.results[11].text == "", f"unexpected response body: {self.results[11].text}"
+        assert (
+            self.results[11].text == ""
+        ), f"unexpected response body: {self.results[11].text}"
 
 
 class ErrorResponseOnStatusCodeMappingCRD(AmbassadorTest):
@@ -260,35 +283,51 @@ spec:
         yield Query(self.url("does-not-exist/"), expected=404)
         # [1]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "401"}, expected=401
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "401"},
+            expected=401,
         )
         # [2]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "403"}, expected=403
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "403"},
+            expected=403,
         )
         # [3]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
         # [4]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "418"}, expected=418
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "418"},
+            expected=418,
         )
         # [5]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "500"}, expected=500
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "500"},
+            expected=500,
         )
         # [6]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "501"}, expected=501
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "501"},
+            expected=501,
         )
         # [7]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "503"},
+            expected=503,
         )
         # [8]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "504"},
+            expected=504,
         )
         # [9]
         yield Query(self.url("target/"))
@@ -300,7 +339,9 @@ spec:
     def check(self):
         # [0] does not match the error response mapping, so no 404 response.
         # when envoy directly replies with 404, we see it as an empty string.
-        assert self.results[0].text == "", f"unexpected response body: {self.results[0].text}"
+        assert (
+            self.results[0].text == ""
+        ), f"unexpected response body: {self.results[0].text}"
 
         # [1]
         assert (
@@ -346,7 +387,9 @@ spec:
         ], f"unexpected Content-Type: {self.results[8].headers}"
 
         # [9] should just succeed
-        assert self.results[9].text == None, f"unexpected response body: {self.results[9].text}"
+        assert (
+            self.results[9].text is None
+        ), f"unexpected response body: {self.results[9].text}"
 
         # [10] envoy-generated 503, since the upstream is 'invalidservice'.
         # this response body comes unmodified from envoy, since it goes through
@@ -373,7 +416,9 @@ class ErrorResponseReturnBodyFormattedText(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, f"""
+        yield (
+            self,
+            f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -400,7 +445,8 @@ ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-"""
+""",
+        )
 
     def queries(self):
         # [0]
@@ -408,12 +454,16 @@ service: {self.target.path.fqdn}
 
         # [1]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "429"}, expected=429
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "429"},
+            expected=429,
         )
 
         # [2]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "504"},
+            expected=504,
         )
 
     def check(self):
@@ -451,7 +501,9 @@ class ErrorResponseReturnBodyFormattedJson(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, f"""
+        yield (
+            self,
+            f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -482,15 +534,20 @@ ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-"""
+""",
+        )
 
     def queries(self):
         yield Query(self.url("does-not-exist/"), expected=404)
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "429"}, expected=429
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "429"},
+            expected=429,
         )
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "401"}, expected=401
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "401"},
+            expected=401,
         )
 
     def check(self):
@@ -533,7 +590,9 @@ class ErrorResponseReturnBodyTextSource(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, f"""
+        yield (
+            self,
+            f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -563,22 +622,29 @@ ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-"""
+""",
+        )
 
     def queries(self):
         # [0]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "500"}, expected=500
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "500"},
+            expected=500,
         )
 
         # [1]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "503"},
+            expected=503,
         )
 
         # [2]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "504"},
+            expected=504,
         )
 
     def check(self):
@@ -617,7 +683,9 @@ class ErrorResponseMappingBypass(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, f"""
+        yield (
+            self,
+            f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -678,16 +746,21 @@ hostname: "*"
 prefix: /bypass/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 bypass_error_response_overrides: true
-"""
+""",
+        )
 
     def queries(self):
         # [0]
         yield Query(
-            self.url("bypass/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("bypass/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
         # [1]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
         # [2]
         yield Query(
@@ -697,7 +770,9 @@ bypass_error_response_overrides: true
         )
         # [3]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "418"}, expected=418
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "418"},
+            expected=418,
         )
         # [4]
         yield Query(self.url("target/invalidservice"), expected=503)
@@ -705,20 +780,30 @@ bypass_error_response_overrides: true
         yield Query(self.url("bypass/invalidservice"), expected=503)
         # [6]
         yield Query(
-            self.url("bypass/"), headers={"kat-req-http-requested-status": "503"}, expected=503
+            self.url("bypass/"),
+            headers={"kat-req-http-requested-status": "503"},
+            expected=503,
         )
         # [7]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "503"},
+            expected=503,
         )
         # [8]
-        yield Query(self.url("bypass/"), headers={"kat-req-http-requested-status": "200"})
+        yield Query(
+            self.url("bypass/"), headers={"kat-req-http-requested-status": "200"}
+        )
         # [9]
-        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "200"})
+        yield Query(
+            self.url("target/"), headers={"kat-req-http-requested-status": "200"}
+        )
 
     def check(self):
         # [0]
-        assert self.results[0].text is None, f"unexpected response body: {self.results[0].text}"
+        assert (
+            self.results[0].text is None
+        ), f"unexpected response body: {self.results[0].text}"
 
         # [1]
         assert (
@@ -729,7 +814,9 @@ bypass_error_response_overrides: true
         ], f"unexpected Content-Type: {self.results[1].headers}"
 
         # [2]
-        assert self.results[2].text is None, f"unexpected response body: {self.results[2].text}"
+        assert (
+            self.results[2].text is None
+        ), f"unexpected response body: {self.results[2].text}"
 
         # [3]
         assert (
@@ -750,7 +837,9 @@ bypass_error_response_overrides: true
         ], f"unexpected Content-Type: {self.results[5].headers}"
 
         # [6]
-        assert self.results[6].text is None, f"unexpected response body: {self.results[6].text}"
+        assert (
+            self.results[6].text is None
+        ), f"unexpected response body: {self.results[6].text}"
 
         # [7]
         assert (
@@ -758,10 +847,14 @@ bypass_error_response_overrides: true
         ), f"unexpected response body: {self.results[7].text}"
 
         # [8]
-        assert self.results[8].text is None, f"unexpected response body: {self.results[8].text}"
+        assert (
+            self.results[8].text is None
+        ), f"unexpected response body: {self.results[8].text}"
 
         # [9]
-        assert self.results[9].text is None, f"unexpected response body: {self.results[9].text}"
+        assert (
+            self.results[9].text is None
+        ), f"unexpected response body: {self.results[9].text}"
 
 
 class ErrorResponseMappingBypassAlternate(AmbassadorTest):
@@ -775,7 +868,9 @@ class ErrorResponseMappingBypassAlternate(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, f"""
+        yield (
+            self,
+            f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -812,20 +907,27 @@ hostname: "*"
 prefix: /bypass/
 service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
-"""
+""",
+        )
 
     def queries(self):
         # [0]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
         # [1]
         yield Query(
-            self.url("bypass/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("bypass/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
         # [2]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
 
     def check(self):
@@ -838,7 +940,9 @@ bypass_error_response_overrides: true
         ], f"unexpected Content-Type: {self.results[0].headers}"
 
         # [1]
-        assert self.results[1].text is None, f"unexpected response body: {self.results[1].text}"
+        assert (
+            self.results[1].text is None
+        ), f"unexpected response body: {self.results[1].text}"
 
         # [2]
         assert (
@@ -858,7 +962,9 @@ class ErrorResponseMapping404Body(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, f"""
+        yield (
+            self,
+            f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -899,37 +1005,52 @@ error_response_overrides:
 - on_status_code: 503
   body:
     text_format: 'custom 503'
-"""
+""",
+        )
 
     def queries(self):
         # [0]
         yield Query(self.url("does-not-exist/"), expected=404)
         # [1]
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
         # [2]
         yield Query(
-            self.url("bypass/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("bypass/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
         # [3]
         yield Query(
-            self.url("overrides/"), headers={"kat-req-http-requested-status": "404"}, expected=404
+            self.url("overrides/"),
+            headers={"kat-req-http-requested-status": "404"},
+            expected=404,
         )
 
     def check(self):
         # [0] does not match the error response mapping, so no 404 response.
         # when envoy directly replies with 404, we see it as an empty string.
-        assert self.results[0].text == "", f"unexpected response body: {self.results[0].text}"
+        assert (
+            self.results[0].text == ""
+        ), f"unexpected response body: {self.results[0].text}"
 
         # [1]
-        assert self.results[1].text is None, f"unexpected response body: {self.results[1].text}"
+        assert (
+            self.results[1].text is None
+        ), f"unexpected response body: {self.results[1].text}"
 
         # [2]
-        assert self.results[2].text is None, f"unexpected response body: {self.results[2].text}"
+        assert (
+            self.results[2].text is None
+        ), f"unexpected response body: {self.results[2].text}"
 
         # [3]
-        assert self.results[3].text is None, f"unexpected response body: {self.results[3].text}"
+        assert (
+            self.results[3].text is None
+        ), f"unexpected response body: {self.results[3].text}"
 
 
 class ErrorResponseMappingOverride(AmbassadorTest):
@@ -941,7 +1062,9 @@ class ErrorResponseMappingOverride(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, f"""
+        yield (
+            self,
+            f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -995,12 +1118,15 @@ error_response_overrides:
     json_format:
       "y": "2"
       status: '%RESPONSE_CODE%'
-"""
+""",
+        )
 
     def queries(self):
         # [0] Should match module's on_response_code 401
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "401"}, expected=401
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "401"},
+            expected=401,
         )
 
         # [1] Should match mapping-specific on_response_code 401
@@ -1047,12 +1173,16 @@ error_response_overrides:
 
         # [7] Should match module's on_response_code 503
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "503"},
+            expected=503,
         )
 
         # [8] Should match module's on_response_code 504
         yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504
+            self.url("target/"),
+            headers={"kat-req-http-requested-status": "504"},
+            expected=504,
         )
 
     def check(self):
@@ -1083,16 +1213,24 @@ error_response_overrides:
         ], f"unexpected Content-Type: {self.results[2].headers}"
 
         # [3] Mapping has 401 rule, but response code is 503, no rewrite.
-        assert self.results[3].text is None, f"unexpected response body: {self.results[3].text}"
+        assert (
+            self.results[3].text is None
+        ), f"unexpected response body: {self.results[3].text}"
 
         # [4] Mapping has 503 rule, but response code is 401, no rewrite.
-        assert self.results[4].text is None, f"unexpected response body: {self.results[4].text}"
+        assert (
+            self.results[4].text is None
+        ), f"unexpected response body: {self.results[4].text}"
 
         # [5] Mapping has 401 rule, but response code is 504, no rewrite.
-        assert self.results[5].text is None, f"unexpected response body: {self.results[5].text}"
+        assert (
+            self.results[5].text is None
+        ), f"unexpected response body: {self.results[5].text}"
 
         # [6] Mapping has 503 rule, but response code is 504, no rewrite.
-        assert self.results[6].text is None, f"unexpected response body: {self.results[6].text}"
+        assert (
+            self.results[6].text is None
+        ), f"unexpected response body: {self.results[6].text}"
 
         # [7] Module's 503 rule, no custom header
         assert (

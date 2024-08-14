@@ -15,8 +15,14 @@ child_name = "diagd-unset"  # see docker_start() and docker_kill()
 
 SEQUENCES = [
     (["env_ok", "chime"], ["boot1", "now-healthy"]),
-    (["env_ok", "chime", "scout_cache_reset", "chime"], ["boot1", "now-healthy", "healthy"]),
-    (["env_ok", "chime", "env_bad", "chime"], ["boot1", "now-healthy", "now-unhealthy"]),
+    (
+        ["env_ok", "chime", "scout_cache_reset", "chime"],
+        ["boot1", "now-healthy", "healthy"],
+    ),
+    (
+        ["env_ok", "chime", "env_bad", "chime"],
+        ["boot1", "now-healthy", "now-unhealthy"],
+    ),
     (["env_bad", "chime"], ["boot1", "unhealthy"]),
     (
         ["env_bad", "chime", "chime", "scout_cache_reset", "chime"],
@@ -44,7 +50,9 @@ def docker_start(logfile) -> bool:
     child = pexpect.spawn(cmd, encoding="utf-8")
     child.logfile = logfile
 
-    i = child.expect([pexpect.EOF, pexpect.TIMEOUT, "LocalScout: mode boot, action boot1"])
+    i = child.expect(
+        [pexpect.EOF, pexpect.TIMEOUT, "LocalScout: mode boot, action boot1"]
+    )
 
     if i == 0:
         print("diagd died?")
@@ -160,7 +168,9 @@ def fetch_events(logfile) -> Any:
         )
 
         if response.status_code != 200:
-            logfile.write(f"events: wanted 200 but got {response.status_code} {response.text}\n")
+            logfile.write(
+                f"events: wanted 200 but got {response.status_code} {response.text}\n"
+            )
             return None
 
         data = response.json()

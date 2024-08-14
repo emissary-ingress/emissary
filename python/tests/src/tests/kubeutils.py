@@ -20,8 +20,12 @@ def meta_action_kube_artifacts(namespace, artifacts, action, retries=0):
 
 
 def apply_kube_artifacts(namespace, artifacts):
-    meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action="apply", retries=1)
+    meta_action_kube_artifacts(
+        namespace=namespace, artifacts=artifacts, action="apply", retries=1
+    )
 
 
 def delete_kube_artifacts(namespace, artifacts):
-    meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action="delete")
+    meta_action_kube_artifacts(
+        namespace=namespace, artifacts=artifacts, action="delete"
+    )

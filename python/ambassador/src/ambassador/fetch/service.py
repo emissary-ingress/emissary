@@ -55,7 +55,10 @@ class InternalServiceProcessor(ManagedKubernetesProcessor):
         # self.logger.info(f"is_ambassador_service checking {obj.labels} - {selector}")
 
         # Every Ambassador service must have the label 'app.kubernetes.io/component: ambassador-service'
-        if obj.labels.get("app.kubernetes.io/component", "").lower() != "ambassador-service":
+        if (
+            obj.labels.get("app.kubernetes.io/component", "").lower()
+            != "ambassador-service"
+        ):
             return False
 
         # This service must be in the same namespace as the Ambassador deployment.
@@ -193,7 +196,9 @@ class InternalEndpointsProcessor(ManagedKubernetesProcessor):
                 )
                 continue
 
-            self.discovered_endpoints[obj.key] = Endpoints(addresses, port_dict, obj.labels)
+            self.discovered_endpoints[obj.key] = Endpoints(
+                addresses, port_dict, obj.labels
+            )
 
 
 class ServiceProcessor(ManagedKubernetesProcessor):
@@ -387,7 +392,9 @@ class ServiceProcessor(ManagedKubernetesProcessor):
 
                     if not target_ports:
                         # WTFO. This is impossible. I guess we'll fall back to service routing.
-                        self.logger.error(f"Kubernetes service {key} has no routable ports at all?")
+                        self.logger.error(
+                            f"Kubernetes service {key} has no routable ports at all?"
+                        )
 
                     # OK. Once _that's_ done we have to take the endpoint addresses into
                     # account, or just use the service name if we don't have that.
@@ -403,7 +410,8 @@ class ServiceProcessor(ManagedKubernetesProcessor):
 
             for src_port, target_port in target_ports.items():
                 svc_endpoints[src_port] = [
-                    {"ip": target_addr, "port": target_port} for target_addr in target_addrs
+                    {"ip": target_addr, "port": target_port}
+                    for target_addr in target_addrs
                 ]
 
             spec = {

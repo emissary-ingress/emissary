@@ -33,7 +33,9 @@ class V3RateLimit(dict):
         assert ratelimit.cluster.envoy_name
 
         self["transport_api_version"] = ratelimit.protocol_version.upper()
-        self["grpc_service"] = {"envoy_grpc": {"cluster_name": ratelimit.cluster.envoy_name}}
+        self["grpc_service"] = {
+            "envoy_grpc": {"cluster_name": ratelimit.cluster.envoy_name}
+        }
 
     @classmethod
     def generate(cls, config: "V3Config") -> None:

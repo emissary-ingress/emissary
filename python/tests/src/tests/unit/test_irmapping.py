@@ -11,10 +11,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config
-from ambassador.fetch import ResourceFetcher
-from ambassador.ir.irbasemappinggroup import IRBaseMappingGroup
-from ambassador.utils import NullSecretHandler
+from ambassador import IR, Config  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.ir.irbasemappinggroup import IRBaseMappingGroup  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
 
 
 def _get_ir_config(yaml):

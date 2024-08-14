@@ -11,8 +11,10 @@ class MaxRequestHeaderKBTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -21,9 +23,12 @@ ambassador_id: [{self.ambassador_id}]
 config:
   max_request_headers_kb: 30
 """
+            ),
         )
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -32,6 +37,7 @@ hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -52,8 +58,10 @@ class MaxRequestHeaderKBMaxTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -62,9 +70,12 @@ ambassador_id: [{self.ambassador_id}]
 config:
   max_request_headers_kb: 96
 """
+            ),
         )
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -73,17 +84,22 @@ hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
         # without the override the response headers will cause envoy to respond with a 503
         h1 = "i" * (97 * 1024)
         yield Query(
-            self.url("target/?override_extauth_header=1"), expected=431, headers={"big": h1}
+            self.url("target/?override_extauth_header=1"),
+            expected=431,
+            headers={"big": h1},
         )
         h2 = "i" * (95 * 1024)
         yield Query(
-            self.url("target/?override_extauth_header=1"), expected=200, headers={"small": h2}
+            self.url("target/?override_extauth_header=1"),
+            expected=200,
+            headers={"small": h2},
         )
 
     def check(self):

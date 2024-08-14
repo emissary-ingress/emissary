@@ -11,7 +11,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador.envoy.v3.v3cidrrange import CIDRRange
+from ambassador.envoy.v3.v3cidrrange import CIDRRange  # noqa: E402
 
 
 @pytest.mark.compilertest
@@ -24,8 +24,20 @@ def test_cidrrange():
         ("2001:2000:0:0:0::/64", True, "2001:2000::", 64, None),  # IPv6 range
         ("10", False, None, None, "Invalid IP address 10"),
         ("10/8", False, None, None, "Invalid IP address 10"),
-        ("10.0.0.0/a", False, None, None, "CIDR range 10.0.0.0/a has an invalid length, ignoring"),
-        ("10.0.0.0/99", False, None, None, "Invalid prefix length for IPv4 address 10.0.0.0/99"),
+        (
+            "10.0.0.0/a",
+            False,
+            None,
+            None,
+            "CIDR range 10.0.0.0/a has an invalid length, ignoring",
+        ),
+        (
+            "10.0.0.0/99",
+            False,
+            None,
+            None,
+            "Invalid prefix length for IPv4 address 10.0.0.0/99",
+        ),
         ("2001:2000::/99", True, "2001:2000::", 99, None),
         (
             "2001:2000::/199",
@@ -42,12 +54,14 @@ def test_cidrrange():
 
             assert c.address == wanted_address
             assert c.prefix_len == wanted_prefix_len
-            assert c.error == None
+            assert c.error is None
         else:
-            assert not bool(c), f"{spec} should be an invalid CIDRRange but is valid? {c}"
+            assert not bool(
+                c
+            ), f"{spec} should be an invalid CIDRRange but is valid? {c}"
 
-            assert c.address == None
-            assert c.prefix_len == None
+            assert c.address is None
+            assert c.prefix_len is None
             assert c.error == wanted_error
 
 
@@ -61,8 +75,20 @@ def test_cidrrange_v3():
         ("2001:2000:0:0:0::/64", True, "2001:2000::", 64, None),  # IPv6 range
         ("10", False, None, None, "Invalid IP address 10"),
         ("10/8", False, None, None, "Invalid IP address 10"),
-        ("10.0.0.0/a", False, None, None, "CIDR range 10.0.0.0/a has an invalid length, ignoring"),
-        ("10.0.0.0/99", False, None, None, "Invalid prefix length for IPv4 address 10.0.0.0/99"),
+        (
+            "10.0.0.0/a",
+            False,
+            None,
+            None,
+            "CIDR range 10.0.0.0/a has an invalid length, ignoring",
+        ),
+        (
+            "10.0.0.0/99",
+            False,
+            None,
+            None,
+            "Invalid prefix length for IPv4 address 10.0.0.0/99",
+        ),
         ("2001:2000::/99", True, "2001:2000::", 99, None),
         (
             "2001:2000::/199",
@@ -79,12 +105,14 @@ def test_cidrrange_v3():
 
             assert c.address == wanted_address
             assert c.prefix_len == wanted_prefix_len
-            assert c.error == None
+            assert c.error is None
         else:
-            assert not bool(c), f"{spec} should be an invalid CIDRRange but is valid? {c}"
+            assert not bool(
+                c
+            ), f"{spec} should be an invalid CIDRRange but is valid? {c}"
 
-            assert c.address == None
-            assert c.prefix_len == None
+            assert c.address is None
+            assert c.prefix_len is None
             assert c.error == wanted_error
 
 

@@ -65,7 +65,13 @@ class MemorySecretHandler(SecretHandler):
             )
 
         return SavedSecret(
-            name, namespace, tls_crt_path, tls_key_path, user_key_path, root_crt_path, cert_data
+            name,
+            namespace,
+            tls_crt_path,
+            tls_key_path,
+            user_key_path,
+            root_crt_path,
+            cert_data,
         )
 
 
@@ -78,19 +84,28 @@ def _get_config_and_ir(logger: logging.Logger, watt: str) -> Tuple[Config, IR]:
     secret_handler = MemorySecretHandler(
         logger, "/tmp/unit-test-source-root", "/tmp/unit-test-cache-dir", "0"
     )
-    ir = IR(aconf, logger=logger, file_checker=lambda path: True, secret_handler=secret_handler)
+    ir = IR(
+        aconf,
+        logger=logger,
+        file_checker=lambda path: True,
+        secret_handler=secret_handler,
+    )
 
     assert ir
     return aconf, ir
 
 
-def _get_errors(caplog: pytest.LogCaptureFixture, logger_name: str, watt_data_filename: str):
+def _get_errors(
+    caplog: pytest.LogCaptureFixture, logger_name: str, watt_data_filename: str
+):
     watt_data = open(watt_data_filename).read()
 
     aconf, ir = _get_config_and_ir(logging.getLogger(logger_name), watt_data)
 
     log_errors = [
-        rec for rec in caplog.record_tuples if rec[0] == logger_name and rec[1] > logging.INFO
+        rec
+        for rec in caplog.record_tuples
+        if rec[0] == logger_name and rec[1] > logging.INFO
     ]
 
     aconf_errors = aconf.errors

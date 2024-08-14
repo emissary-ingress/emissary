@@ -33,7 +33,13 @@ class IRBaseMappingGroup(IRResource):
 
         # ...before we init the superclass, which will call self.setup().
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location, kind=kind, name=name, **kwargs
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            location=location,
+            kind=kind,
+            name=name,
+            **kwargs,
         )
 
     @classmethod
@@ -60,7 +66,8 @@ class IRBaseMappingGroup(IRResource):
         # at 100%.
         if len(self.mappings) == 1:
             self.logger.debug(
-                "Assigning weight 100 to single mapping %s in group", self.mappings[0].name
+                "Assigning weight 100 to single mapping %s in group",
+                self.mappings[0].name,
             )
             self.mappings[0]._weight = 100
             return True
@@ -75,7 +82,9 @@ class IRBaseMappingGroup(IRResource):
         for mapping in self.mappings:
             if "weight" in mapping:
                 if mapping.weight > 100:
-                    self.post_error(f"Mapping {mapping.name} has invalid weight {mapping.weight}")
+                    self.post_error(
+                        f"Mapping {mapping.name} has invalid weight {mapping.weight}"
+                    )
                     return False
 
                 # increment current weight by mapping's weight
@@ -96,7 +105,7 @@ class IRBaseMappingGroup(IRResource):
         # Did we go over 100%?
         if current_weight > 100:
             self.post_error(
-                f"Total weight of mappings exceeds 100, please reconfigure for correct behavior..."
+                "Total weight of mappings exceeds 100, please reconfigure for correct behavior..."
             )
             return False
 
@@ -117,7 +126,9 @@ class IRBaseMappingGroup(IRResource):
             # what we want in the "scale the canary to 100% and then delete the original" case
             # described above. (Not coincidentally, our CanaryDiffMapping tests exercise this.)
             remaining_weight = 100 - current_weight
-            weight_per_weightless_mapping = round(remaining_weight / num_weightless_mappings)
+            weight_per_weightless_mapping = round(
+                remaining_weight / num_weightless_mappings
+            )
 
             self.logger.debug(
                 f"Assigning calculated weight {weight_per_weightless_mapping} of remaining weight {remaining_weight} to each of {num_weightless_mappings} weightless mappings"

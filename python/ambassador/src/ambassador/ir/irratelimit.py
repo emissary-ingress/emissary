@@ -23,7 +23,13 @@ class IRRateLimit(IRFilter):
         **kwargs,
     ) -> None:
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace, type="decoder"
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            kind=kind,
+            name=name,
+            namespace=namespace,
+            type="decoder",
         )
 
     def setup(self, ir: "IR", aconf: Config) -> bool:
@@ -37,7 +43,9 @@ class IRRateLimit(IRFilter):
         configs = config_info.values()
         number_configs = len(configs)
         if number_configs != 1:
-            self.post_error("only one RateLimitService is supported, got {}".format(number_configs))
+            self.post_error(
+                "only one RateLimitService is supported, got {}".format(number_configs)
+            )
             return False
 
         config = list(configs)[0]
@@ -46,7 +54,9 @@ class IRRateLimit(IRFilter):
 
         if not service:
             self.post_error(
-                RichStatus.fromError("service is required in RateLimitService", module=config)
+                RichStatus.fromError(
+                    "service is required in RateLimitService", module=config
+                )
             )
             return False
 

@@ -18,8 +18,10 @@ class RateLimitV0Test(AmbassadorTest):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -63,11 +65,14 @@ labels:
           header_name: "x-omg"
           default: "OMFG!"
 """
+            ),
         )
 
         # For self.with_tracing, we want to configure the TracingService.
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
@@ -76,6 +81,7 @@ service: "{self.rls.path.fqdn}"
 timeout_ms: 500
 protocol_version: "v3"
 """
+            ),
         )
 
     def queries(self):
@@ -132,8 +138,10 @@ class RateLimitV1Test(AmbassadorTest):
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -153,10 +161,13 @@ labels:
           header_name: "kat-req-rls-headers-append"
           omit_if_not_present: true
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
@@ -165,6 +176,7 @@ service: "{self.rls.path.fqdn}"
 timeout_ms: 500
 protocol_version: "v3"
 """
+            ),
         )
 
     def queries(self):
@@ -214,8 +226,7 @@ class RateLimitV1WithTLSTest(AmbassadorTest):
         self.rls = RLSGRPC()
 
     def manifests(self) -> str:
-        return (
-            f"""
+        return f"""
 ---
 apiVersion: v1
 data:
@@ -225,15 +236,15 @@ kind: Secret
 metadata:
   name: ratelimit-tls-secret
 type: kubernetes.io/tls
-"""
-            + super().manifests()
-        )
+""" + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -259,10 +270,13 @@ labels:
           header_name: "kat-req-rls-headers-append"
           omit_if_not_present: true
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
@@ -272,6 +286,7 @@ timeout_ms: 500
 tls: ratelimit-tls-context
 protocol_version: "v3"
 """
+            ),
         )
 
     def queries(self):
@@ -279,7 +294,9 @@ protocol_version: "v3"
         yield Query(self.url("target/"))
 
         # Header instructing dummy ratelimit-service to allow request
-        yield Query(self.url("target/"), expected=200, headers={"kat-req-rls-allow": "true"})
+        yield Query(
+            self.url("target/"), expected=200, headers={"kat-req-rls-allow": "true"}
+        )
 
         # Header instructing dummy ratelimit-service to reject request
         yield Query(
@@ -318,7 +335,8 @@ class RateLimitVerTest(AmbassadorTest):
         self.target = HTTP()
         self.specified_protocol_version = protocol_version
         self.expected_protocol_version = cast(
-            Literal["v3", "invalid"], protocol_version if protocol_version in ["v3"] else "invalid"
+            Literal["v3", "invalid"],
+            protocol_version if protocol_version in ["v3"] else "invalid",
         )
         self.rls = RLSGRPC(
             protocol_version=(
@@ -331,8 +349,10 @@ class RateLimitVerTest(AmbassadorTest):
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -352,10 +372,13 @@ labels:
           header_name: "kat-req-rls-headers-append"
           omit_if_not_present: true
 """
+            ),
         )
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
@@ -363,10 +386,12 @@ name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
 timeout_ms: 500
 """
-        ) + (
-            ""
-            if self.specified_protocol_version == "default"
-            else f"protocol_version: '{self.specified_protocol_version}'"
+            )
+            + (
+                ""
+                if self.specified_protocol_version == "default"
+                else f"protocol_version: '{self.specified_protocol_version}'"
+            ),
         )
 
     def queries(self):

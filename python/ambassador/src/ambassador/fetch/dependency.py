@@ -26,8 +26,7 @@ class Dependency(Protocol):
     without direct knowledge of where data is coming from.
     """
 
-    def watt_key(self) -> str:
-        ...
+    def watt_key(self) -> str: ...
 
 
 class ServiceDependency(Dependency):
@@ -76,11 +75,9 @@ D = TypeVar("D", bound=Dependency)
 
 
 class DependencyMapping(Protocol):
-    def __contains__(self, key: Type[D]) -> bool:
-        ...
+    def __contains__(self, key: Type[D]) -> bool: ...
 
-    def __getitem__(self, key: Type[D]) -> D:
-        ...
+    def __getitem__(self, key: Type[D]) -> D: ...
 
 
 class DependencyInjector:
@@ -129,7 +126,9 @@ class DependencyGraph:
     vertices: Mapping[Any, Vertex]
 
     def __init__(self) -> None:
-        self.vertices = defaultdict(lambda: DependencyGraph.Vertex(out=set(), in_count=0))
+        self.vertices = defaultdict(
+            lambda: DependencyGraph.Vertex(out=set(), in_count=0)
+        )
 
     def connect(self, a: Any, b: Any) -> None:
         if b not in self.vertices[a].out:
@@ -168,7 +167,9 @@ class DependencyGraph:
                 if in_counts[obj] == 0:
                     queue.append(obj)
 
-        assert sum(in_counts.values()) == 0, "Traversal did not reach every vertex exactly once"
+        assert (
+            sum(in_counts.values()) == 0
+        ), "Traversal did not reach every vertex exactly once"
 
 
 class DependencyManager:

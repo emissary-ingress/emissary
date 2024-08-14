@@ -43,7 +43,13 @@ class IRServiceResolver(IRResource):
         **kwargs,
     ) -> None:
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, location=location, **kwargs
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            kind=kind,
+            name=name,
+            location=location,
+            **kwargs,
         )
 
     def setup(self, ir: "IR", aconf: Config) -> bool:
@@ -93,7 +99,9 @@ class IRServiceResolver(IRResource):
         valid = True
 
         if mapping.service.find(".") >= 0:
-            mapping.post_error("The Consul resolver does not allow dots in service names")
+            mapping.post_error(
+                "The Consul resolver does not allow dots in service names"
+            )
             valid = False
 
         if mapping.service.find(":") >= 0:
@@ -106,7 +114,12 @@ class IRServiceResolver(IRResource):
         return valid
 
     def resolve(
-        self, ir: "IR", cluster: "IRCluster", svc_name: str, svc_namespace: str, port: int
+        self,
+        ir: "IR",
+        cluster: "IRCluster",
+        svc_name: str,
+        svc_namespace: str,
+        port: int,
     ) -> Optional[SvcEndpointSet]:
         fn = {
             "KubernetesServiceResolver": self._k8s_svc_resolver,
@@ -117,19 +130,31 @@ class IRServiceResolver(IRResource):
         return fn(ir, cluster, svc_name, svc_namespace, port)
 
     def _k8s_svc_resolver(
-        self, ir: "IR", cluster: "IRCluster", svc_name: str, svc_namespace: str, port: int
+        self,
+        ir: "IR",
+        cluster: "IRCluster",
+        svc_name: str,
+        svc_namespace: str,
+        port: int,
     ) -> Optional[SvcEndpointSet]:
         # The K8s service resolver always returns a single endpoint.
         return [{"ip": svc_name, "port": port, "target_kind": "DNSname"}]
 
     def _k8s_resolver(
-        self, ir: "IR", cluster: "IRCluster", svc_name: str, svc_namespace: str, port: int
+        self,
+        ir: "IR",
+        cluster: "IRCluster",
+        svc_name: str,
+        svc_namespace: str,
+        port: int,
     ) -> Optional[SvcEndpointSet]:
         svc, namespace = self.parse_service(ir, svc_name, svc_namespace)
         # Find endpoints, and try for a port match!
         return self.get_endpoints(ir, f"k8s-{svc}-{namespace}", port)
 
-    def parse_service(self, ir: "IR", svc_name: str, svc_namespace: str) -> Tuple[str, str]:
+    def parse_service(
+        self, ir: "IR", svc_name: str, svc_namespace: str
+    ) -> Tuple[str, str]:
         # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
         svc = svc_name
         namespace = Config.ambassador_namespace
@@ -158,7 +183,12 @@ class IRServiceResolver(IRResource):
         return svc, namespace
 
     def _consul_resolver(
-        self, ir: "IR", cluster: "IRCluster", svc_name: str, svc_namespace: str, port: int
+        self,
+        ir: "IR",
+        cluster: "IRCluster",
+        svc_name: str,
+        svc_namespace: str,
+        port: int,
     ) -> Optional[SvcEndpointSet]:
         # For Consul, we look things up with the service name and the datacenter at present.
         # We ignore the port in the lookup (we should've already posted a warning about the port
@@ -166,12 +196,16 @@ class IRServiceResolver(IRResource):
 
         return self.get_endpoints(ir, f"consul-{svc_name}-{self.datacenter}", None)
 
-    def get_endpoints(self, ir: "IR", key: str, port: Optional[int]) -> Optional[SvcEndpointSet]:
+    def get_endpoints(
+        self, ir: "IR", key: str, port: Optional[int]
+    ) -> Optional[SvcEndpointSet]:
         # OK. Do we have a Service by this key?
         service = ir.services.get(key)
 
         if not service:
-            self.logger.debug(f"Resolver {self.name}: {key} matches no Service for endpoints")
+            self.logger.debug(
+                f"Resolver {self.name}: {key} matches no Service for endpoints"
+            )
             return None
 
         self.logger.debug(f"Resolver {self.name}: {key} matches %s" % service.as_json())
@@ -206,7 +240,12 @@ class IRServiceResolver(IRResource):
             return None
 
     def clustermap_entry(
-        self, ir: "IR", cluster: "IRCluster", svc_name: str, svc_namespace: str, port: int
+        self,
+        ir: "IR",
+        cluster: "IRCluster",
+        svc_name: str,
+        svc_namespace: str,
+        port: int,
     ) -> ClustermapEntry:
         fn = {
             "KubernetesServiceResolver": self._k8s_svc_clustermap_entry,
@@ -217,14 +256,24 @@ class IRServiceResolver(IRResource):
         return fn(ir, cluster, svc_name, svc_namespace, port)
 
     def _k8s_svc_clustermap_entry(
-        self, ir: "IR", cluster: "IRCluster", svc_name: str, svc_namespace: str, port: int
+        self,
+        ir: "IR",
+        cluster: "IRCluster",
+        svc_name: str,
+        svc_namespace: str,
+        port: int,
     ) -> ClustermapEntry:
         # The K8s service resolver always returns a single endpoint.
         svc, namespace = self.parse_service(ir, svc_name, svc_namespace)
         return {"port": port, "kind": self.kind, "service": svc, "namespace": namespace}
 
     def _k8s_clustermap_entry(
-        self, ir: "IR", cluster: "IRCluster", svc_name: str, svc_namespace: str, port: int
+        self,
+        ir: "IR",
+        cluster: "IRCluster",
+        svc_name: str,
+        svc_namespace: str,
+        port: int,
     ) -> ClustermapEntry:
         # Fallback to the KubernetesServiceResolver for IP addresses or if the service doesn't exist.
         if is_ip_address(svc_name):
@@ -250,7 +299,12 @@ class IRServiceResolver(IRResource):
         }
 
     def _consul_clustermap_entry(
-        self, ir: "IR", cluster: "IRCluster", svc_name: str, svc_namespace: str, port: int
+        self,
+        ir: "IR",
+        cluster: "IRCluster",
+        svc_name: str,
+        svc_namespace: str,
+        port: int,
     ) -> ClustermapEntry:
         # Fallback to the KubernetesServiceResolver for ip addresses.
         if is_ip_address(svc_name):
@@ -322,7 +376,9 @@ class IRServiceResolverFactory:
 
             ir.add_resolver(IRServiceResolver(ir, aconf, **resolver_config))
         else:
-            cls.check_aliases(ir, aconf, "endpoint", res_e, "kubernetes-endpoint", res_k_e)
+            cls.check_aliases(
+                ir, aconf, "endpoint", res_e, "kubernetes-endpoint", res_k_e
+            )
 
         res_c = ir.get_resolver("consul")
         res_c_e = ir.get_resolver("consul-endpoint")
@@ -371,7 +427,9 @@ class IRServiceResolverFactory:
             config = dict(**source.as_dict())
 
             # Fix up this dict. Sigh.
-            config["rkey"] = config.pop("_rkey", config.get("rkey", None))  # Kludge, I know...
+            config["rkey"] = config.pop(
+                "_rkey", config.get("rkey", None)
+            )  # Kludge, I know...
             config.pop("_errored", None)
             config.pop("_active", None)
             config.pop("resolve_with", None)
@@ -383,7 +441,7 @@ class IRServiceResolverFactory:
 
 def is_ip_address(addr: str) -> bool:
     try:
-        x = ip_address(addr)
+        _ = ip_address(addr)
         return True
     except ValueError:
         return False

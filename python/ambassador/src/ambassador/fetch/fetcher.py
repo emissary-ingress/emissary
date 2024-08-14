@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ..config import ACResource, Config
-from ..utils import parse_bool, parse_json, parse_yaml
+from ..utils import parse_json, parse_yaml
 from .ambassador import AmbassadorProcessor
 from .dependency import (
     DependencyManager,
@@ -39,7 +39,11 @@ class ResourceFetcher:
     invalid: List[Dict]
 
     def __init__(
-        self, logger: logging.Logger, aconf: "Config", skip_init_dir: bool = False, watch_only=False
+        self,
+        logger: logging.Logger,
+        aconf: "Config",
+        skip_init_dir: bool = False,
+        watch_only=False,
     ) -> None:
         self.aconf = aconf
         self.logger = logger
@@ -102,7 +106,9 @@ class ResourceFetcher:
             init_dir = "/ambassador/init-config"
 
             if os.path.isdir(init_dir):
-                self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
+                self.load_from_filesystem(
+                    init_dir, k8s=True, recurse=True, finalize=False
+                )
 
     @property
     def elements(self) -> List[ACResource]:
@@ -164,16 +170,22 @@ class ResourceFetcher:
 
             try:
                 serialization = open(filepath, "r").read()
-                self.parse_yaml(serialization, k8s=k8s, filename=filename, finalize=False)
+                self.parse_yaml(
+                    serialization, k8s=k8s, filename=filename, finalize=False
+                )
             except IOError as e:
                 self.aconf.post_error("could not read YAML from %s: %s" % (filepath, e))
 
         for manifest in automatic_manifests:
             self.logger.debug("reading automatic manifest: %s" % manifest)
             try:
-                self.parse_yaml(manifest, k8s=k8s, filename="_automatic_", finalize=False)
+                self.parse_yaml(
+                    manifest, k8s=k8s, filename="_automatic_", finalize=False
+                )
             except IOError as e:
-                self.aconf.post_error("could not read automatic manifest: %s\n%s" % (manifest, e))
+                self.aconf.post_error(
+                    "could not read automatic manifest: %s\n%s" % (manifest, e)
+                )
 
         if finalize:
             self.finalize()
@@ -204,7 +216,9 @@ class ResourceFetcher:
                     else:
                         self.manager.emit(NormalizedResource(obj, rkey=rkey))
             except yaml.error.YAMLError as e:
-                self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
+                self.aconf.post_error(
+                    "%s: could not parse YAML: %s" % (self.location, e)
+                )
 
         if finalize:
             self.finalize()
@@ -331,7 +345,7 @@ class ResourceFetcher:
         if not os.path.isfile(pod_labels_path):
             if not self.alerted_about_labels:
                 self.aconf.post_error(
-                    f"Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited"
+                    "Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited"
                 )
                 self.alerted_about_labels = True
 

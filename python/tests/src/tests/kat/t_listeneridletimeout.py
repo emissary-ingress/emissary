@@ -12,8 +12,10 @@ class ListenerIdleTimeout(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -22,9 +24,12 @@ ambassador_id: [{self.ambassador_id}]
 config:
   listener_idle_timeout_ms: 30000
 """
+            ),
         )
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -34,6 +39,7 @@ prefix: /config_dump
 rewrite: /config_dump
 service: http://127.0.0.1:8001
 """
+            ),
         )
 
     def queries(self):
@@ -45,7 +51,10 @@ service: http://127.0.0.1:8001
         assert self.results[0].body
         body = json.loads(self.results[0].body)
         for config_obj in body.get("configs"):
-            if config_obj.get("@type") == "type.googleapis.com/envoy.admin.v3.ListenersConfigDump":
+            if (
+                config_obj.get("@type")
+                == "type.googleapis.com/envoy.admin.v3.ListenersConfigDump"
+            ):
                 listeners = config_obj.get("dynamic_listeners")
                 found_idle_timeout = False
                 for listener_obj in listeners:
@@ -69,15 +78,9 @@ service: http://127.0.0.1:8001
                                         if actual_val == expected_val:
                                             found_idle_timeout = True
                                     else:
-                                        assert (
-                                            False
-                                        ), "Expected to find common_http_protocol_options.idle_timeout property on listener"
+                                        assert False, "Expected to find common_http_protocol_options.idle_timeout property on listener"
                                 else:
-                                    assert (
-                                        False
-                                    ), "Expected to find common_http_protocol_options property on listener"
-                assert (
-                    found_idle_timeout
-                ), "Expected common_http_protocol_options.idle_timeout = {}, Got common_http_protocol_options.idle_timeout = {}".format(
+                                    assert False, "Expected to find common_http_protocol_options property on listener"
+                assert found_idle_timeout, "Expected common_http_protocol_options.idle_timeout = {}, Got common_http_protocol_options.idle_timeout = {}".format(
                     expected_val, actual_val
                 )

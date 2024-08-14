@@ -15,10 +15,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config
-from ambassador.envoy import EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import SecretHandler, SecretInfo
+from ambassador import IR, Config  # noqa: E402
+from ambassador.envoy import EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import SecretHandler, SecretInfo  # noqa: E402
 
 if TYPE_CHECKING:
     from ambassador.ir.irresource import IRResource  # pragma: no cover
@@ -39,8 +39,8 @@ class MockSecretHandler(SecretHandler):
 
 
 def get_mirrored_config(ads_config):
-    for l in ads_config.get("static_resources", {}).get("listeners"):
-        for fc in l.get("filter_chains"):
+    for listener in ads_config.get("static_resources", {}).get("listeners"):
+        for fc in listener.get("filter_chains"):
             for f in fc.get("filters"):
                 for vh in f["typed_config"]["route_config"]["virtual_hosts"]:
                     for r in vh.get("routes"):
@@ -113,8 +113,12 @@ spec:
     mirror_policy = mirrored_config["route"]["request_mirror_policies"][0]
     assert mirror_policy["cluster"] == "cluster_shadow_httpbin_shadow_default"
     assert mirror_policy["runtime_fraction"]["default_value"]["numerator"] == 10
-    assert mirror_policy["runtime_fraction"]["default_value"]["denominator"] == "HUNDRED"
-    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")])
+    assert (
+        mirror_policy["runtime_fraction"]["default_value"]["denominator"] == "HUNDRED"
+    )
+    assert_valid_envoy_config(
+        ads_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")]
+    )
     assert_valid_envoy_config(
         bootstrap_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")]
     )

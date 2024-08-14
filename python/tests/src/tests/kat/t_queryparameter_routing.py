@@ -13,8 +13,10 @@ class QueryParameterRoutingTest(AmbassadorTest):
         self.target2 = HTTP(name="target2")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target1, self.format(
-            """
+        yield (
+            self.target1,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -23,9 +25,12 @@ hostname: "*"
 prefix: /target/
 service: http://{self.target1.path.fqdn}
 """
+            ),
         )
-        yield self.target2, self.format(
-            """
+        yield (
+            self.target2,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -36,6 +41,7 @@ service: http://{self.target2.path.fqdn}
 query_parameters:
     test_param: target2
 """
+            ),
         )
 
     def queries(self):
@@ -60,8 +66,10 @@ class QueryParameterRoutingWithRegexTest(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -72,6 +80,7 @@ service: http://{self.target.path.fqdn}
 regex_query_parameters:
     test_param: "^[a-z].*"
 """
+            ),
         )
 
     def queries(self):
@@ -95,8 +104,10 @@ class QueryParameterPresentRoutingTest(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -107,6 +118,7 @@ service: http://{self.target.path.fqdn}
 regex_query_parameters:
     test_param: ".*"
 """
+            ),
         )
 
     def queries(self):

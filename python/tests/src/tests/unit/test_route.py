@@ -58,5 +58,7 @@ def test_timeout_ms_mapping():
 @pytest.mark.compilertest
 def test_timeout_ms_both():
     # If we set a default on the Module, it should override the usual default of 3000ms.
-    yaml = module_and_mapping_manifests(["cluster_request_timeout_ms: 9000"], ["timeout_ms: 5001"])
+    yaml = module_and_mapping_manifests(
+        ["cluster_request_timeout_ms: 9000"], ["timeout_ms: 5001"]
+    )
     _test_route(yaml, expectations={"timeout": "5.001s"})

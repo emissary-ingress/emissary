@@ -37,7 +37,9 @@ class V3Runtime(dict):
             max_io_per_cycle = user_runtime.get("http.max_requests_per_io_cycle", None)
             if max_io_per_cycle:
                 if isinstance(max_io_per_cycle, int) and max_io_per_cycle > 0:
-                    static_runtime_layer["http.max_requests_per_io_cycle"] = max_io_per_cycle
+                    static_runtime_layer["http.max_requests_per_io_cycle"] = (
+                        max_io_per_cycle
+                    )
                 else:
                     config.ir.logger.error(
                         f"value: {max_io_per_cycle} is invalid for Module field runtime_flags.max_requests_per_io_cycle. must be an integer greater than zero"
@@ -63,7 +65,10 @@ class V3Runtime(dict):
                 "overload.premature_reset_total_stream_count", None
             )
             if rapid_reset_total_streams:
-                if isinstance(rapid_reset_total_streams, int) and rapid_reset_total_streams > 0:
+                if (
+                    isinstance(rapid_reset_total_streams, int)
+                    and rapid_reset_total_streams > 0
+                ):
                     static_runtime_layer[
                         "overload.premature_reset_total_stream_count"
                     ] = rapid_reset_total_streams
@@ -85,7 +90,9 @@ class V3Runtime(dict):
                         f"value: {use_rapid_reset_goaway} is invalid for Module field envoy.restart_features.send_goaway_for_premature_rst_streams. This field must be true/false"
                     )
 
-        self.update({"layers": [{"name": "static_layer", "static_layer": static_runtime_layer}]})
+        self.update(
+            {"layers": [{"name": "static_layer", "static_layer": static_runtime_layer}]}
+        )
 
     @classmethod
     def generate(cls, config: "V3Config") -> None:

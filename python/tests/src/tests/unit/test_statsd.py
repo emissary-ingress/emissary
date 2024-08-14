@@ -12,9 +12,9 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config, EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
+from ambassador import IR, Config, EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
 
 
 def _get_envoy_config(yaml):
@@ -63,7 +63,11 @@ service: beepboop
         "typed_config": {
             "@type": "type.googleapis.com/envoy.config.metrics.v3.StatsdSink",
             "address": {
-                "socket_address": {"protocol": "UDP", "address": "127.0.0.1", "port_value": 8125}
+                "socket_address": {
+                    "protocol": "UDP",
+                    "address": "127.0.0.1",
+                    "port_value": 8125,
+                }
             },
         },
     }
@@ -85,7 +89,9 @@ service: beepboop
 @pytest.mark.compilertest
 @httpretty.activate
 def test_statsd_other():
-    httpretty.register_uri(httpretty.GET, "other-statsd-sink", body='{"origin": "127.0.0.1"}')
+    httpretty.register_uri(
+        httpretty.GET, "other-statsd-sink", body='{"origin": "127.0.0.1"}'
+    )
     yaml = """
 apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
@@ -102,7 +108,11 @@ service: beepboop
         "typed_config": {
             "@type": "type.googleapis.com/envoy.config.metrics.v3.StatsdSink",
             "address": {
-                "socket_address": {"protocol": "UDP", "address": "127.0.0.1", "port_value": 8125}
+                "socket_address": {
+                    "protocol": "UDP",
+                    "address": "127.0.0.1",
+                    "port_value": 8125,
+                }
             },
         },
     }
@@ -142,7 +152,11 @@ service: beepboop
         "typed_config": {
             "@type": "type.googleapis.com/envoy.config.metrics.v3.DogStatsdSink",
             "address": {
-                "socket_address": {"protocol": "UDP", "address": "127.0.0.1", "port_value": 8125}
+                "socket_address": {
+                    "protocol": "UDP",
+                    "address": "127.0.0.1",
+                    "port_value": 8125,
+                }
             },
         },
     }

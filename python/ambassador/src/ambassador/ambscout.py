@@ -8,7 +8,7 @@ from typing import cast as typecast
 import semantic_version
 
 from .scout import Scout
-from .utils import dump_json, parse_bool, parse_json
+from .utils import dump_json, parse_json
 from .VERSION import Commit, Version
 
 ScoutNotice = Dict[str, str]
@@ -23,7 +23,9 @@ class LocalScout:
 
         self.events: List[Dict[str, Any]] = []
 
-        self.logger.info(f"LocalScout: initialized for {app} {version}: ID {install_id}")
+        self.logger.info(
+            f"LocalScout: initialized for {app} {version}: ID {install_id}"
+        )
 
     def report(self, **kwargs) -> dict:
         self.events.append(kwargs)
@@ -44,7 +46,9 @@ class LocalScout:
             "latest_version": self.version,
             "application": self.app,
             "cached": False,
-            "notices": [{"level": "WARNING", "message": "Using LocalScout, result is faked!"}],
+            "notices": [
+                {"level": "WARNING", "message": "Using LocalScout, result is faked!"}
+            ],
             "timestamp": now,
         }
 
@@ -53,7 +57,9 @@ class LocalScout:
 
 
 class AmbScout:
-    reTaggedBranch: ClassVar = re.compile(r"^v?(\d+\.\d+\.\d+)(-[a-zA-Z][a-zA-Z]\.\d+)?$")
+    reTaggedBranch: ClassVar = re.compile(
+        r"^v?(\d+\.\d+\.\d+)(-[a-zA-Z][a-zA-Z]\.\d+)?$"
+    )
     reGitDescription: ClassVar = re.compile(r"-(\d+)-g([0-9a-f]+)$")
 
     install_id: str
@@ -75,16 +81,25 @@ class AmbScout:
     _latest_semver: Optional[semantic_version.Version] = None
 
     def __init__(
-        self, install_id=None, update_frequency=datetime.timedelta(hours=12), local_only=False
+        self,
+        install_id=None,
+        update_frequency=datetime.timedelta(hours=12),
+        local_only=False,
     ) -> None:
         if not install_id:
             install_id = os.environ.get(
                 "AMBASSADOR_CLUSTER_ID",
-                os.environ.get("AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000"),
+                os.environ.get(
+                    "AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000"
+                ),
             )
 
         self.install_id = install_id
-        self.runtime = "kubernetes" if os.environ.get("KUBERNETES_SERVICE_HOST", None) else "docker"
+        self.runtime = (
+            "kubernetes"
+            if os.environ.get("KUBERNETES_SERVICE_HOST", None)
+            else "docker"
+        )
         self.namespace = os.environ.get("AMBASSADOR_NAMESPACE", "default")
 
         self.app = "ambassador"
@@ -96,7 +111,8 @@ class AmbScout:
 
         self.logger.debug("Ambassador version %s built from %s" % (Version, Commit))
         self.logger.debug(
-            "Scout version      %s%s" % (self.version, " - BAD SEMVER" if not self.semver else "")
+            "Scout version      %s%s"
+            % (self.version, " - BAD SEMVER" if not self.semver else "")
         )
         self.logger.debug("Runtime            %s" % self.runtime)
         self.logger.debug("Namespace          %s" % self.namespace)
@@ -150,12 +166,15 @@ class AmbScout:
                     self._scout = None
                     self._scout_error = str(e)
                     self.logger.debug(
-                        "Scout connection failed, will retry later: %s" % self._scout_error
+                        "Scout connection failed, will retry later: %s"
+                        % self._scout_error
                     )
 
         return self._scout
 
-    def report(self, force_result: Optional[dict] = None, no_cache=False, **kwargs) -> dict:
+    def report(
+        self, force_result: Optional[dict] = None, no_cache=False, **kwargs
+    ) -> dict:
         _notices: List[ScoutNotice] = []
 
         # Silly, right?
@@ -188,7 +207,9 @@ class AmbScout:
 
             if use_cache:
                 if self._last_update:
-                    since_last_update = now - typecast(datetime.datetime, self._last_update)
+                    since_last_update = now - typecast(
+                        datetime.datetime, self._last_update
+                    )
                     needs_update = since_last_update > self._update_frequency
 
             if needs_update:
@@ -196,13 +217,16 @@ class AmbScout:
                     result = self.scout.report(**kwargs)
 
                     self._last_update = now
-                    self._last_result = dict(**typecast(dict, result)) if result else None
+                    self._last_result = (
+                        dict(**typecast(dict, result)) if result else None
+                    )
                 else:
                     result = {"scout": "unavailable: %s" % self._scout_error}
                     _notices.append(
                         {
                             "level": "DEBUG",
-                            "message": "scout temporarily unavailable: %s" % self._scout_error,
+                            "message": "scout temporarily unavailable: %s"
+                            % self._scout_error,
                         }
                     )
 
@@ -210,14 +234,22 @@ class AmbScout:
                 # try again too soon.
                 result_timestamp = datetime.datetime.now()
             else:
-                _notices.append({"level": "DEBUG", "message": "Returning cached result"})
-                result = dict(**typecast(dict, self._last_result)) if self._last_result else None
+                _notices.append(
+                    {"level": "DEBUG", "message": "Returning cached result"}
+                )
+                result = (
+                    dict(**typecast(dict, self._last_result))
+                    if self._last_result
+                    else None
+                )
                 result_was_cached = True
 
                 # We can't get here unless self._last_update is set.
                 result_timestamp = typecast(datetime.datetime, self._last_update)
         else:
-            _notices.append({"level": "INFO", "message": "Returning forced Scout result"})
+            _notices.append(
+                {"level": "INFO", "message": "Returning forced Scout result"}
+            )
             result_timestamp = datetime.datetime.now()
 
         if not self.semver:
@@ -247,15 +279,19 @@ class AmbScout:
                 _notices.append(
                     {
                         "level": "WARNING",
-                        "message": "Scout returned invalid version '%s'??!" % latest_version,
+                        "message": "Scout returned invalid version '%s'??!"
+                        % latest_version,
                     }
                 )
 
-        if self._latest_semver and ((not self.semver) or (self._latest_semver > self.semver)):
+        if self._latest_semver and (
+            (not self.semver) or (self._latest_semver > self.semver)
+        ):
             _notices.append(
                 {
                     "level": "INFO",
-                    "message": "Upgrade available! to Ambassador version %s" % self._latest_semver,
+                    "message": "Upgrade available! to Ambassador version %s"
+                    % self._latest_semver,
                 }
             )
 

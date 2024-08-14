@@ -1,6 +1,10 @@
 import os
 
-from tests.utils import assert_valid_envoy_config, econf_compile, module_and_mapping_manifests
+from tests.utils import (
+    assert_valid_envoy_config,
+    econf_compile,
+    module_and_mapping_manifests,
+)
 
 
 def _test_bootstrap(yaml, expectations={}):
@@ -61,7 +65,10 @@ def test_dd_entity_id_set():
         "my.cool.1234.entity-id",
         {
             "stats_tags": [
-                {"tag_name": "dd.internal.entity_id", "fixed_value": "my.cool.1234.entity-id"}
+                {
+                    "tag_name": "dd.internal.entity_id",
+                    "fixed_value": "my.cool.1234.entity-id",
+                }
             ]
         },
     )

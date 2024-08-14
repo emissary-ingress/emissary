@@ -11,8 +11,8 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Cache
-from ambassador.compile import Compile
+from ambassador import IR, Cache  # noqa: E402
+from ambassador.compile import Compile  # noqa: E402
 
 
 def require_no_errors(ir: IR):

@@ -72,14 +72,18 @@ def test_reject_requests_with_escaped_slashes_missing():
 @pytest.mark.compilertest
 def test_reject_requests_with_escaped_slashes_false():
     # If we set the config to false, the action should be missing.
-    yaml = module_and_mapping_manifests(["reject_requests_with_escaped_slashes: false"], [])
+    yaml = module_and_mapping_manifests(
+        ["reject_requests_with_escaped_slashes: false"], []
+    )
     _test_hcm(yaml, expectations={"path_with_escaped_slashes_action": None})
 
 
 @pytest.mark.compilertest
 def test_reject_requests_with_escaped_slashes_true():
     # If we set the config to true, the action should show up as "REJECT_REQUEST".
-    yaml = module_and_mapping_manifests(["reject_requests_with_escaped_slashes: true"], [])
+    yaml = module_and_mapping_manifests(
+        ["reject_requests_with_escaped_slashes: true"], []
+    )
     _test_hcm(yaml, expectations={"path_with_escaped_slashes_action": "REJECT_REQUEST"})
 
 

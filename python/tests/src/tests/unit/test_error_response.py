@@ -12,10 +12,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config
-from ambassador.fetch import ResourceFetcher
-from ambassador.ir.irerrorresponse import IRErrorResponse
-from ambassador.utils import NullSecretHandler
+from ambassador import IR, Config  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.ir.irerrorresponse import IRErrorResponse  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
 
 
 def _status_code_filter_eq_obj(status_code):
@@ -23,7 +23,10 @@ def _status_code_filter_eq_obj(status_code):
         "status_code_filter": {
             "comparison": {
                 "op": "EQ",
-                "value": {"default_value": f"{status_code}", "runtime_key": "_donotsetthiskey"},
+                "value": {
+                    "default_value": f"{status_code}",
+                    "runtime_key": "_donotsetthiskey",
+                },
             }
         }
     }
@@ -111,7 +114,10 @@ def _test_errorresponse(yaml, expectations, expect_fail=False):
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     error_response = IRErrorResponse(
-        ir, aconf, ir.ambassador_module.get("error_response_overrides", None), ir.ambassador_module
+        ir,
+        aconf,
+        ir.ambassador_module.get("error_response_overrides", None),
+        ir.ambassador_module,
     )
 
     error_response.setup(ir, aconf)
@@ -130,8 +136,8 @@ def _test_errorresponse(yaml, expectations, expect_fail=False):
 
     mappers = ir_conf.get("mappers", None)
     assert mappers
-    assert len(mappers) == len(
-        expectations
+    assert (
+        len(mappers) == len(expectations)
     ), f"unexpected len(mappers) {len(expectations)} != len(expectations) {len(expectations)}"
 
     for i in range(len(expectations)):
@@ -143,14 +149,16 @@ def _test_errorresponse(yaml, expectations, expect_fail=False):
             % (expected_body_format_override, expected_filter)
         )
         print("checking m: ", m)
-        actual_filter = m["filter"]
+        # actual_filter = m["filter"]
         assert m["filter"] == expected_filter
         if expected_body_format_override:
             actual_body_format_override = m["body_format_override"]
             assert actual_body_format_override == expected_body_format_override
 
 
-def _test_errorresponse_onemapper(yaml, expected_filter, expected_body_format_override, fail=False):
+def _test_errorresponse_onemapper(
+    yaml, expected_filter, expected_body_format_override, fail=False
+):
     return _test_errorresponse(
         yaml, [(expected_filter, expected_body_format_override)], expect_fail=fail
     )
@@ -160,7 +168,9 @@ def _test_errorresponse_twomappers(yaml, expectation1, expectation2, fail=False)
     return _test_errorresponse(yaml, [expectation1, expectation2], expect_fail=fail)
 
 
-def _test_errorresponse_onemapper_onstatuscode_textformat(status_code, text_format, fail=False):
+def _test_errorresponse_onemapper_onstatuscode_textformat(
+    status_code, text_format, fail=False
+):
     _test_errorresponse_onemapper(
         _ambassador_module_onemapper(status_code, "text_format", text_format),
         _status_code_filter_eq_obj(status_code),
@@ -221,7 +231,9 @@ def _test_errorresponse_onemapper_onstatuscode_jsonformat(status_code, json_form
     )
 
 
-def _test_errorresponse_twomappers_onstatuscode_textformat(code1, text1, code2, text2, fail=False):
+def _test_errorresponse_twomappers_onstatuscode_textformat(
+    code1, text1, code2, text2, fail=False
+):
     _test_errorresponse_twomappers(
         f"""
 ---
@@ -252,7 +264,9 @@ def test_errorresponse_twomappers_onstatuscode_textformat():
     _test_errorresponse_twomappers_onstatuscode_textformat(
         "400", "bad request my friend", "504", "waited too long for an upstream resonse"
     )
-    _test_errorresponse_twomappers_onstatuscode_textformat("503", "boom", "403", "go away")
+    _test_errorresponse_twomappers_onstatuscode_textformat(
+        "503", "boom", "403", "go away"
+    )
 
 
 @pytest.mark.compilertest
@@ -272,9 +286,13 @@ def test_errorresponse_invalid_envoy_operator():
 
 @pytest.mark.compilertest
 def test_errorresponse_onemapper_onstatuscode_textformat_contenttype():
-    _test_errorresponse_onemapper_onstatuscode_textformat_contenttype("503", "oops", "text/what")
     _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
-        "429", "<html>too fast, too furious on host %REQ(:authority)%</html>", "text/html"
+        "503", "oops", "text/what"
+    )
+    _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
+        "429",
+        "<html>too fast, too furious on host %REQ(:authority)%</html>",
+        "text/html",
     )
     _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
         "404", "{'error':'notfound'}", "application/json"
@@ -327,7 +345,10 @@ def test_errorresponse_onemapper_onstatuscode_textformatsource(tmp_path: Path):
         "429", "2fast", str(tmp_path / "2fast.html"), "text/html"
     )
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
-        "503", "something went wrong", str(tmp_path / "503.html"), "text/html; charset=UTF-8"
+        "503",
+        "something went wrong",
+        str(tmp_path / "503.html"),
+        "text/html; charset=UTF-8",
     )
 
 
@@ -336,7 +357,7 @@ def test_errorresponse_invalid_configs():
     # status code must be an int
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: bad
     body:
@@ -346,7 +367,7 @@ def test_errorresponse_invalid_configs():
     # cannot match on code < 400 nor >= 600
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 200
     body:
@@ -355,7 +376,7 @@ def test_errorresponse_invalid_configs():
     )
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 399
     body:
@@ -364,7 +385,7 @@ def test_errorresponse_invalid_configs():
     )
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 600
     body:
@@ -374,7 +395,7 @@ def test_errorresponse_invalid_configs():
     # body must be a dict
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body: 'bad'
@@ -383,7 +404,7 @@ def test_errorresponse_invalid_configs():
     # body requires a valid format field
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -393,7 +414,7 @@ def test_errorresponse_invalid_configs():
     # body field must be present
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 501
     bad:
@@ -403,29 +424,29 @@ def test_errorresponse_invalid_configs():
     # body field cannot be an empty dict
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 501
-    body: {{}}
+    body: {}
 """
     )
     # response override must be a non-empty array
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides: []
 """
     )
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides: 'great sadness'
 """
     )
     # (not an array, bad)
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
     on_status_code: 401
     body:
@@ -435,7 +456,7 @@ def test_errorresponse_invalid_configs():
     # text_format_source must have a single string 'filename'
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -444,7 +465,7 @@ def test_errorresponse_invalid_configs():
     )
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -454,7 +475,7 @@ def test_errorresponse_invalid_configs():
     )
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -465,7 +486,7 @@ def test_errorresponse_invalid_configs():
     # json_format field must be an object field
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -475,7 +496,7 @@ def test_errorresponse_invalid_configs():
     # json_format cannot have values that do not cast to string trivially
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -487,7 +508,7 @@ def test_errorresponse_invalid_configs():
     )
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -499,7 +520,7 @@ def test_errorresponse_invalid_configs():
     # content type, if it exists, must be a string
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -509,7 +530,7 @@ def test_errorresponse_invalid_configs():
     )
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -520,7 +541,7 @@ def test_errorresponse_invalid_configs():
     # only one of text_format, json_format, or text_format_source may be set
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:
@@ -532,7 +553,7 @@ def test_errorresponse_invalid_configs():
     )
     _test_errorresponse_invalid_configs(
         _ambassador_module_config()
-        + f"""
+        + """
   error_response_overrides:
   - on_status_code: 401
     body:

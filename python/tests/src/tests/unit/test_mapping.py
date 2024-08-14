@@ -29,8 +29,11 @@ spec:
     errors = ir.aconf.errors["bad-mapping.default.1"]
     assert len(errors) == 1, f"Expected 1 error but got {len(errors)}"
 
-    assert errors[0]["ok"] == False
-    assert errors[0]["error"] == "host exact-match * contains *, which cannot match anything."
+    assert errors[0]["ok"] is False
+    assert (
+        errors[0]["error"]
+        == "host exact-match * contains *, which cannot match anything."
+    )
 
     for g in ir.groups.values():
         assert g.prefix != "/star/"
@@ -63,9 +66,10 @@ spec:
     errors = ir.aconf.errors["bad-mapping.default.1"]
     assert len(errors) == 1, f"Expected 1 error but got {len(errors)}"
 
-    assert errors[0]["ok"] == False
+    assert errors[0]["ok"] is False
     assert (
-        errors[0]["error"] == ":authority exact-match '*' contains *, which cannot match anything."
+        errors[0]["error"]
+        == ":authority exact-match '*' contains *, which cannot match anything."
     )
 
     for g in ir.groups.values():

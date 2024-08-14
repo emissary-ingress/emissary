@@ -73,7 +73,9 @@ class EnvoyConfig:
         pass
 
     @abstractmethod
-    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, "ClustermapEntry"]]:
+    def split_config(
+        self,
+    ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, "ClustermapEntry"]]:
         pass
 
     @abstractmethod

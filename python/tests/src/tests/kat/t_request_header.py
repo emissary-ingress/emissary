@@ -11,8 +11,10 @@ class XRequestIdHeaderPreserveTest(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -27,6 +29,7 @@ hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -42,12 +45,16 @@ class XRequestIdHeaderDefaultTest(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.xfail = "Need to figure out passing header through external connections from KAT"
+        self.xfail = (
+            "Need to figure out passing header through external connections from KAT"
+        )
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -61,6 +68,7 @@ hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -80,8 +88,10 @@ class EnvoyHeadersTest(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -92,6 +102,7 @@ rewrite: /rewrite/
 timeout_ms: 5001
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -117,8 +128,10 @@ class SuppressEnvoyHeadersTest(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -135,6 +148,7 @@ rewrite: /rewrite/
 timeout_ms: 5001
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):

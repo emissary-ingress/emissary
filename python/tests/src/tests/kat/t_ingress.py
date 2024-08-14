@@ -20,8 +20,7 @@ class IngressStatusTest1(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return (
-            """
+        return """
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -41,9 +40,7 @@ spec:
               number: 80
         path: /{self.name}/
         pathType: Prefix
-"""
-            + super().manifests()
-        )
+""" + super().manifests()
 
     def queries(self):
         if True or sys.platform != "darwin":
@@ -82,7 +79,10 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
+                assert (
+                    r.backend.request.headers["x-envoy-original-path"][0]
+                    == f"/{self.name}/"
+                )
 
         # check for Ingress IP here
         ingress_cmd = [
@@ -110,8 +110,7 @@ class IngressStatusTest2(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return (
-            """
+        return """
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -131,9 +130,7 @@ spec:
               number: 80
         path: /{self.name}/
         pathType: Prefix
-"""
-            + super().manifests()
-        )
+""" + super().manifests()
 
     def queries(self):
         if True or sys.platform != "darwin":
@@ -172,7 +169,10 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
+                assert (
+                    r.backend.request.headers["x-envoy-original-path"][0]
+                    == f"/{self.name}/"
+                )
 
         # check for Ingress IP here
         ingress_cmd = [
@@ -264,7 +264,10 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
+                assert (
+                    r.backend.request.headers["x-envoy-original-path"][0]
+                    == f"/{self.name}/"
+                )
 
         # check for Ingress IP here
         ingress_cmd = [
@@ -292,8 +295,7 @@ class IngressStatusTestWithAnnotations(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return (
-            """
+        return """
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -322,9 +324,7 @@ spec:
               number: 80
         path: /{self.name}/
         pathType: Prefix
-"""
-            + super().manifests()
-        )
+""" + super().manifests()
 
     def queries(self):
         text = json.dumps(self.status_update)
@@ -493,8 +493,7 @@ class IngressStatusTestWithIngressClass(AmbassadorTest):
             self.xfail = "IngressClass is not supported in this cluster"
 
     def manifests(self) -> str:
-        return (
-            """
+        return """
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -545,9 +544,7 @@ spec:
               number: 80
         path: /{self.name}/
         pathType: Prefix
-"""
-            + super().manifests()
-        )
+""" + super().manifests()
 
     def queries(self):
         if True or sys.platform != "darwin":
@@ -586,7 +583,10 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
+                assert (
+                    r.backend.request.headers["x-envoy-original-path"][0]
+                    == f"/{self.name}/"
+                )
 
         # check for Ingress IP here
         ingress_cmd = [

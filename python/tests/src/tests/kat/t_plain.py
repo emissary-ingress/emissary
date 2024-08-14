@@ -71,13 +71,16 @@ spec:
         return m + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, """
+        yield (
+            self,
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config: {}
-"""
+""",
+        )
 
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)

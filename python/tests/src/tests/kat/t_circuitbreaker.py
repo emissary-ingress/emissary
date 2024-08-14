@@ -26,8 +26,10 @@ class CircuitBreakingTest(AmbassadorTest):
         return super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -58,6 +60,7 @@ prefix: /dump/
 rewrite: /DUMP/
 service: {self.statsd.path.fqdn}
 """
+            ),
         )
 
     def requirements(self):
@@ -121,7 +124,7 @@ service: {self.statsd.path.fqdn}
                 elif "X-Envoy-Overloaded" in result.headers:
                     pending_overloaded += 1
 
-            failed = False
+            # failed = False
 
             if not 300 < pending_overloaded < 400:
                 failures.append(
@@ -157,8 +160,10 @@ class GlobalCircuitBreakingTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Host
@@ -197,6 +202,7 @@ config:
     max_pending_requests: 5
     max_connections: 5
 """
+            ),
         )
 
     def requirements(self):
@@ -237,7 +243,9 @@ config:
                     pr_mapping_overloaded += 1
 
             if pr_mapping_overloaded != 0:
-                failures.append(f"[GCR] expected no -pr overloaded, got {pr_mapping_overloaded}")
+                failures.append(
+                    f"[GCR] expected no -pr overloaded, got {pr_mapping_overloaded}"
+                )
 
             # '-normal' mapping tests: global configuration should be in effect
             normal_overloaded = 0
@@ -276,8 +284,10 @@ class CircuitBreakingTCPTest(AmbassadorTest):
     # Ambassador-YAML will be annotated onto the Node.
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target1, self.format(
-            """
+        yield (
+            self.target1,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -285,9 +295,12 @@ name:  {self.name}-1
 port: 6789
 service: {self.target1.path.fqdn}:80
 """
+            ),
         )
-        yield self.target2, self.format(
-            """
+        yield (
+            self.target2,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -299,6 +312,7 @@ circuit_breakers:
   max_pending_requests: 1
   max_connections: 1
 """
+            ),
         )
 
     def queries(self):
@@ -344,7 +358,9 @@ circuit_breakers:
                     low_limit_failure += 1
 
             if not 100 < low_limit_failure < 200:
-                failures.append(f"expected 100-200 failure with low limit, got {low_limit_failure}")
+                failures.append(
+                    f"expected 100-200 failure with low limit, got {low_limit_failure}"
+                )
 
         if failures:
             print("%s FAILED:\n  %s" % (self.name, "\n  ".join(failures)))

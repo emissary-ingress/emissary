@@ -11,8 +11,10 @@ class AllowChunkedLengthTestTrue(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: ambassador
 kind:  Module
@@ -27,12 +29,16 @@ prefix: /foo/
 hostname: "*"
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
         yield Query(self.url("foo/"))
         yield Query(self.url("ambassador/v0/diag/"))
-        yield Query(self.url("foo/"), headers={"content-length": "0", "transfer-encoding": "gzip"})
+        yield Query(
+            self.url("foo/"),
+            headers={"content-length": "0", "transfer-encoding": "gzip"},
+        )
         yield Query(
             self.url("ambassador/v0/diag/"),
             headers={"content-length": "0", "transfer-encoding": "gzip"},

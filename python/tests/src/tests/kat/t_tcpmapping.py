@@ -133,8 +133,10 @@ spec:
     # Ambassador-YAML will be annotated onto the Node.
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -145,10 +147,13 @@ hosts:
 - tls-context-host-3
 secret: supersecret
 """
+            ),
         )
 
-        yield self.target1, self.format(
-            """
+        yield (
+            self.target1,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -176,11 +181,14 @@ port: 6789
 host: tls-context-host-1
 service: {self.target1.path.fqdn}:80
 """
+            ),
         )
 
         # Host-differentiated.
-        yield self.target2, self.format(
-            """
+        yield (
+            self.target2,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -190,11 +198,14 @@ host: tls-context-host-2
 service: {self.target2.path.fqdn}
 tls: {self.name}-tlscontext
 """
+            ),
         )
 
         # Host-differentiated.
-        yield self.target3, self.format(
-            """
+        yield (
+            self.target3,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -203,6 +214,7 @@ port: 6789
 host: tls-context-host-3
 service: https://{self.target3.path.fqdn}
 """
+            ),
         )
 
     def requirements(self):
@@ -258,7 +270,9 @@ service: https://{self.target3.path.fqdn}
         yield Query(self.url(self.name + "/wtfo/", port=9876), insecure=True)
 
         # 1: should hit target2, and use TLS
-        yield Query(self.url(self.name + "/wtfo/", port=7654, scheme="http"), insecure=True)
+        yield Query(
+            self.url(self.name + "/wtfo/", port=7654, scheme="http"), insecure=True
+        )
 
         # 2: should hit target1 via SNI, and use cleartext
         yield Query(
@@ -346,7 +360,7 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == False
+        assert self.results[0].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingCrossNamespaceTest(AmbassadorTest):
@@ -380,7 +394,7 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == False
+        assert self.results[0].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingTLSOriginationBoolTest(AmbassadorTest):
@@ -414,7 +428,7 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == True
+        assert self.results[0].json["request"]["tls"]["enabled"] is True
 
 
 class TCPMappingTLSOriginationV2SchemeTest(AmbassadorTest):
@@ -465,9 +479,9 @@ spec:
 
     def check(self):
         assert self.results[1].json["backend"] == self.target.path.k8s
-        assert self.results[1].json["request"]["tls"]["enabled"] == True
+        assert self.results[1].json["request"]["tls"]["enabled"] is True
         assert self.results[2].json["backend"] == self.target.path.k8s
-        assert self.results[2].json["request"]["tls"]["enabled"] == False
+        assert self.results[2].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingTLSOriginationV3SchemeTest(AmbassadorTest):
@@ -500,7 +514,7 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == True
+        assert self.results[0].json["request"]["tls"]["enabled"] is True
 
 
 class TCPMappingTLSOriginationContextTest(AmbassadorTest):
@@ -512,8 +526,7 @@ class TCPMappingTLSOriginationContextTest(AmbassadorTest):
 
     def manifests(self) -> str:
         # Hafta provide a client cert, see https://github.com/emissary-ingress/emissary/issues/4476
-        return (
-            f"""
+        return f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -542,16 +555,14 @@ spec:
   port: 6789
   service: {self.target.path.fqdn}:443
   tls: {self.path.k8s}-tlsclient
-"""
-            + super().manifests()
-        )
+""" + super().manifests()
 
     def queries(self):
         yield Query(self.url("", port=6789))
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == True
+        assert self.results[0].json["request"]["tls"]["enabled"] is True
         assert self.results[0].json["request"]["tls"]["server-name"] == "my-funny-name"
 
 
@@ -564,8 +575,7 @@ class TCPMappingTLSOriginationContextWithDotTest(AmbassadorTest):
 
     def manifests(self) -> str:
         # Hafta provide a client cert, see https://github.com/emissary-ingress/emissary/issues/4476
-        return (
-            f"""
+        return f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -594,17 +604,17 @@ spec:
   port: 6789
   service: {self.target.path.fqdn}:443
   tls: {self.path.k8s}.tlsclient
-"""
-            + super().manifests()
-        )
+""" + super().manifests()
 
     def queries(self):
         yield Query(self.url("", port=6789))
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == True
-        assert self.results[0].json["request"]["tls"]["server-name"] == "my-hilarious-name"
+        assert self.results[0].json["request"]["tls"]["enabled"] is True
+        assert (
+            self.results[0].json["request"]["tls"]["server-name"] == "my-hilarious-name"
+        )
 
 
 class TCPMappingTLSOriginationContextCrossNamespaceTest(AmbassadorTest):
@@ -662,8 +672,11 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == True
-        assert self.results[0].json["request"]["tls"]["server-name"] == "my-hysterical-name"
+        assert self.results[0].json["request"]["tls"]["enabled"] is True
+        assert (
+            self.results[0].json["request"]["tls"]["server-name"]
+            == "my-hysterical-name"
+        )
 
 
 @abstract_test
@@ -679,8 +692,7 @@ class TCPMappingTLSTerminationTest(AmbassadorTest):
         self.tls_src = tls_src
 
     def manifests(self) -> str:
-        return (
-            f"""
+        return f"""
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -695,9 +707,7 @@ spec:
     insecure:
       action: Route
       additionalPort: 8080
-"""
-            + super().manifests()
-        )
+""" + super().manifests()
 
 
 class TCPMappingTLSTerminationBasicTest(TCPMappingTLSTerminationTest):
@@ -772,7 +782,7 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == False
+        assert self.results[0].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingTLSTerminationCrossNamespaceTest(TCPMappingTLSTerminationTest):
@@ -851,7 +861,7 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == False
+        assert self.results[0].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingSNISharedContextTest(TCPMappingTLSTerminationTest):
@@ -952,9 +962,9 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target_a.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == False
+        assert self.results[0].json["request"]["tls"]["enabled"] is False
         assert self.results[1].json["backend"] == self.target_b.path.k8s
-        assert self.results[1].json["request"]["tls"]["enabled"] == False
+        assert self.results[1].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingSNISeparateContextsTest(TCPMappingTLSTerminationTest):
@@ -1075,9 +1085,9 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target_a.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == False
+        assert self.results[0].json["request"]["tls"]["enabled"] is False
         assert self.results[1].json["backend"] == self.target_b.path.k8s
-        assert self.results[1].json["request"]["tls"]["enabled"] == False
+        assert self.results[1].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingSNIWithHTTPTest(AmbassadorTest):
@@ -1187,7 +1197,7 @@ spec:
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
-        assert self.results[0].json["request"]["tls"]["enabled"] == False
+        assert self.results[0].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingAddressTest(AmbassadorTest):
@@ -1228,14 +1238,15 @@ spec:
     def queries(self):
         # Check that it only bound to localhost and doesn't allow external connections.
         yield Query(
-            self.url("", port=6789), error=["connection reset by peer", "EOF", "connection refused"]
+            self.url("", port=6789),
+            error=["connection reset by peer", "EOF", "connection refused"],
         )
         # Use a second mapping that proxies to the first to check that it was even created.
         yield Query(self.url("", port=6790))
 
     def check(self):
         assert self.results[1].json["backend"] == self.target.path.k8s
-        assert self.results[1].json["request"]["tls"]["enabled"] == False
+        assert self.results[1].json["request"]["tls"]["enabled"] is False
 
 
 class TCPMappingWeightTest(AmbassadorTest):

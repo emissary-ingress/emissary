@@ -171,7 +171,9 @@ class IRCluster(IRResource):
         # Parse the service as a URL. Note that we have to supply a scheme to urllib's
         # parser, because it's kind of stupid.
 
-        ir.logger.debug("cluster setup: service %s otls %s ctx %s" % (service, originate_tls, ctx))
+        ir.logger.debug(
+            "cluster setup: service %s otls %s ctx %s" % (service, originate_tls, ctx)
+        )
         p = urllib.parse.urlparse("random://" + service)
 
         # Is there any junk after the host?
@@ -193,7 +195,8 @@ class IRCluster(IRResource):
         if not hostname:
             # We don't. That ain't good.
             errors.append(
-                "service %s has no hostname and will be ignored; please re-configure" % service
+                "service %s has no hostname and will be ignored; please re-configure"
+                % service
             )
             self.ignore_cluster = True
             hostname = "unknown"
@@ -284,19 +287,23 @@ class IRCluster(IRResource):
         if enable_ipv4 is None:
             enable_ipv4 = ir.ambassador_module.enable_ipv4
             ir.logger.debug(
-                "%s: copying enable_ipv4 %s from Ambassador Module" % (name, enable_ipv4)
+                "%s: copying enable_ipv4 %s from Ambassador Module"
+                % (name, enable_ipv4)
             )
 
         if enable_ipv6 is None:
             enable_ipv6 = ir.ambassador_module.enable_ipv6
             ir.logger.debug(
-                "%s: copying enable_ipv6 %s from Ambassador Module" % (name, enable_ipv6)
+                "%s: copying enable_ipv6 %s from Ambassador Module"
+                % (name, enable_ipv6)
             )
 
         new_args: Dict[str, Any] = {
             "type": dns_type,
             "lb_type": lb_type,
-            "urls": [url],  # TODO: Should we completely eliminate `urls` in favor of `targets`?
+            "urls": [
+                url
+            ],  # TODO: Should we completely eliminate `urls` in favor of `targets`?
             "load_balancer": load_balancer,
             "keepalive": keepalive,
             "circuit_breakers": circuit_breakers,
@@ -377,7 +384,9 @@ class IRCluster(IRResource):
 
         # If we have health checking config then generate IR for it
         if "health_checks" in self:
-            self.health_checks = IRHealthChecks(ir, aconf, self.get("health_checks", None))
+            self.health_checks = IRHealthChecks(
+                ir, aconf, self.get("health_checks", None)
+            )
         return True
 
     def endpoints_required(self, load_balancer) -> bool:
@@ -388,7 +397,9 @@ class IRCluster(IRResource):
 
             if lb_policy in ["round_robin", "least_request", "ring_hash", "maglev"]:
                 self.logger.debug(
-                    "Endpoints are required for load balancing policy {}".format(lb_policy)
+                    "Endpoints are required for load balancing policy {}".format(
+                        lb_policy
+                    )
                 )
                 required = True
 
@@ -436,11 +447,12 @@ class IRCluster(IRResource):
 
         if other.targets:
             self.referenced_by(other)
-            if self.targets == None:
+            if self.targets is None:
                 self.targets = other.targets
             else:
                 self.targets = (
-                    typecast(List[Dict[str, Union[int, str]]], self.targets) + other.targets
+                    typecast(List[Dict[str, Union[int, str]]], self.targets)
+                    + other.targets
                 )
 
         return True

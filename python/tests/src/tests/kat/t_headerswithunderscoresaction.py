@@ -11,8 +11,10 @@ class AllowHeadersWithUnderscoresTest(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -22,6 +24,7 @@ hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -38,8 +41,10 @@ class RejectHeadersWithUnderscoresTest(AmbassadorTest):
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -48,9 +53,12 @@ ambassador_id: [{self.ambassador_id}]
 config:
   headers_with_underscores_action: REJECT_REQUEST
 """
+            ),
         )
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -60,6 +68,7 @@ hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):

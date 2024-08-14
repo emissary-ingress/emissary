@@ -26,7 +26,9 @@ class V3Bootstrap(dict):
                     "ads_config": {
                         "api_type": "GRPC",
                         "transport_api_version": api_version,
-                        "grpc_services": [{"envoy_grpc": {"cluster_name": "xds_cluster"}}],
+                        "grpc_services": [
+                            {"envoy_grpc": {"cluster_name": "xds_cluster"}}
+                        ],
                     },
                     "cds_config": {"ads": {}, "resource_api_version": api_version},
                     "lds_config": {"ads": {}, "resource_api_version": api_version},
@@ -79,7 +81,9 @@ class V3Bootstrap(dict):
             for als in config.ir.log_services.values():
                 log_service = typecast(IRLogService, als)
                 assert log_service.cluster
-                clusters.append(V3Cluster(config, typecast(IRCluster, log_service.cluster)))
+                clusters.append(
+                    V3Cluster(config, typecast(IRCluster, log_service.cluster))
+                )
 
         stats_sinks = []
         if config.ir.statsd["enabled"]:
@@ -88,9 +92,14 @@ class V3Bootstrap(dict):
                 typename = "type.googleapis.com/envoy.config.metrics.v3.DogStatsdSink"
                 dd_entity_id = os.environ.get("DD_ENTITY_ID", None)
                 if dd_entity_id:
-                    stats_tags = self.setdefault("stats_config", {}).setdefault("stats_tags", [])
+                    stats_tags = self.setdefault("stats_config", {}).setdefault(
+                        "stats_tags", []
+                    )
                     stats_tags.append(
-                        {"tag_name": "dd.internal.entity_id", "fixed_value": dd_entity_id}
+                        {
+                            "tag_name": "dd.internal.entity_id",
+                            "fixed_value": dd_entity_id,
+                        }
                     )
             else:
                 name = "envoy.stats_sinks.statsd"

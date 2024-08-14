@@ -17,7 +17,7 @@ class WattTesting:
         pass
 
     def create_listeners(self, namespace):
-        manifest = f"""
+        manifest = """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Listener

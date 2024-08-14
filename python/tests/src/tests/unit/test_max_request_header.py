@@ -10,10 +10,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config, EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
-from tests.utils import default_listener_manifests
+from ambassador import IR, Config, EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
+from tests.utils import default_listener_manifests  # noqa: E402
 
 
 def _get_envoy_config(yaml):
@@ -71,8 +71,8 @@ spec:
 
                 print(f"Found max_req_headers = {max_req_headers}")
                 key_found = True
-                assert expected == int(
-                    max_req_headers
+                assert (
+                    expected == int(max_req_headers)
                 ), "max_request_headers_kb must equal the value set on the ambassador Module"
     assert key_found, "max_request_headers_kb must be found in the envoy config"
 
@@ -116,7 +116,7 @@ spec:
 
                 print(f"Found max_req_headers = {max_req_headers}")
                 key_found = True
-                assert expected == int(
-                    max_req_headers
+                assert (
+                    expected == int(max_req_headers)
                 ), "max_request_headers_kb must equal the value set on the ambassador Module"
     assert key_found, "max_request_headers_kb must be found in the envoy config"

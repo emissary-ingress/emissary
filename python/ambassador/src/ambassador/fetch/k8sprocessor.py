@@ -4,7 +4,12 @@ from typing import FrozenSet, List, Mapping, Set
 
 from ..config import Config
 from .dependency import DependencyInjector
-from .k8sobject import KubernetesGVK, KubernetesObject, KubernetesObjectKey, KubernetesObjectScope
+from .k8sobject import (
+    KubernetesGVK,
+    KubernetesObject,
+    KubernetesObjectKey,
+    KubernetesObjectScope,
+)
 from .resource import ResourceManager
 
 

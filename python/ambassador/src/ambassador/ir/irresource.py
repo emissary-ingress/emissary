@@ -27,7 +27,11 @@ class IRResource(Resource):
     def helper_list(res: "IRResource", k: str) -> Tuple[str, list]:
         return k, list([x.as_dict() for x in res[k]])
 
-    __as_dict_helpers: Dict[str, Any] = {"apiVersion": "drop", "logger": "drop", "ir": "drop"}
+    __as_dict_helpers: Dict[str, Any] = {
+        "apiVersion": "drop",
+        "logger": "drop",
+        "ir": "drop",
+    }
 
     _active: bool
     _errored: bool
@@ -91,7 +95,10 @@ class IRResource(Resource):
         return self._cache_key
 
     def lookup_default(
-        self, key: str, default_value: Optional[Any] = None, lookup_class: Optional[str] = None
+        self,
+        key: str,
+        default_value: Optional[Any] = None,
+        lookup_class: Optional[str] = None,
     ) -> Any:
         """
         Look up a key in the Ambassador module's "defaults" element.

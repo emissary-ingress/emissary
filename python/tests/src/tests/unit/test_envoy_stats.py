@@ -15,7 +15,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador.diagnostics import EnvoyStatsMgr
+from ambassador.diagnostics import EnvoyStatsMgr  # noqa: E402
 
 
 class EnvoyStatsMocker:
@@ -55,7 +55,9 @@ def test_levels():
     mocker = EnvoyStatsMocker()
 
     esm = EnvoyStatsMgr(
-        logger, fetch_log_levels=mocker.fetch_log_levels, fetch_envoy_stats=mocker.fetch_envoy_stats
+        logger,
+        fetch_log_levels=mocker.fetch_log_levels,
+        fetch_envoy_stats=mocker.fetch_envoy_stats,
     )
 
     esm.update()
@@ -120,7 +122,9 @@ def test_stats():
     mocker = EnvoyStatsMocker()
 
     esm = EnvoyStatsMgr(
-        logger, fetch_log_levels=mocker.fetch_log_levels, fetch_envoy_stats=mocker.fetch_envoy_stats
+        logger,
+        fetch_log_levels=mocker.fetch_log_levels,
+        fetch_envoy_stats=mocker.fetch_envoy_stats,
     )
 
     esm.update()

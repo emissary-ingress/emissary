@@ -26,7 +26,9 @@ class RedirectTests(AmbassadorTest):
     def requirements(self):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (
-            r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https")
+            r
+            for r in super().requirements()
+            if r[0] == "url" and r[1].url.startswith("https")
         )
 
     def manifests(self):
@@ -59,8 +61,10 @@ data:
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self here, not self.target, because we want the TLS module to
         # be annotated on the Ambassador itself.
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -72,10 +76,13 @@ config:
     secret: redirect-cert
     redirect_cleartext_from: 8080
 """
+            ),
         )
 
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -84,6 +91,7 @@ hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -118,12 +126,16 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     def requirements(self):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (
-            r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https")
+            r
+            for r in super().requirements()
+            if r[0] == "url" and r[1].url.startswith("https")
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -132,10 +144,13 @@ config:
   use_proxy_proto: true
   enable_ipv6: true
 """
+            ),
         )
 
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -144,6 +159,7 @@ hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -183,12 +199,16 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     def requirements(self):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (
-            r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https")
+            r
+            for r in super().requirements()
+            if r[0] == "url" and r[1].url.startswith("https")
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -200,10 +220,13 @@ config:
     secret: does-not-exist-secret
     redirect_cleartext_from: 8080
 """
+            ),
         )
 
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -212,6 +235,7 @@ hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -275,8 +299,10 @@ spec:
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
@@ -290,17 +316,22 @@ hostname: "*"
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
         # [0]
         yield Query(
-            self.url(self.name + "/target/"), headers={"X-Forwarded-Proto": "http"}, expected=301
+            self.url(self.name + "/target/"),
+            headers={"X-Forwarded-Proto": "http"},
+            expected=301,
         )
 
         # [1]
         yield Query(
-            self.url(self.name + "/target/"), headers={"X-Forwarded-Proto": "https"}, expected=200
+            self.url(self.name + "/target/"),
+            headers={"X-Forwarded-Proto": "https"},
+            expected=200,
         )
 
         # [2] -- PHASE 2
@@ -331,9 +362,15 @@ service: {self.target.path.fqdn}
         # We're replacing super()'s requirements deliberately here: we need the XFP header or they can't work.
         yield (
             "url",
-            Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}),
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"X-Forwarded-Proto": "https"},
+            ),
         )
         yield (
             "url",
-            Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}),
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"X-Forwarded-Proto": "https"},
+            ),
         )

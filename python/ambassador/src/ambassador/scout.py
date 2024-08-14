@@ -72,7 +72,9 @@ class Scout:
         if not self.install_id and id_plugin:
             plugin_response = id_plugin(self, app, **id_plugin_args)
 
-            self.logger.debug("Scout: id_plugin returns {0}".format(json.dumps(plugin_response)))
+            self.logger.debug(
+                "Scout: id_plugin returns {0}".format(json.dumps(plugin_response))
+            )
 
             if plugin_response:
                 if "install_id" in plugin_response:
@@ -119,7 +121,9 @@ class Scout:
         try:
             resp = requests.post(url, json=payload, headers=headers, timeout=1)
 
-            self.logger.debug("Scout: report returns %d (%s)" % (resp.status_code, resp.text))
+            self.logger.debug(
+                "Scout: report returns %d (%s)" % (resp.status_code, resp.text)
+            )
 
             if resp.status_code / 100 == 2:
                 result = Scout.__merge_dicts(result, resp.json())
@@ -141,7 +145,11 @@ class Scout:
 
     def create_user_agent(self):
         result = "{0}/{1} ({2}; {3}; python {4})".format(
-            self.app, self.version, platform.system(), platform.release(), platform.python_version()
+            self.app,
+            self.version,
+            platform.system(),
+            platform.release(),
+            platform.python_version(),
         ).lower()
 
         return result
@@ -218,7 +226,9 @@ class Scout:
         try:
             kube_port = int(os.environ.get("KUBERNETES_SERVICE_PORT", 443))
         except ValueError:
-            scout.logger.debug("Scout: KUBERNETES_SERVICE_PORT isn't numeric, defaulting to 443")
+            scout.logger.debug(
+                "Scout: KUBERNETES_SERVICE_PORT isn't numeric, defaulting to 443"
+            )
             kube_port = 443
 
         kube_proto = "https" if (kube_port == 443) else "http"
@@ -227,12 +237,16 @@ class Scout:
 
         if not kube_host:
             # We're not running in Kubernetes. Fall back to the usual filesystem stuff.
-            scout.logger.debug("Scout: no KUBERNETES_SERVICE_HOST, not running in Kubernetes")
+            scout.logger.debug(
+                "Scout: no KUBERNETES_SERVICE_HOST, not running in Kubernetes"
+            )
             return None
 
         if not kube_token:
             try:
-                kube_token = open("/var/run/secrets/kubernetes.io/serviceaccount/token", "r").read()
+                kube_token = open(
+                    "/var/run/secrets/kubernetes.io/serviceaccount/token", "r"
+                ).read()
             except OSError:
                 pass
 
@@ -265,12 +279,16 @@ class Scout:
                     scout.logger.error("Scout: no map data in returned map???")
                 else:
                     map_data = map_data.get("data", {})
-                    scout.logger.debug("Scout: configmap has map data %s" % json.dumps(map_data))
+                    scout.logger.debug(
+                        "Scout: configmap has map data %s" % json.dumps(map_data)
+                    )
 
                     install_id = map_data.get("install_id", None)
 
                     if install_id:
-                        scout.logger.debug("Scout: got install_id %s from map" % install_id)
+                        scout.logger.debug(
+                            "Scout: got install_id %s from map" % install_id
+                        )
                         plugin_response = {"install_id": install_id}
         except OSError as e:
             scout.logger.debug(
@@ -294,18 +312,21 @@ class Scout:
 
             scout.logger.debug("Scout: saving new install_id %s" % install_id)
 
-            saved = False
+            # saved = False
+
             try:
                 r = requests.post(cm_url, headers=auth_headers, verify=False, json=cm)
 
                 if r.status_code == 201:
-                    saved = True
+                    # saved = True
                     scout.logger.debug("Scout: saved install_id %s" % install_id)
 
                     plugin_response = {"install_id": install_id, "new_install": True}
                 else:
                     scout.logger.error(
-                        "Scout: could not save install_id: {0}, {1}".format(r.status_code, r.text)
+                        "Scout: could not save install_id: {0}, {1}".format(
+                            r.status_code, r.text
+                        )
                     )
             except OSError as e:
                 logging.debug(

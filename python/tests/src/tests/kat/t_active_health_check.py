@@ -10,8 +10,10 @@ class ActiveHealthCheckTest(AmbassadorTest):
         self.target = HealthCheckServer()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -29,10 +31,13 @@ health_checks:
     http:
       path: /healthcheck/actualcheck/
 """
+            ),
         )  # The round robin load balancer is not necessary for the test but should help make the request distribution even across the pods
 
     def queries(self):
-        yield Query(self.url("healthcheck/"), phase=1)  # Just making sure things are running
+        yield Query(
+            self.url("healthcheck/"), phase=1
+        )  # Just making sure things are running
         yield Query(self.url("ambassador/v0/diag/"), phase=1)
 
         yield Query(
@@ -81,8 +86,10 @@ class NoHealthCheckTest(AmbassadorTest):
         self.target = HealthCheckServer()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -94,10 +101,13 @@ resolver: endpoint
 load_balancer:
   policy: round_robin
 """
+            ),
         )  # The round robin load balancer is not necessary for the test but should help make the request distribution even across the pods
 
     def queries(self):
-        yield Query(self.url("healthcheck/"), phase=1)  # Just making sure things are running
+        yield Query(
+            self.url("healthcheck/"), phase=1
+        )  # Just making sure things are running
         yield Query(self.url("ambassador/v0/diag/"), phase=1)
 
         yield Query(
@@ -122,7 +132,7 @@ load_balancer:
                 valid += 1
             elif self.results[i].status == 500:
                 errors += 1
-        msg = "Errors: {}, Valid: {}".format(errors, valid)
+        # msg = "Errors: {}, Valid: {}".format(errors, valid)
 
         # with 1000 requests and 1/5 being an error response, we should have the following distribution +/- some
         # margin might need tuned

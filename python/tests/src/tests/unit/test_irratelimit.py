@@ -12,10 +12,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config, EnvoyConfig
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
-from tests.utils import default_listener_manifests
+from ambassador import IR, Config, EnvoyConfig  # noqa: E402
+from ambassador.fetch import ResourceFetcher  # noqa: E402
+from ambassador.utils import NullSecretHandler  # noqa: E402
+from tests.utils import default_listener_manifests  # noqa: E402
 
 SERVICE_NAME = "coolsvcname"
 
@@ -56,7 +56,9 @@ def _get_ratelimit_default_conf():
         "rate_limit_service": {
             "transport_api_version": "V3",
             "grpc_service": {
-                "envoy_grpc": {"cluster_name": "cluster_{}_default".format(SERVICE_NAME)}
+                "envoy_grpc": {
+                    "cluster_name": "cluster_{}_default".format(SERVICE_NAME)
+                }
             },
         },
     }
@@ -73,14 +75,12 @@ metadata:
   namespace: default
 spec:
   service: {}
-""".format(
-        SERVICE_NAME
-    )
+""".format(SERVICE_NAME)
 
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
-    assert conf == False
+    assert conf is False
 
     errors = econf.ir.aconf.errors
     assert "ir.ratelimit" in errors
@@ -102,9 +102,7 @@ metadata:
 spec:
   service: {}
   protocol_version: "v3"
-""".format(
-        SERVICE_NAME
-    )
+""".format(SERVICE_NAME)
 
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
@@ -130,9 +128,7 @@ spec:
   service: {}
   protocol_version: "v3"
   stats_name: {}
-""".format(
-        SERVICE_NAME, stats_name
-    )
+""".format(SERVICE_NAME, stats_name)
 
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
@@ -162,14 +158,12 @@ metadata:
 spec:
   service: {}
   protocol_version: "v2"
-""".format(
-        SERVICE_NAME
-    )
+""".format(SERVICE_NAME)
 
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
-    assert conf == False
+    assert conf is False
 
     errors = econf.ir.aconf.errors
     assert "ir.ratelimit" in errors
@@ -200,7 +194,9 @@ spec: {}
 
     errors = econf.ir.aconf.errors
     assert "ir.ratelimit" in errors
-    assert errors["ir.ratelimit"][0]["error"] == "service is required in RateLimitService"
+    assert (
+        errors["ir.ratelimit"][0]["error"] == "service is required in RateLimitService"
+    )
 
 
 @pytest.mark.compilertest
@@ -223,14 +219,12 @@ spec:
   failure_mode_deny: True
   grpc:
     rate_limited_as_resource_exhausted: True
-""".format(
-        SERVICE_NAME
-    )
+""".format(SERVICE_NAME)
 
     config = _get_ratelimit_default_conf()
-    config["rate_limit_service"]["grpc_service"]["envoy_grpc"][
-        "cluster_name"
-    ] = "cluster_{}_someotherns".format(SERVICE_NAME)
+    config["rate_limit_service"]["grpc_service"]["envoy_grpc"]["cluster_name"] = (
+        "cluster_{}_someotherns".format(SERVICE_NAME)
+    )
     config["timeout"] = "0.500s"
     config["domain"] = "otherdomain"
     config["failure_mode_deny"] = True

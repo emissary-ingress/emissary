@@ -47,7 +47,8 @@ class V3RateLimitAction(dict):
         if len(lkeys) > 1:
             # "Impossible". This should've been caught earlier.
             config.ir.post_error(
-                "Label for RateLimit has multiple entries instead of just one: %s" % rate_limit
+                "Label for RateLimit has multiple entries instead of just one: %s"
+                % rate_limit
             )
             return
 
@@ -61,7 +62,8 @@ class V3RateLimitAction(dict):
             keylist = list(action.keys())
             if len(keylist) != 1:
                 config.ir.post_error(
-                    "Label for RateLimit has invalid custom header '%s' (%s)" % (action, rate_limit)
+                    "Label for RateLimit has invalid custom header '%s' (%s)"
+                    % (action, rate_limit)
                 )
                 continue
             dkey = keylist[0]

@@ -41,19 +41,29 @@ def test_proper_case_true():
 
 @pytest.mark.compilertest
 def test_proper_case_and_enable_http_10():
-    yaml = module_and_mapping_manifests(["proper_case: true", "enable_http10: true"], [])
+    yaml = module_and_mapping_manifests(
+        ["proper_case: true", "enable_http10: true"], []
+    )
     _test_listener_http_protocol_options(
-        yaml, expectations={"accept_http_10": True, "header_key_format": {"proper_case_words": {}}}
+        yaml,
+        expectations={
+            "accept_http_10": True,
+            "header_key_format": {"proper_case_words": {}},
+        },
     )
 
 
 @pytest.mark.compilertest
 def test_allow_chunked_length_false():
     yaml = module_and_mapping_manifests(["allow_chunked_length: false"], [])
-    _test_listener_http_protocol_options(yaml, expectations={"allow_chunked_length": False})
+    _test_listener_http_protocol_options(
+        yaml, expectations={"allow_chunked_length": False}
+    )
 
 
 @pytest.mark.compilertest
 def test_allow_chunked_length_true():
     yaml = module_and_mapping_manifests(["allow_chunked_length: true"], [])
-    _test_listener_http_protocol_options(yaml, expectations={"allow_chunked_length": True})
+    _test_listener_http_protocol_options(
+        yaml, expectations={"allow_chunked_length": True}
+    )

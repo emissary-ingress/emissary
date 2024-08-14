@@ -24,8 +24,10 @@ class HeaderRoutingTest(MappingTest):
         self.target2 = target2
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
+        yield (
+            self.target,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -34,9 +36,12 @@ hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 """
+            ),
         )
-        yield self.target2, self.format(
-            """
+        yield (
+            self.target2,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -47,6 +52,7 @@ service: http://{self.target2.path.fqdn}
 headers:
     X-Route: target2
 """
+            ),
         )
 
     def queries(self):
@@ -69,9 +75,7 @@ class HeaderRoutingAuth(ServiceType):
 
     def __init__(self, *args, **kwargs) -> None:
         # Do this unconditionally, since that's part of the point of this class.
-        kwargs[
-            "service_manifests"
-        ] = """
+        kwargs["service_manifests"] = """
 ---
 kind: Service
 apiVersion: v1
@@ -130,8 +134,10 @@ class AuthenticationHeaderRouting(AmbassadorTest):
         # prefix ENDS WITH /nohdr/ -> 200, no X-Auth-Route -> we should hit target1
         # anything else -> 403 -> we should see the 403
 
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: AuthService
@@ -145,9 +151,12 @@ allowed_authorization_headers:
 - X-Auth-Route
 - Extauth
 """
+            ),
         )
-        yield self.target1, self.format(
-            """
+        yield (
+            self.target1,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -156,9 +165,12 @@ hostname: "*"
 prefix: /target/
 service: http://{self.target1.path.fqdn}
 """
+            ),
         )
-        yield self.target2, self.format(
-            """
+        yield (
+            self.target2,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -169,6 +181,7 @@ service: http://{self.target2.path.fqdn}
 headers:
     X-Auth-Route: Route
 """
+            ),
         )
 
     def queries(self):

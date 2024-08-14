@@ -79,7 +79,11 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
     @staticmethod
     def helper_mappings(res: IRResource, k: str) -> Tuple[str, List[dict]]:
         return k, list(
-            reversed(sorted([x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]))
+            reversed(
+                sorted(
+                    [x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]
+                )
+            )
         )
 
     @staticmethod
@@ -126,11 +130,19 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
             )
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name, **kwargs
+            ir=ir,
+            aconf=aconf,
+            rkey=mapping.rkey,
+            location=location,
+            kind=kind,
+            name=name,
+            **kwargs,
         )
 
         self.host_redirect = None
-        self.shadows: List[IRBaseMapping] = []  # XXX This should really be IRHTTPMapping, no?
+        self.shadows: List[
+            IRBaseMapping
+        ] = []  # XXX This should really be IRHTTPMapping, no?
 
         self.add_dict_helper("mappings", IRHTTPMappingGroup.helper_mappings)
         self.add_dict_helper("shadows", IRHTTPMappingGroup.helper_shadows)
@@ -163,7 +175,10 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
                 "cannot accept new mapping %s with mismatched %s."
                 "Please verify field is set with the same value in all related mappings."
                 "Example: When canary is configured, related mappings should have same fields and values"
-                % (mapping.name, ", ".join(["%s: %s != %s" % (x, y, z) for x, y, z in mismatches]))
+                % (
+                    mapping.name,
+                    ", ".join(["%s: %s != %s" % (x, y, z) for x, y, z in mismatches]),
+                )
             )
             return
 
@@ -266,7 +281,9 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
         if not cluster:
             # OK, we have to actually do some work.
-            self.ir.logger.debug(f"IRHTTPMappingGroup: synthesizing Cluster for {mapping.name}")
+            self.ir.logger.debug(
+                f"IRHTTPMappingGroup: synthesizing Cluster for {mapping.name}"
+            )
             cluster = IRCluster(
                 ir=self.ir,
                 aconf=self.ir.aconf,
@@ -321,7 +338,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
         # Finally, return the stored cluster. Done.
         self.ir.logger.debug(
-            f"IRHTTPMappingGroup: %s returning cluster %s for Mapping %s",
+            "IRHTTPMappingGroup: %s returning cluster %s for Mapping %s",
             self.group_id,
             stored,
             mapping.name,
@@ -342,7 +359,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
         add_response_headers: Dict[str, Any] = {}
         metadata_labels: Dict[str, str] = {}
 
-        self.ir.logger.debug(f"IRHTTPMappingGroup: finalize %s", self.group_id)
+        self.ir.logger.debug("IRHTTPMappingGroup: finalize %s", self.group_id)
 
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             # if verbose:
@@ -382,8 +399,8 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
-        total_weight = 0.0
-        unspecified_mappings = 0
+        # total_weight = 0.0
+        # unspecified_mappings = 0
 
         # If no rewrite was given at all, default the rewrite to "/", so /, so e.g., if we map
         # /prefix1/ to the service service1, then http://ambassador.example.com/prefix1/foo/bar
@@ -428,7 +445,8 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
                         lkeys = label.keys()
                         if len(lkeys) > 1:
                             err = RichStatus.fromError(
-                                "label has multiple entries (%s) instead of just one" % lkeys
+                                "label has multiple entries (%s) instead of just one"
+                                % lkeys
                             )
                             aconf.post_error(err, self)
 
@@ -453,16 +471,20 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
         if not redir:
             self.ir.logger.debug(
-                f"IRHTTPMappingGroup: checking mapping clusters for %s", self.group_id
+                "IRHTTPMappingGroup: checking mapping clusters for %s", self.group_id
             )
 
             for mapping in self.mappings:
-                mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
+                mapping.cluster = self.add_cluster_for_mapping(
+                    mapping, mapping.cluster_tag
+                )
 
-            self.ir.logger.debug(f"IRHTTPMappingGroup: normalizing weights for %s", self.group_id)
+            self.ir.logger.debug(
+                "IRHTTPMappingGroup: normalizing weights for %s", self.group_id
+            )
 
             if not self.normalize_weights_in_mappings():
-                self.post_error(f"Could not normalize mapping weights, ignoring...")
+                self.post_error("Could not normalize mapping weights, ignoring...")
                 return []
 
             return list([mapping.cluster for mapping in self.mappings])

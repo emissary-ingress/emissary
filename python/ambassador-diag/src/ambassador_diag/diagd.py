@@ -32,7 +32,16 @@ import time
 import traceback
 import uuid
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast as typecast
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast as typecast,
+)
 
 import click
 import gunicorn.app.base
@@ -42,7 +51,13 @@ from expiringdict import ExpiringDict
 from flask import Flask, Response
 from flask import json as flask_json
 from flask import jsonify, render_template, request, send_from_directory
-from prometheus_client import CollectorRegistry, Gauge, Info, ProcessCollector, generate_latest
+from prometheus_client import (
+    CollectorRegistry,
+    Gauge,
+    Info,
+    ProcessCollector,
+    generate_latest,
+)
 from pythonjsonlogger import jsonlogger
 from typing_extensions import NotRequired, TypedDict
 
@@ -64,9 +79,7 @@ from ambassador.utils import (
     parse_bool,
     parse_json,
 )
-
-if TYPE_CHECKING:
-    from ambassador.ir.irtlscontext import IRTLSContext  # pragma: no cover
+from ambassador_diag.templates import TEMPLATE_PATH
 
 __version__ = Version
 
@@ -94,7 +107,9 @@ if parse_bool(os.environ.get("AMBASSADOR_JSON_LOGGING", "false")):
         for name in loggingManager.loggerDict:
             logging.getLogger(name).addHandler(logHandler)
     else:
-        print("Could not find a logging manager. Some logging may not be properly JSON formatted!")
+        print(
+            "Could not find a logging manager. Some logging may not be properly JSON formatted!"
+        )
 else:
     # Default log level
     level = logging.INFO
@@ -241,7 +256,9 @@ class DiagApp(Flask):
             self.logger.info("AMBASSADOR_FAST_RECONFIGURE enabled, initializing cache")
             self.cache = Cache(self.logger)
         else:
-            self.logger.info("AMBASSADOR_FAST_RECONFIGURE disabled, not initializing cache")
+            self.logger.info(
+                "AMBASSADOR_FAST_RECONFIGURE disabled, not initializing cache"
+            )
             self.cache = None
 
         # Use Timers to keep some stats on reconfigurations
@@ -254,20 +271,20 @@ class DiagApp(Flask):
 
         # Use gauges to keep some metrics on active config
         self.diag_errors = Gauge(
-            f"diagnostics_errors",
-            f"Number of configuration errors",
+            "diagnostics_errors",
+            "Number of configuration errors",
             namespace="ambassador",
             registry=self.metrics_registry,
         )
         self.diag_notices = Gauge(
-            f"diagnostics_notices",
-            f"Number of configuration notices",
+            "diagnostics_notices",
+            "Number of configuration notices",
             namespace="ambassador",
             registry=self.metrics_registry,
         )
         self.diag_log_level = Gauge(
-            f"log_level",
-            f"Debug log level enabled or not",
+            "log_level",
+            "Debug log level enabled or not",
             ["level"],
             namespace="ambassador",
             registry=self.metrics_registry,
@@ -283,7 +300,10 @@ class DiagApp(Flask):
         # Assume that we will NOT update Mapping status.
         ksclass: Type[KubeStatus] = KubeStatusNoMappings
 
-        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "false").lower() == "true":
+        if (
+            os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "false").lower()
+            == "true"
+        ):
             self.logger.info("WILL update Mapping status")
             ksclass = KubeStatus
         else:
@@ -340,7 +360,9 @@ class DiagApp(Flask):
                 "ambassador_id": Config.ambassador_id,
                 "cluster_id": os.environ.get(
                     "AMBASSADOR_CLUSTER_ID",
-                    os.environ.get("AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000"),
+                    os.environ.get(
+                        "AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000"
+                    ),
                 ),
                 "single_namespace": str(Config.single_namespace),
             }
@@ -574,8 +596,12 @@ class DiagApp(Flask):
             snaplist.append(("-tmp", ""))
 
             for from_suffix, to_suffix in snaplist:
-                from_path = os.path.join(app.snapshot_path, "diff{}.txt".format(from_suffix))
-                to_path = os.path.join(app.snapshot_path, "diff{}.txt".format(to_suffix))
+                from_path = os.path.join(
+                    app.snapshot_path, "diff{}.txt".format(from_suffix)
+                )
+                to_path = os.path.join(
+                    app.snapshot_path, "diff{}.txt".format(to_suffix)
+                )
 
                 try:
                     self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
@@ -583,7 +609,9 @@ class DiagApp(Flask):
                 except IOError as e:
                     self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
                 except Exception as e:
-                    self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
+                    self.logger.debug(
+                        "could not rename %s -> %s: %s" % (from_path, to_path, e)
+                    )
 
         self.logger.info("CACHE: check %s" % ("succeeded" if result else "failed"))
 
@@ -603,7 +631,12 @@ def standard_handler(f):
     @functools.wraps(f)
     def wrapper(*args, **kwds):
         reqid = str(uuid.uuid4()).upper()
-        prefix = '%s: %s "%s %s"' % (reqid, request.remote_addr, request.method, request.path)
+        prefix = '%s: %s "%s %s"' % (
+            reqid,
+            request.remote_addr,
+            request.method,
+            request.path,
+        )
 
         app.logger.debug("%s START" % prefix)
 
@@ -643,7 +676,8 @@ def standard_handler(f):
         ms = int(((end - start).total_seconds() * 1000) + 0.5)
 
         app.logger.log(
-            result_log_level, "%s %dms %d %s" % (prefix, ms, status_to_log, result_to_log)
+            result_log_level,
+            "%s %dms %d %s" % (prefix, ms, status_to_log, result_to_log),
         )
 
         return result
@@ -656,13 +690,13 @@ def internal_handler(f):
     Reject requests where the remote address is not localhost. See the docstring
     for _is_local_request() for important caveats!
     """
-    func_name = getattr(f, "__name__", "<anonymous>")
+    # func_name = getattr(f, "__name__", "<anonymous>")
 
     @functools.wraps(f)
-    def wrapper(*args, **kwds):
+    def wrapper(*args, **kwargs):
         if not _is_local_request():
             return "Forbidden\n", 403
-        return f(*args, **kwds)
+        return f(*args, **kwargs)
 
     return wrapper
 
@@ -716,13 +750,13 @@ def _allow_diag_ui() -> bool:
 
 
 class Notices:
+    notices: List[Dict[str, str | Exception]]
+
     def __init__(self, local_config_path: str) -> None:
-        self.local_path = local_config_path
-        self.notices: List[Dict[str, str]] = []
+        self.local_path, self.notices = local_config_path, []
 
     def reset(self):
-        local_notices: List[Dict[str, str]] = []
-        local_data = ""
+        local_data, local_notices = "", []
 
         try:
             local_stream = open(self.local_path, "r")
@@ -730,9 +764,13 @@ class Notices:
             local_notices = parse_json(local_data)
         except OSError:
             pass
-        except:
+        except Exception as error:
             local_notices.append(
-                {"level": "ERROR", "message": "bad local notices: %s" % local_data}
+                {
+                    "level": "ERROR",
+                    "message": "bad local notices: %s" % local_data,
+                    "error": error,
+                }
             )
 
         self.notices = local_notices
@@ -770,7 +808,8 @@ def td_format(td_object):
             period_value, seconds = divmod(seconds, period_seconds)
 
             strings.append(
-                "%d %s%s" % (period_value, period_name, "" if (period_value == 1) else "s")
+                "%d %s%s"
+                % (period_value, period_name, "" if (period_value == 1) else "s")
             )
 
     formatted = ", ".join(strings)
@@ -812,12 +851,15 @@ def system_info(app):
         "ambassador_id": Config.ambassador_id,
         "ambassador_namespace": Config.ambassador_namespace,
         "single_namespace": Config.single_namespace,
-        "knative_enabled": os.environ.get("AMBASSADOR_KNATIVE_SUPPORT", "").lower() == "true",
+        "knative_enabled": os.environ.get("AMBASSADOR_KNATIVE_SUPPORT", "").lower()
+        == "true",
         "statsd_enabled": os.environ.get("STATSD_ENABLED", "").lower() == "true",
         "endpoints_enabled": Config.enable_endpoints,
         "cluster_id": os.environ.get(
             "AMBASSADOR_CLUSTER_ID",
-            os.environ.get("AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000"),
+            os.environ.get(
+                "AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000"
+            ),
         ),
         "boot_time": boot_time,
         "hr_uptime": td_format(datetime.datetime.now() - boot_time),
@@ -881,7 +923,9 @@ def filter_webui(d: Dict[Any, Any]):
     for ambassador_resolver in d["ambassador_resolvers"]:
         filter_keys(ambassador_resolver, ["_source", "kind"])
     for route_info in d["route_info"]:
-        filter_keys(route_info, ["diag_class", "key", "headers", "precedence", "clusters"])
+        filter_keys(
+            route_info, ["diag_class", "key", "headers", "precedence", "clusters"]
+        )
         for cluster in route_info["clusters"]:
             filter_keys(cluster, ["_hcolor", "type_label", "service", "weight"])
 
@@ -948,7 +992,8 @@ def handle_events():
     assert isinstance(app.scout._scout, LocalScout)
 
     event_dump = [
-        (x["local_scout_timestamp"], x["mode"], x["action"], x) for x in app.scout._scout.events
+        (x["local_scout_timestamp"], x["mode"], x["action"], x)
+        for x in app.scout._scout.events
     ]
 
     app.logger.debug(f"Event dump {event_dump}")
@@ -958,9 +1003,7 @@ def handle_events():
 
 @app.route("/ambassador/v0/favicon.ico", methods=["GET"])
 def favicon():
-    template_path = get_templates_dir()
-
-    return send_from_directory(template_path, "favicon.ico")
+    return send_from_directory(TEMPLATE_PATH, "favicon.ico")
 
 
 @app.route("/ambassador/v0/check_alive", methods=["GET"])
@@ -1064,7 +1107,9 @@ def show_overview(reqid=None):
             # Get the previous full representation
             cached_tvars_json = tvars_cache.get(patch_client, dict())
             # Serialize the tvars into a json-string using the same jsonify Flask serializer, then load the json object
-            response_content = json.loads(flask_json.dumps(tvars), object_hook=drop_serializer_key)
+            response_content = json.loads(
+                flask_json.dumps(tvars), object_hook=drop_serializer_key
+            )
             # Diff between the previous representation and the current full representation  (http://jsonpatch.com/)
             patch = jsonpatch.make_patch(cached_tvars_json, response_content)
             # Save the current full representation in memory
@@ -1119,7 +1164,9 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     for notice_key, notice_list in dnotices.items():
         for notice in notice_list:
-            app.notices.post({"level": "NOTICE", "message": "%s: %s" % (notice_key, notice)})
+            app.notices.post(
+                {"level": "NOTICE", "message": "%s: %s" % (notice_key, notice)}
+            )
 
     ddict["errors"] = errors
 
@@ -1137,7 +1184,8 @@ def show_intermediate(source=None, reqid=None):
     # they can try again.
     if not app.ir:
         app.logger.debug(
-            "SRC %s - can't do intermediate for %s before configuration" % (reqid, source)
+            "SRC %s - can't do intermediate for %s before configuration"
+            % (reqid, source)
         )
         return "Can't do overview before configuration", 503
 
@@ -1242,7 +1290,9 @@ def get_prometheus_metrics(*args, **kwargs):
             app.logger.error("could not get metrics_endpoint: %s" % e)
 
     return Response(
-        "".join([envoy_metrics, ambassador_metrics, extra_metrics_content]).encode("utf-8"),
+        "".join([envoy_metrics, ambassador_metrics, extra_metrics_content]).encode(
+            "utf-8"
+        ),
         200,
         mimetype="text/plain",
     )
@@ -1412,14 +1462,18 @@ class AmbassadorEventWatcher(threading.Thread):
         self.events: queue.Queue = queue.Queue()
 
         self.chimed = False  # Have we ever sent a chime about the environment?
-        self.last_chime = False  # What was the status of our last chime? (starts as False)
+        self.last_chime = (
+            False  # What was the status of our last chime? (starts as False)
+        )
         self.env_good = False  # Is our environment currently believed to be OK?
         self.failure_list: List[str] = [
             "unhealthy at boot"
         ]  # What's making our environment not OK?
 
     def post(
-        self, cmd: str, arg: Optional[Union[str, Tuple[str, Optional[IR]], Tuple[str, str]]]
+        self,
+        cmd: str,
+        arg: Optional[Union[str, Tuple[str, Optional[IR]], Tuple[str, str]]],
     ) -> Tuple[int, str]:
         rqueue: queue.Queue = queue.Queue()
 
@@ -1503,7 +1557,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
                 cmd = fields[0].upper()
 
-                args = fields[1:] if (len(fields) > 1) else None
+                # args = fields[1:] if (len(fields) > 1) else None
 
                 if cmd.upper() == "CHIME":
                     self.logger.info("CMD: Chiming")
@@ -1708,7 +1762,9 @@ class AmbassadorEventWatcher(threading.Thread):
             # DO stop the reconfiguration timer before leaving.
             self.app.config_timer.stop()
             self._respond(
-                rqueue, 500, "ignoring (%s) in snapshot %s" % (econf_bad_reason, snapshot)
+                rqueue,
+                500,
+                "ignoring (%s) in snapshot %s" % (econf_bad_reason, snapshot),
             )
             return
 
@@ -1746,7 +1802,9 @@ class AmbassadorEventWatcher(threading.Thread):
                 except IOError as e:
                     self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
                 except Exception as e:
-                    self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
+                    self.logger.debug(
+                        "could not rename %s -> %s: %s" % (from_path, to_path, e)
+                    )
 
         app.latest_snapshot = snapshot
         self.logger.debug("saving Envoy configuration for snapshot %s" % snapshot)
@@ -1795,7 +1853,9 @@ class AmbassadorEventWatcher(threading.Thread):
         if mappings:
             for mapping_name, mapping in mappings.items():
                 app.kubestatus.mark_live(
-                    "Mapping", mapping_name, mapping.get("namespace", Config.ambassador_namespace)
+                    "Mapping",
+                    mapping_name,
+                    mapping.get("namespace", Config.ambassador_namespace),
                 )
 
         app.kubestatus.prune()
@@ -1820,12 +1880,21 @@ class AmbassadorEventWatcher(threading.Thread):
         service_count = len(app.ir.services)
 
         self._respond(
-            rqueue, 200, "configuration updated (%s) from snapshot %s" % (config_type, snapshot)
+            rqueue,
+            200,
+            "configuration updated (%s) from snapshot %s" % (config_type, snapshot),
         )
 
         self.logger.info(
             "configuration updated (%s) from snapshot %s (S%d L%d G%d C%d)"
-            % (config_type, snapshot, service_count, listener_count, group_count, cluster_count)
+            % (
+                config_type,
+                snapshot,
+                service_count,
+                listener_count,
+                group_count,
+                cluster_count,
+            )
         )
 
         # Remember that we've reconfigured.
@@ -1908,7 +1977,9 @@ class AmbassadorEventWatcher(threading.Thread):
                         if err_text.find("CRD") >= 0:
                             if err_text.find("core") >= 0:
                                 chime_failures["core CRDs"] = True
-                                env_status.failure("CRDs", "Core CRD type definitions are missing")
+                                env_status.failure(
+                                    "CRDs", "Core CRD type definitions are missing"
+                                )
                             else:
                                 chime_failures["other CRDs"] = True
                                 env_status.failure(
@@ -1933,7 +2004,9 @@ class AmbassadorEventWatcher(threading.Thread):
                     name = mapping.get("name", None)
 
                     if pfx:
-                        if not pfx.startswith("/ambassador/v0") or not name.startswith("internal_"):
+                        if not pfx.startswith("/ambassador/v0") or not name.startswith(
+                            "internal_"
+                        ):
                             mapping_count += 1
 
         if error_count:
@@ -1947,7 +2020,8 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if tls_count:
             env_status.OK(
-                "TLS", f'{tls_count} TLSContext{" is" if (tls_count == 1) else "s are"} active'
+                "TLS",
+                f'{tls_count} TLSContext{" is" if (tls_count == 1) else "s are"} active',
             )
         else:
             chime_failures["no TLS contexts"] = True
@@ -2070,7 +2144,9 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self.app.logger.debug("Scout reports %s" % dump_json(scout_result))
         self.app.logger.debug("Scout notices: %s" % dump_json(scout_notices))
-        self.app.logger.debug("App notices after scout: %s" % dump_json(app.notices.notices))
+        self.app.logger.debug(
+            "App notices after scout: %s" % dump_json(app.notices.notices)
+        )
 
     def validate_envoy_config(self, ir: IR, config, retries) -> bool:
         if self.app.no_envoy:
@@ -2137,7 +2213,9 @@ class AmbassadorEventWatcher(threading.Thread):
                 }
 
                 bad_dict_str = dump_json(bad_dict, pretty=True)
-                with open(os.path.join(app.snapshot_path, f"problems-{stamp}.json"), "w") as output:
+                with open(
+                    os.path.join(app.snapshot_path, f"problems-{stamp}.json"), "w"
+                ) as output:
                     output.write(bad_dict_str)
 
         config_json = dump_json(validation_config, pretty=True)
@@ -2170,7 +2248,11 @@ class AmbassadorEventWatcher(threading.Thread):
         # module.
 
         amod = ir.ambassador_module
-        timeout = amod.envoy_validation_timeout if amod else IRAmbassador.default_validation_timeout
+        timeout = (
+            amod.envoy_validation_timeout
+            if amod
+            else IRAmbassador.default_validation_timeout
+        )
 
         # If the timeout is zero, don't do the validation.
         if timeout == 0:
@@ -2214,7 +2296,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         try:
             v_str = v_encoded.decode("utf-8")
-        except:
+        except (TypeError, AttributeError, UnicodeDecodeError):
             pass
 
         self.logger.error(
@@ -2233,7 +2315,9 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
         # Boot chime. This is basically the earliest point at which we can consider an Ambassador
         # to be "running".
-        scout_result = self.application.scout.report(mode="boot", action="boot1", no_cache=True)
+        scout_result = self.application.scout.report(
+            mode="boot", action="boot1", no_cache=True
+        )
         self.application.logger.debug(f"BOOT: Scout result {dump_json(scout_result)}")
         self.application.logger.info(f"Ambassador {__version__} booted")
 
@@ -2281,7 +2365,11 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     help="Optional PID to signal with HUP after updating Envoy configuration",
     show_default=True,
 )
-@click.option("--kick", type=str, help="Optional command to run after updating Envoy configuration")
+@click.option(
+    "--kick",
+    type=str,
+    help="Optional command to run after updating Envoy configuration",
+)
 @click.option(
     "--banner-endpoint",
     type=str,
@@ -2296,22 +2384,36 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     help="Optional endpoint of extra prometheus metrics to include",
     show_default=True,
 )
-@click.option("--no-checks", is_flag=True, help="If True, don't do Envoy-cluster health checking")
-@click.option("--no-envoy", is_flag=True, help="If True, don't interact with Envoy at all")
-@click.option("--reload", is_flag=True, help="If True, run Flask in debug mode for live reloading")
+@click.option(
+    "--no-checks", is_flag=True, help="If True, don't do Envoy-cluster health checking"
+)
+@click.option(
+    "--no-envoy", is_flag=True, help="If True, don't interact with Envoy at all"
+)
+@click.option(
+    "--reload", is_flag=True, help="If True, run Flask in debug mode for live reloading"
+)
 @click.option("--debug", is_flag=True, help="If True, do debug logging")
 @click.option(
     "--dev-magic",
     is_flag=True,
     help="If True, override a bunch of things for Datawire dev-loop stuff",
 )
-@click.option("--verbose", is_flag=True, help="If True, do really verbose debug logging")
 @click.option(
-    "--workers", type=int, help="Number of workers; default is based on the number of CPUs present"
+    "--verbose", is_flag=True, help="If True, do really verbose debug logging"
+)
+@click.option(
+    "--workers",
+    type=int,
+    help="Number of workers; default is based on the number of CPUs present",
 )
 @click.option("--host", type=str, help="Interface on which to listen")
-@click.option("--port", type=int, default=-1, help="Port on which to listen", show_default=True)
-@click.option("--notices", type=click.Path(), help="Optional file to read for local notices")
+@click.option(
+    "--port", type=int, default=-1, help="Port on which to listen", show_default=True
+)
+@click.option(
+    "--notices", type=click.Path(), help="Optional file to read for local notices"
+)
 @click.option(
     "--validation-retries",
     type=int,
@@ -2329,7 +2431,9 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     is_flag=True,
     help="Don't talk to remote Scout at all; keep everything purely local",
 )
-@click.option("--report-action-keys", is_flag=True, help="Report action keys when chiming")
+@click.option(
+    "--report-action-keys", is_flag=True, help="Report action keys when chiming"
+)
 def main(
     snapshot_path=None,
     bootstrap_path=None,
@@ -2371,10 +2475,16 @@ def main(
         Path to which to write ADS Envoy configuration
     """
 
-    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "true"))
+    enable_fast_reconfigure = parse_bool(
+        os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "true")
+    )
 
     if port < 0:
-        port = Constants.DIAG_PORT if not enable_fast_reconfigure else Constants.DIAG_PORT_ALT
+        port = (
+            Constants.DIAG_PORT
+            if not enable_fast_reconfigure
+            else Constants.DIAG_PORT_ALT
+        )
         # port = Constants.DIAG_PORT
 
     if not host:
@@ -2437,7 +2547,8 @@ def main(
     }
 
     app.logger.info(
-        "thread count %d, listening on %s" % (gunicorn_config["threads"], gunicorn_config["bind"])
+        "thread count %d, listening on %s"
+        % (gunicorn_config["threads"], gunicorn_config["bind"])
     )
 
     StandaloneApplication(app, gunicorn_config).run()

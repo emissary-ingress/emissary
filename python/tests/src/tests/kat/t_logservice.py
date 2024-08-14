@@ -19,13 +19,16 @@ class LogServiceTest(AmbassadorTest):
         self.target = HTTP()
         self.specified_protocol_version = protocol_version
         self.expected_protocol_version = cast(
-            Literal["v3", "invalid"], protocol_version if protocol_version in ["v3"] else "invalid"
+            Literal["v3", "invalid"],
+            protocol_version if protocol_version in ["v3"] else "invalid",
         )
         self.als = ALSGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: LogService
@@ -48,13 +51,17 @@ driver_config:
 flush_interval_time: 1
 flush_interval_byte_size: 1
 """
-        ) + (
-            ""
-            if self.specified_protocol_version == "default"
-            else f"protocol_version: '{self.specified_protocol_version}'"
+            )
+            + (
+                ""
+                if self.specified_protocol_version == "default"
+                else f"protocol_version: '{self.specified_protocol_version}'"
+            ),
         )
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -63,6 +70,7 @@ hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
@@ -124,8 +132,10 @@ spec:
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: LogService
@@ -149,9 +159,12 @@ driver_config:
 flush_interval_time: 1
 flush_interval_byte_size: 1
       """
+            ),
         )
-        yield self, self.format(
-            """
+        yield (
+            self,
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -160,6 +173,7 @@ hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """
+            ),
         )
 
     def queries(self):
