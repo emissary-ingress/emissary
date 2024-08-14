@@ -33,23 +33,13 @@ clean: .dmypy.json.rm .mypy_cache.rm-r
 
 lint-goals += lint/black
 lint/black: $(OSS_HOME)/.venv
-	uv run black --check ./python/
+	uv run ruff format --check ./python/
 .PHONY: lint/black
 
 format-goals += format/black
 format/black: $(OSS_HOME)/.venv
-	uv run black ./python/
+	uv run format ./python/
 .PHONY: format/black
-
-lint-goals += lint/isort
-lint/isort: $(OSS_HOME)/.venv
-	uv run isort --check --diff ./python/
-.PHONY: lint/isort
-
-format-goals += format/isort
-format/isort: $(OSS_HOME)/.venv
-	uv run isort ./python/
-.PHONY: format/isort
 
 #
 # Helm
