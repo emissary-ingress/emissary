@@ -85,10 +85,10 @@ dev-dependencies = [
 
 
 [tool.uv.sources]
-kat = { workspace = true, editable = true }
-tests = { workspace = true, editable = true }
-ambassador = { workspace = true, editable = true }
-ambassador-diag = { workspace = true, editable = true }
+kat = { workspace = true }
+tests = { workspace = true }
+ambassador = { workspace = true }
+ambassador-diag = { workspace = true }
 
 
 [tool.uv.workspace]
