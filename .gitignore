@@ -1,7 +1,9 @@
 **/venv
+**/.venv
 tools/bin
 /build-output/
 /vendor/
+**/uv.lock
 
 *.tgz
 *.img.tar
