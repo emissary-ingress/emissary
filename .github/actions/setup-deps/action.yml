@@ -83,4 +83,4 @@ runs:
         DEBIAN_FRONTEND: noninteractive
       run: |
         uv venv
-        uv --no-config pip install -U ruff awscli packaging
+        uv --no-config pip install -U awscli
