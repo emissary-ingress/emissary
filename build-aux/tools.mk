@@ -19,7 +19,7 @@ clobber: clobber-tools
 
 .PHONY: clobber-tools
 clobber-tools:
-	rm -rf uv.lock $(tools.bindir) $(tools.dir)/include $(tools.dir)/downloads
+	rm -rf uv.lock coverage.xml $(tools.bindir) $(tools.dir)/include $(tools.dir)/downloads
 	find . -type d -name '.*cache' -exec rm -rf {} \; || true
 
 go-mod-tidy: $(patsubst $(tools.srcdir)/%/go.mod,go-mod-tidy/tools/%,$(wildcard $(tools.srcdir)/*/go.mod))
