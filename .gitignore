@@ -4,6 +4,7 @@ tools/bin
 /build-output/
 /vendor/
 **/uv.lock
+**/.*cache
 **/coverage.xml
 
 *.tgz
