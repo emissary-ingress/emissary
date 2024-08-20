@@ -203,7 +203,7 @@ gotest: $(OSS_HOME)/.venv $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	{ . $(OSS_HOME)/.venv/bin/activate && \
 	  export PATH=$(tools.bindir):$${PATH} && \
-	  go test $(GOTEST_ARGS) $(GOTEST_PKGS); }
+	  uv run go test $(GOTEST_ARGS) $(GOTEST_PKGS); }
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
