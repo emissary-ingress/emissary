@@ -22,7 +22,8 @@ lint-deps += $(OSS_HOME)/.venv
 lint-goals += lint/mypy
 lint/mypy: $(OSS_HOME)/.venv
 	set -e; { \
-	  uv run time mypy \
+	  uv run -- time mypy \
+	    --config-file='pyproject.toml' \
 	    --cache-fine-grained \
 	    --ignore-missing-imports \
 	    --check-untyped-defs \
@@ -33,12 +34,12 @@ clean: .dmypy.json.rm .mypy_cache.rm-r
 
 lint-goals += lint/black
 lint/black: $(OSS_HOME)/.venv
-	uv run ruff format --check ./python/
+	uv run -- ruff --config='pyproject.toml' format --check ./python/
 .PHONY: lint/black
 
 format-goals += format/black
 format/black: $(OSS_HOME)/.venv
-	uv run format ./python/
+	uv run -- ruff --config='pyproject.toml' format ./python/
 .PHONY: format/black
 
 #
