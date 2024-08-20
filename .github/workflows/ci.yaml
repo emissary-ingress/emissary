@@ -30,7 +30,7 @@ jobs:
         run: |
           make lint
       - name: Collect Job Logs
-        uses: ./.github/actions/after-job
+        uses: ./.github/actions/collect-logs
         if: always()
 
   gotest:  ######################################################################
@@ -45,12 +45,14 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
+        with:
+          install-python: "true"
       - name: Run Golang Unit Tests
         shell: bash
         run: |
           make gotest
       - name: Collect Job Logs
-        uses: ./.github/actions/after-job
+        uses: ./.github/actions/collect-logs
         if: always()
 
   pytest:  ######################################################################
@@ -65,6 +67,8 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
+        with:
+          install-golang: "false"
       - name: Create Python Virtual Env
         shell: bash
         run: >-
@@ -75,7 +79,7 @@ jobs:
         run: |
           make pytest-unit-tests
       - name: Collect Job Logs
-        uses: ./.github/actions/after-job
+        uses: ./.github/actions/collect-logs
         if: always()
 
   build:  #######################################################################
@@ -108,7 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           goreleaser build --snapshot --clean
-      - name: Collect Job Logs
+      - name: Post-Build Cleanup
         uses: ./.github/actions/after-job
         if: always()
 

@@ -2,6 +2,18 @@
 name: setup-deps
 description: Install Go and Python
 
+inputs:
+  install-golang:
+    description: |
+      Install Go
+    required: false
+    default: "true"
+  install-python:
+    description: |
+      Install Python
+    required: false
+    default: "true"
+
 runs:
   using: composite
   steps:
@@ -51,6 +63,7 @@ runs:
             helm plugin install https://github.com/chartmuseum/helm-push
         fi
     - name: Install Go
+      if: ${{ inputs.install-golang == 'true' }}
       uses: actions/setup-go@v5
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -58,12 +71,14 @@ runs:
         go-version-file: go.mod
     - name: Install 'uv'
       shell: bash
+      if: ${{ inputs.install-python == 'true' }}
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | bash
     - name: Install Python Requirements
       shell: bash
+      if: ${{ inputs.install-python == 'true' }}
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
