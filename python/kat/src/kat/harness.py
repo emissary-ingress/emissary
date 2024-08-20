@@ -237,9 +237,7 @@ def sanitize(obj):
         if "value" in obj:
             return obj["value"]
         else:
-            return "-".join(
-                "%s-%s" % (sanitize(k), sanitize(v)) for k, v in sorted(obj.items())
-            )
+            return "-".join("%s-%s" % (sanitize(k), sanitize(v)) for k, v in sorted(obj.items()))
     else:
         cls = obj.__class__
         count = COUNTERS.get(cls, 0)
@@ -256,9 +254,7 @@ def abstract_test(cls: type):
 
 
 def get_nodes(node_type: type):
-    if not inspect.isabstract(node_type) and not node_type.__dict__.get(
-        "abstract_test", False
-    ):
+    if not inspect.isabstract(node_type) and not node_type.__dict__.get("abstract_test", False):
         yield node_type
     for sc in node_type.__subclasses__():
         if not sc.__dict__.get("skip_variant", False):
@@ -657,9 +653,7 @@ class Result:
                             found = True
                             break
 
-                assert (
-                    found
-                ), "{}: expected error to contain any of {}; got {} instead".format(
+                assert found, "{}: expected error to contain any of {}; got {} instead".format(
                     self.query.url,
                     ", ".join(["'%s'" % x for x in errors]),
                     ("'%s'" % self.error) if self.error else "no error",
@@ -845,12 +839,8 @@ class BackendResult:
 
         if isinstance(bres, dict):
             self.name = cast(str, bres.get("backend"))
-            self.request = (
-                BackendRequest(bres["request"]) if "request" in bres else None
-            )
-            self.response = (
-                BackendResponse(bres["response"]) if "response" in bres else None
-            )
+            self.request = BackendRequest(bres["request"]) if "request" in bres else None
+            self.response = BackendResponse(bres["response"]) if "response" in bres else None
 
     def as_dict(self) -> Dict[str, Any]:
         od = {"name": self.name}
@@ -964,9 +954,7 @@ class Superpod:
         template = m["spec"]["template"]
 
         ports: List[Dict[str, int]] = []
-        envs: List[Dict[str, Union[str, int]]] = template["spec"]["containers"][0][
-            "env"
-        ]
+        envs: List[Dict[str, Union[str, int]]] = template["spec"]["containers"][0]["env"]
 
         for p in sorted(self.service_names.keys()):
             ports.append({"containerPort": p})
@@ -1135,12 +1123,8 @@ class Runner:
                     is_plain_test = n.path.k8s.startswith("plain-")
 
                     if n.is_ambassador and not is_plain_test:
-                        add_default_http_listener = getattr(
-                            n, "add_default_http_listener", True
-                        )
-                        add_default_https_listener = getattr(
-                            n, "add_default_https_listener", True
-                        )
+                        add_default_http_listener = getattr(n, "add_default_http_listener", True)
+                        add_default_https_listener = getattr(n, "add_default_https_listener", True)
 
                         if add_default_http_listener:
                             # print(f"{n.path.k8s} adding default HTTP Listener")
@@ -1227,9 +1211,7 @@ class Runner:
 
                         configs[n].append((target, yaml_view))
                     except (YAMLScanError, YAMLParseError) as e:
-                        raise Exception(
-                            "Parse Error: %s, input text:\n%s" % (e, cfg[1])
-                        )
+                        raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg[1]))
 
         for tgt_cfgs in configs.values():
             for target, cfg in tgt_cfgs:
@@ -1408,9 +1390,7 @@ class Runner:
             tries_left = 10
 
             while (
-                os.system(
-                    "tools/bin/kubectl get crd mappings.getambassador.io > /dev/null 2>&1"
-                )
+                os.system("tools/bin/kubectl get crd mappings.getambassador.io > /dev/null 2>&1")
                 != 0
             ):
                 tries_left -= 1
@@ -1427,8 +1407,7 @@ class Runner:
         kat_client_manifests = integration_manifests.load("kat_client_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
             kat_client_manifests = (
-                integration_manifests.namespace_manifest("default")
-                + kat_client_manifests
+                integration_manifests.namespace_manifest("default") + kat_client_manifests
             )
         changed, reason = has_changed(
             integration_manifests.format(kat_client_manifests), "/tmp/k8s-kat-pod.yaml"
@@ -1800,9 +1779,7 @@ class Runner:
             if not first:
                 phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 10))
                 print(
-                    "Waiting for {} seconds before starting phase {}...".format(
-                        phase_delay, phase
-                    )
+                    "Waiting for {} seconds before starting phase {}...".format(phase_delay, phase)
                 )
                 time.sleep(phase_delay)
 
@@ -1810,9 +1787,7 @@ class Runner:
 
             phase_queries = [q for q in queries if q.phase == phase]
 
-            print(
-                "Querying %s urls in phase %s..." % (len(phase_queries), phase), end=""
-            )
+            print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
             sys.stdout.flush()
 
             results = run_queries(f"phase{phase}", phase_queries)

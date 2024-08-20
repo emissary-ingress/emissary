@@ -23,9 +23,7 @@ import os
 Version = "MISSING(FILE)"
 Commit = "MISSING(FILE)"
 try:
-    with open(
-        os.path.join(os.path.dirname(__file__), "..", "ambassador.version")
-    ) as version:
+    with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
         info = version.read().split("\n")
         while len(info) < 2:
             info.append("MISSING(VAL)")

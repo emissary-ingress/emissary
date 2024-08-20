@@ -76,7 +76,9 @@ ALLOWED_ENVOY_FMT_TOKENS = [
     "LOCAL_REPLY_BODY",
     "FILTER_CHAIN_NAME",
 ]
-ENVOY_FMT_TOKEN_REGEX = "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
+ENVOY_FMT_TOKEN_REGEX = (
+    "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
+)
 
 
 # IRErrorResponse implements custom error response bodies using Envoy's HTTP response_map filter.
@@ -322,9 +324,7 @@ class IRErrorResponse(IRFilter):
             if ir_content_type is not None:
                 # Content type is optional, but it must be a string if set.
                 if not isinstance(ir_content_type, str):
-                    self.post_error(
-                        "IRErrorResponse: content_type: field must be a string"
-                    )
+                    self.post_error("IRErrorResponse: content_type: field must be a string")
                     continue
 
                 body_format_override["content_type"] = ir_content_type
@@ -338,9 +338,7 @@ class IRErrorResponse(IRFilter):
             for i in matches:
                 # i[0] is first group in regex match which will contain the command operator name
                 if i[0] not in ALLOWED_ENVOY_FMT_TOKENS:
-                    self.post_error(
-                        f"IRErrorResponse: Invalid Envoy command token: {i[0]}"
-                    )
+                    self.post_error(f"IRErrorResponse: Invalid Envoy command token: {i[0]}")
                     bad_token = True
 
             if bad_token:
@@ -352,9 +350,7 @@ class IRErrorResponse(IRFilter):
 
         # If nothing could be parsed successfully, post an error.
         if len(all_mappers) == 0:
-            self.post_error(
-                "IRErrorResponse: no valid error response mappers could be parsed"
-            )
+            self.post_error("IRErrorResponse: no valid error response mappers could be parsed")
             return None
 
         return all_mappers

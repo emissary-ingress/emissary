@@ -49,11 +49,7 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
     @staticmethod
     def helper_mappings(res: IRResource, k: str) -> Tuple[str, List[dict]]:
         return k, list(
-            reversed(
-                sorted(
-                    [x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]
-                )
-            )
+            reversed(sorted([x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]))
         )
 
     def __init__(

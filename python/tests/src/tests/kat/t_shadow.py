@@ -117,9 +117,7 @@ service: {self.shadow.path.fqdn}
 
     def queries(self):
         # There should be no Ambassador errors. At all.
-        yield Query(
-            self.parent.url("ambassador/v0/diag/?json=true&filter=errors"), phase=1
-        )
+        yield Query(self.parent.url("ambassador/v0/diag/?json=true&filter=errors"), phase=1)
 
         for i in range(100):
             # First query marks one bucket from 0 - 9. The main target service is just a

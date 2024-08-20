@@ -199,13 +199,7 @@ spec:
         {  # check that we can set hostname on a http health check
             "name": "healthcheck_http_hostname",
             "input": baseYaml.format(
-                [
-                    {
-                        "health_check": {
-                            "http": {"path": "/health", "hostname": "dummy.example"}
-                        }
-                    }
-                ]
+                [{"health_check": {"http": {"path": "/health", "hostname": "dummy.example"}}}]
             ),
             "expected": [
                 {
@@ -374,9 +368,7 @@ spec:
         },
         {  # Test that we throw out the health check config when there is no endpoint resolver
             "name": "healthcheck_no_endpoint",
-            "input": noEndpointYaml.format(
-                [{"health_check": {"http": {"path": "/health"}}}]
-            ),
+            "input": noEndpointYaml.format([{"health_check": {"http": {"path": "/health"}}}]),
             "expected": None,
         },
     ]
@@ -391,13 +383,9 @@ spec:
 
         expectedChecks = case["expected"]
         if expectedChecks is None:
-            assert "health_checks" not in cluster, "Failed healthcheck test {}".format(
-                testName
-            )
+            assert "health_checks" not in cluster, "Failed healthcheck test {}".format(testName)
         else:
-            assert "health_checks" in cluster, "Failed healthcheck test {}".format(
-                testName
-            )
+            assert "health_checks" in cluster, "Failed healthcheck test {}".format(testName)
 
             hc = cluster["health_checks"]
             for i in range(0, len(hc)):
@@ -414,9 +402,7 @@ spec:
                             testName,
                         )
                     except KeyError:
-                        assert True is False, "Failed healthcheck test {}".format(
-                            testName
-                        )
+                        assert True is False, "Failed healthcheck test {}".format(testName)
                 if "http_health_check" in expected:
                     try:
                         check_http_healthcheck(
@@ -425,9 +411,7 @@ spec:
                             testName,
                         )
                     except KeyError:
-                        assert True is False, "Failed healthcheck test {}".format(
-                            testName
-                        )
+                        assert True is False, "Failed healthcheck test {}".format(testName)
 
 
 # Runs a bunch of assert statments to check that the expected
@@ -439,21 +423,19 @@ def check_healthcheck_defaults(expected, actual, testName):
             actual["healthy_threshold"] == expected["healthy_threshold"]
         ), "Failed healthcheck test {}".format(testName)
     else:
-        assert actual["healthy_threshold"] == 1, "Failed healthcheck test {}".format(
-            testName
-        )
+        assert actual["healthy_threshold"] == 1, "Failed healthcheck test {}".format(testName)
 
     if "interval" in expected:
-        assert (
-            actual["interval"] == expected["interval"]
-        ), "Failed healthcheck test {}".format(testName)
+        assert actual["interval"] == expected["interval"], "Failed healthcheck test {}".format(
+            testName
+        )
     else:
         assert actual["interval"] == "5s", "Failed healthcheck test {}".format(testName)
 
     if "timeout" in expected:
-        assert (
-            actual["timeout"] == expected["timeout"]
-        ), "Failed healthcheck test {}".format(testName)
+        assert actual["timeout"] == expected["timeout"], "Failed healthcheck test {}".format(
+            testName
+        )
     else:
         assert actual["timeout"] == "3s", "Failed healthcheck test {}".format(testName)
 
@@ -462,9 +444,7 @@ def check_healthcheck_defaults(expected, actual, testName):
             actual["unhealthy_threshold"] == expected["unhealthy_threshold"]
         ), "Failed healthcheck test {}".format(testName)
     else:
-        assert actual["unhealthy_threshold"] == 2, "Failed healthcheck test {}".format(
-            testName
-        )
+        assert actual["unhealthy_threshold"] == 2, "Failed healthcheck test {}".format(testName)
 
 
 # Runs a bunch of assert statments to check that the expected
@@ -489,19 +469,14 @@ def check_http_healthcheck(expected, actual, testName):
     if expected is not None:
         assert actual is not None, "Failed healthcheck test {}".format(testName)
 
-        assert actual["path"] == expected["path"], "Failed healthcheck test {}".format(
-            testName
-        )
+        assert actual["path"] == expected["path"], "Failed healthcheck test {}".format(testName)
 
         if "host" in expected:
-            assert (
-                actual["host"] == expected["host"]
-            ), "Failed healthcheck test {}".format(testName)
+            assert actual["host"] == expected["host"], "Failed healthcheck test {}".format(testName)
 
         if "request_headers_to_remove" in expected:
             assert (
-                actual["request_headers_to_remove"]
-                == expected["request_headers_to_remove"]
+                actual["request_headers_to_remove"] == expected["request_headers_to_remove"]
             ), "Failed healthcheck test {}".format(testName)
 
         if "request_headers_to_add" in expected:

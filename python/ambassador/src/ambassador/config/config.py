@@ -52,27 +52,17 @@ class Config:
     # CLASS VARIABLES
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
     ambassador_id: ClassVar[str] = os.environ.get("AMBASSADOR_ID", "default")
-    ambassador_namespace: ClassVar[str] = os.environ.get(
-        "AMBASSADOR_NAMESPACE", "default"
-    )
-    single_namespace: ClassVar[bool] = bool(
-        os.environ.get("AMBASSADOR_SINGLE_NAMESPACE")
-    )
+    ambassador_namespace: ClassVar[str] = os.environ.get("AMBASSADOR_NAMESPACE", "default")
+    single_namespace: ClassVar[bool] = bool(os.environ.get("AMBASSADOR_SINGLE_NAMESPACE"))
     certs_single_namespace: ClassVar[bool] = bool(
         os.environ.get(
             "AMBASSADOR_CERTS_SINGLE_NAMESPACE",
             os.environ.get("AMBASSADOR_SINGLE_NAMESPACE"),
         )
     )
-    enable_endpoints: ClassVar[bool] = not bool(
-        os.environ.get("AMBASSADOR_DISABLE_ENDPOINTS")
-    )
-    log_resources: ClassVar[bool] = parse_bool(
-        os.environ.get("AMBASSADOR_LOG_RESOURCES")
-    )
-    envoy_bind_address: ClassVar[str] = os.environ.get(
-        "AMBASSADOR_ENVOY_BIND_ADDRESS", "0.0.0.0"
-    )
+    enable_endpoints: ClassVar[bool] = not bool(os.environ.get("AMBASSADOR_DISABLE_ENDPOINTS"))
+    log_resources: ClassVar[bool] = parse_bool(os.environ.get("AMBASSADOR_LOG_RESOURCES"))
+    envoy_bind_address: ClassVar[str] = os.environ.get("AMBASSADOR_ENVOY_BIND_ADDRESS", "0.0.0.0")
 
     StorageByKind: ClassVar[Dict[str, str]] = {
         "authservice": "auth_configs",
@@ -147,12 +137,8 @@ class Config:
                 resolved_ip = socket.gethostbyname(statsd_host)
                 self.statsd["ip"] = resolved_ip
             except socket.gaierror as e:
-                self.logger.error(
-                    "Unable to resolve {} to IP : {}".format(statsd_host, e)
-                )
-                self.logger.error(
-                    "Stats will not be exported to {}".format(statsd_host)
-                )
+                self.logger.error("Unable to resolve {} to IP : {}".format(statsd_host, e))
+                self.logger.error("Stats will not be exported to {}".format(statsd_host))
                 self.statsd["enabled"] = False
 
         self.schema_dir_path = schema_dir_path
@@ -334,9 +320,7 @@ class Config:
                 # Object error. Not good but we'll allow the system to start.
                 self.post_error(rc, resource=resource)
 
-        self.logger.debug(
-            "LOAD_ALL: processed %d resource%s", rcount, "" if (rcount == 1) else "s"
-        )
+        self.logger.debug("LOAD_ALL: processed %d resource%s", rcount, "" if (rcount == 1) else "s")
 
         if self.fatal_errors:
             # Kaboom.
@@ -473,9 +457,7 @@ class Config:
 
     def validate_object(self, resource: ACResource) -> RichStatus:
         # This is basically "impossible"
-        if not (
-            ("apiVersion" in resource) and ("kind" in resource) and ("name" in resource)
-        ):
+        if not (("apiVersion" in resource) and ("kind" in resource) and ("name" in resource)):
             return RichStatus.fromError("must have apiVersion, kind, and name")
 
         apiVersion = resource.apiVersion
@@ -513,9 +495,7 @@ class Config:
 
         return RichStatus.OK(msg=f"good {resource.kind}")
 
-    def safe_store(
-        self, storage_name: str, resource: ACResource, allow_log: bool = True
-    ) -> None:
+    def safe_store(self, storage_name: str, resource: ACResource, allow_log: bool = True) -> None:
         """
         Safely store a ACResource under a given storage name. The storage_name is separate
         because we may need to e.g. store a Module under the 'ratelimit' name or the like.
@@ -550,9 +530,7 @@ class Config:
                 resource.name = f"{resource.name}.{resource.namespace}"
 
         if allow_log:
-            self.logger.debug(
-                "%s: saving %s %s" % (resource, resource.kind, resource.name)
-            )
+            self.logger.debug("%s: saving %s %s" % (resource, resource.kind, resource.name))
 
         storage[resource.name] = resource
 
@@ -612,9 +590,7 @@ class Config:
         # indeed show a human the YAML that defined this module.
         #
         # XXX This should be Module.from_resource()...
-        module_resource = ACResource.from_resource(
-            resource, kind="Module", **resource.config
-        )
+        module_resource = ACResource.from_resource(resource, kind="Module", **resource.config)
 
         self.safe_store("modules", module_resource)
 

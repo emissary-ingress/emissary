@@ -291,18 +291,14 @@ def test_headercaseoverrides_basic():
     _test_headercaseoverrides_rules(["X-foo", "X-ABC-Baz"])
     _test_headercaseoverrides_rules(["x-goOd", "X-alSo-good", "Authorization"])
     _test_headercaseoverrides_rules(["x-good", ["hello"]], expected=["x-good"])
-    _test_headercaseoverrides_rules(
-        ["X-ABC", "x-foo", 5, {}], expected=["X-ABC", "x-foo"]
-    )
+    _test_headercaseoverrides_rules(["X-ABC", "x-foo", 5, {}], expected=["X-ABC", "x-foo"])
 
 
 # Test that we always omit header case overrides if proper case is set
 @pytest.mark.compilertest
 def test_headercaseoverrides_propercasefail():
     _test_headercaseoverrides(
-        _ambassador_module_header_case_overrides(
-            ["My-OPINIONATED-CASING"], proper_case=True
-        ),
+        _ambassador_module_header_case_overrides(["My-OPINIONATED-CASING"], proper_case=True),
         [],
         expect_norules=True,
     )
@@ -312,9 +308,7 @@ def test_headercaseoverrides_propercasefail():
         expect_norules=True,
     )
     _test_headercaseoverrides(
-        _ambassador_module_header_case_overrides(
-            [{"invalid": "true"}, "X-COOL"], proper_case=True
-        ),
+        _ambassador_module_header_case_overrides([{"invalid": "true"}, "X-COOL"], proper_case=True),
         [],
         expect_norules=True,
     )

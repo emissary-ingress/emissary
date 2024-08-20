@@ -326,9 +326,7 @@ remove_request_headers:
         assert self.results[1].backend.request.headers["fruit"] == ["orange"]
         assert "x-evil-header" not in self.results[1].backend.request.headers
         assert len(self.results[1].backend.request.headers["x-evilness"]) > 0
-        assert self.results[1].backend.request.headers["x-evilness"] == [
-            "more evilness"
-        ]
+        assert self.results[1].backend.request.headers["x-evilness"] == ["more evilness"]
 
         # [2]
         assert self.results[2].backend
@@ -340,9 +338,7 @@ remove_request_headers:
         assert len(self.results[2].backend.request.headers["x-evil-header"]) > 0
         assert self.results[2].backend.request.headers["x-evil-header"] == ["evilness"]
         assert len(self.results[2].backend.request.headers["x-evilness"]) > 0
-        assert self.results[2].backend.request.headers["x-evilness"] == [
-            "more evilness"
-        ]
+        assert self.results[2].backend.request.headers["x-evilness"] == ["more evilness"]
 
 
 class SameMappingDifferentNamespaces(AmbassadorTest):

@@ -43,9 +43,7 @@ def normalize_service_name(
     keep them in-sync.
     """
     try:
-        parsed = urlparse(
-            f"//{in_service}" if would_confuse_urlparse(in_service) else in_service
-        )
+        parsed = urlparse(f"//{in_service}" if would_confuse_urlparse(in_service) else in_service)
 
         if not parsed.hostname:
             raise ValueError("No hostname")
@@ -165,9 +163,7 @@ class IRBaseMapping(IRResource):
         )
 
     @classmethod
-    def make_cache_key(
-        cls, kind: str, name: str, namespace: str, version: str = "v2"
-    ) -> str:
+    def make_cache_key(cls, kind: str, name: str, namespace: str, version: str = "v2") -> str:
         # Why is this split on the name necessary?
         # the name of a Mapping when we fetch it from the aconf will match the metadata.name of
         # the Mapping that the config comes from _only if_ it is the only Mapping with that exact name.
@@ -187,9 +183,7 @@ class IRBaseMapping(IRResource):
     def setup(self, ir: "IR", aconf: Config) -> bool:
         # Set up our cache key. We're using this format so that it'll be easy
         # to generate it just from the Mapping's K8s metadata.
-        self._cache_key = IRBaseMapping.make_cache_key(
-            self.kind, self.name, self.namespace
-        )
+        self._cache_key = IRBaseMapping.make_cache_key(self.kind, self.name, self.namespace)
 
         # ...and start without a cluster key for this Mapping.
         self.cluster_key = None
@@ -203,9 +197,7 @@ class IRBaseMapping(IRResource):
         # We can also default the resolver, and scream if it doesn't match a resolver we
         # know about.
         if not self.get("resolver"):
-            self.resolver = self.ir.ambassador_module.get(
-                "resolver", "kubernetes-service"
-            )
+            self.resolver = self.ir.ambassador_module.get("resolver", "kubernetes-service")
 
         resolver = self.ir.get_resolver(self.resolver)
 
@@ -245,14 +237,10 @@ class IRBaseMapping(IRResource):
         for circuit_breaker in circuit_breakers:
             if "_name" in circuit_breaker:
                 # Already reconciled.
-                ir.logger.debug(
-                    f'Breaker validation: good breaker {circuit_breaker["_name"]}'
-                )
+                ir.logger.debug(f'Breaker validation: good breaker {circuit_breaker["_name"]}')
                 continue
 
-            ir.logger.debug(
-                f"Breaker validation: {dump_json(circuit_breakers, pretty=True)}"
-            )
+            ir.logger.debug(f"Breaker validation: {dump_json(circuit_breakers, pretty=True)}")
 
             name_fields = ["cb"]
 
@@ -314,12 +302,8 @@ class IRBaseMapping(IRResource):
 
     def _group_id(self) -> str:
         """Compute the group ID for this Mapping. Must be defined by subclasses."""
-        raise NotImplementedError(
-            "%s._group_id is not implemented?" % self.__class__.__name__
-        )
+        raise NotImplementedError("%s._group_id is not implemented?" % self.__class__.__name__)
 
     def _route_weight(self) -> List[Union[str, int]]:
         """Compute the route weight for this Mapping. Must be defined by subclasses."""
-        raise NotImplementedError(
-            "%s._route_weight is not implemented?" % self.__class__.__name__
-        )
+        raise NotImplementedError("%s._route_weight is not implemented?" % self.__class__.__name__)

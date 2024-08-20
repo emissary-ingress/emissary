@@ -201,9 +201,7 @@ class Resource(Cacheable):
 
         # print("%s.from_dict: %s => %s" % (cls, attrs['kind'], resource_class))
 
-        return resource_class(
-            rkey, location=location, serialization=serialization, **attrs
-        )
+        return resource_class(rkey, location=location, serialization=serialization, **attrs)
 
     @classmethod
     def from_yaml(cls: Type[R], rkey: str, location: str, serialization: str) -> R:

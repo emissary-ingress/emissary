@@ -99,9 +99,7 @@ class IRServiceResolver(IRResource):
         valid = True
 
         if mapping.service.find(".") >= 0:
-            mapping.post_error(
-                "The Consul resolver does not allow dots in service names"
-            )
+            mapping.post_error("The Consul resolver does not allow dots in service names")
             valid = False
 
         if mapping.service.find(":") >= 0:
@@ -152,9 +150,7 @@ class IRServiceResolver(IRResource):
         # Find endpoints, and try for a port match!
         return self.get_endpoints(ir, f"k8s-{svc}-{namespace}", port)
 
-    def parse_service(
-        self, ir: "IR", svc_name: str, svc_namespace: str
-    ) -> Tuple[str, str]:
+    def parse_service(self, ir: "IR", svc_name: str, svc_namespace: str) -> Tuple[str, str]:
         # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
         svc = svc_name
         namespace = Config.ambassador_namespace
@@ -196,16 +192,12 @@ class IRServiceResolver(IRResource):
 
         return self.get_endpoints(ir, f"consul-{svc_name}-{self.datacenter}", None)
 
-    def get_endpoints(
-        self, ir: "IR", key: str, port: Optional[int]
-    ) -> Optional[SvcEndpointSet]:
+    def get_endpoints(self, ir: "IR", key: str, port: Optional[int]) -> Optional[SvcEndpointSet]:
         # OK. Do we have a Service by this key?
         service = ir.services.get(key)
 
         if not service:
-            self.logger.debug(
-                f"Resolver {self.name}: {key} matches no Service for endpoints"
-            )
+            self.logger.debug(f"Resolver {self.name}: {key} matches no Service for endpoints")
             return None
 
         self.logger.debug(f"Resolver {self.name}: {key} matches %s" % service.as_json())
@@ -376,9 +368,7 @@ class IRServiceResolverFactory:
 
             ir.add_resolver(IRServiceResolver(ir, aconf, **resolver_config))
         else:
-            cls.check_aliases(
-                ir, aconf, "endpoint", res_e, "kubernetes-endpoint", res_k_e
-            )
+            cls.check_aliases(ir, aconf, "endpoint", res_e, "kubernetes-endpoint", res_k_e)
 
         res_c = ir.get_resolver("consul")
         res_c_e = ir.get_resolver("consul-endpoint")
@@ -427,9 +417,7 @@ class IRServiceResolverFactory:
             config = dict(**source.as_dict())
 
             # Fix up this dict. Sigh.
-            config["rkey"] = config.pop(
-                "_rkey", config.get("rkey", None)
-            )  # Kludge, I know...
+            config["rkey"] = config.pop("_rkey", config.get("rkey", None))  # Kludge, I know...
             config.pop("_errored", None)
             config.pop("_active", None)
             config.pop("resolve_with", None)

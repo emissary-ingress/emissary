@@ -113,12 +113,8 @@ spec:
     mirror_policy = mirrored_config["route"]["request_mirror_policies"][0]
     assert mirror_policy["cluster"] == "cluster_shadow_httpbin_shadow_default"
     assert mirror_policy["runtime_fraction"]["default_value"]["numerator"] == 10
-    assert (
-        mirror_policy["runtime_fraction"]["default_value"]["denominator"] == "HUNDRED"
-    )
-    assert_valid_envoy_config(
-        ads_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")]
-    )
+    assert mirror_policy["runtime_fraction"]["default_value"]["denominator"] == "HUNDRED"
+    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")])
     assert_valid_envoy_config(
         bootstrap_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")]
     )

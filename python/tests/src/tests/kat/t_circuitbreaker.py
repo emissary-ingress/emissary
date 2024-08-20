@@ -243,9 +243,7 @@ config:
                     pr_mapping_overloaded += 1
 
             if pr_mapping_overloaded != 0:
-                failures.append(
-                    f"[GCR] expected no -pr overloaded, got {pr_mapping_overloaded}"
-                )
+                failures.append(f"[GCR] expected no -pr overloaded, got {pr_mapping_overloaded}")
 
             # '-normal' mapping tests: global configuration should be in effect
             normal_overloaded = 0
@@ -358,9 +356,7 @@ circuit_breakers:
                     low_limit_failure += 1
 
             if not 100 < low_limit_failure < 200:
-                failures.append(
-                    f"expected 100-200 failure with low limit, got {low_limit_failure}"
-                )
+                failures.append(f"expected 100-200 failure with low limit, got {low_limit_failure}")
 
         if failures:
             print("%s FAILED:\n  %s" % (self.name, "\n  ".join(failures)))

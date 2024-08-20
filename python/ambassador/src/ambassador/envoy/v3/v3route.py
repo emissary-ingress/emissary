@@ -92,9 +92,7 @@ def v3prettyroute(route: DictifiedV3Route) -> str:
 # regex_matcher generates Envoy configuration to do a regex match in a Route. It's complex
 # here because, even though we don't have to deal with safe and unsafe regexes, it's simpler
 # to keep the weird baroqueness of this stuff wrapped in a function.
-def regex_matcher(
-    config: "V3Config", regex: str, key="regex", safe_key=None
-) -> Dict[str, Any]:
+def regex_matcher(config: "V3Config", regex: str, key="regex", safe_key=None) -> Dict[str, Any]:
     max_size = int(config.ir.ambassador_module.get("regex_max_size", 200))
 
     if not safe_key:
@@ -219,9 +217,7 @@ class V3RouteVariants:
         # ...then make a copy of match["headers"], but don't include
         # any existing XFP header match.
         headers = match_copy.get("headers") or []
-        headers_copy = [
-            h for h in headers if h.get("name", "").lower() != "x-forwarded-proto"
-        ]
+        headers_copy = [h for h in headers if h.get("name", "").lower() != "x-forwarded-proto"]
 
         # OK, if the new XFP value is anything, write a match for it. If not,
         # we'll just match any XFP.
@@ -286,9 +282,7 @@ class V3Route(Cacheable):
         envoy_route = EnvoyRoute(group).envoy_route
 
         mapping_prefix = mapping.get("prefix", None)
-        route_prefix = (
-            mapping_prefix if mapping_prefix is not None else group.get("prefix")
-        )
+        route_prefix = mapping_prefix if mapping_prefix is not None else group.get("prefix")
 
         mapping_case_sensitive = mapping.get("case_sensitive", None)
         case_sensitive = (
@@ -389,9 +383,7 @@ class V3Route(Cacheable):
                         "response_map": {"mappers": filter_config["mappers"]},
                     }
 
-        if mapping.get("bypass_auth", False) or (
-            group.get("host_redirect", None) is not None
-        ):
+        if mapping.get("bypass_auth", False) or (group.get("host_redirect", None) is not None):
             typed_per_filter_config["envoy.filters.http.ext_authz"] = {
                 "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                 "disabled": True,
@@ -410,15 +402,11 @@ class V3Route(Cacheable):
 
         request_headers_to_add = group.get("add_request_headers", None)
         if request_headers_to_add:
-            self["request_headers_to_add"] = self.generate_headers_to_add(
-                request_headers_to_add
-            )
+            self["request_headers_to_add"] = self.generate_headers_to_add(request_headers_to_add)
 
         response_headers_to_add = group.get("add_response_headers", None)
         if response_headers_to_add:
-            self["response_headers_to_add"] = self.generate_headers_to_add(
-                response_headers_to_add
-            )
+            self["response_headers_to_add"] = self.generate_headers_to_add(response_headers_to_add)
 
         request_headers_to_remove = group.get("remove_request_headers", None)
         if request_headers_to_remove:
@@ -485,13 +473,10 @@ class V3Route(Cacheable):
 
         # Take the default `timeout_ms` value from the Ambassador module using `cluster_request_timeout_ms`.
         # If that isn't set, use 3000ms. The mapping below will override this if its own `timeout_ms` is set.
-        default_timeout_ms = config.ir.ambassador_module.get(
-            "cluster_request_timeout_ms", 3000
-        )
+        default_timeout_ms = config.ir.ambassador_module.get("cluster_request_timeout_ms", 3000)
         route = {
             "priority": group.get("priority"),
-            "timeout": "%0.3fs"
-            % (mapping.get("timeout_ms", default_timeout_ms) / 1000.0),
+            "timeout": "%0.3fs" % (mapping.get("timeout_ms", default_timeout_ms) / 1000.0),
             "cluster": mapping.cluster.envoy_name,
         }
 
@@ -591,20 +576,13 @@ class V3Route(Cacheable):
     # matches_domain and matches_domains are both still written assuming a _host_constraints
     # with more than element. Not changing that yet.
     def matches_domain(self, domain: str) -> bool:
-        return any(
-            hostglob_matches(route_glob, domain)
-            for route_glob in self["_host_constraints"]
-        )
+        return any(hostglob_matches(route_glob, domain) for route_glob in self["_host_constraints"])
 
     def matches_domains(self, domains: List[str]) -> bool:
         route_hosts = self["_host_constraints"]
 
-        self.logger.debug(
-            f"    - matches_domains: route_hosts {', '.join(sorted(route_hosts))}"
-        )
-        self.logger.debug(
-            f"    - matches_domains: domains {', '.join(sorted(domains))}"
-        )
+        self.logger.debug(f"    - matches_domains: route_hosts {', '.join(sorted(route_hosts))}")
+        self.logger.debug(f"    - matches_domains: domains {', '.join(sorted(domains))}")
 
         if (not route_hosts) or ("*" in route_hosts):
             self.logger.debug("    - matches_domains: nonspecific route_hosts")
@@ -667,10 +645,7 @@ class V3Route(Cacheable):
                 # We only want HTTP mapping groups here.
                 continue
 
-            if (
-                irgroup.get("host_redirect") is not None
-                and len(irgroup.get("mappings", [])) == 0
-            ):
+            if irgroup.get("host_redirect") is not None and len(irgroup.get("mappings", [])) == 0:
                 # This is a host-redirect-only group, which is weird, but can happen. Do we
                 # have a cached route for it?
                 key = f"Route-{irgroup.group_id}-hostredirect"
@@ -705,9 +680,7 @@ class V3Route(Cacheable):
             config.route_variants.append(V3RouteVariants(route))
 
     @staticmethod
-    def generate_headers(
-        config: "V3Config", mapping_group: IRHTTPMappingGroup
-    ) -> List[dict]:
+    def generate_headers(config: "V3Config", mapping_group: IRHTTPMappingGroup) -> List[dict]:
         headers = []
 
         group_headers = mapping_group.get("headers", [])
@@ -810,9 +783,7 @@ class V3Route(Cacheable):
             if isinstance(v, dict):
                 if "append" in v:
                     append = bool(v["append"])
-                headers.append(
-                    {"header": {"key": k, "value": v["value"]}, "append": append}
-                )
+                headers.append({"header": {"key": k, "value": v["value"]}, "append": append})
             else:
                 headers.append(
                     {
@@ -823,9 +794,7 @@ class V3Route(Cacheable):
         return headers
 
     @staticmethod
-    def generate_regex_rewrite(
-        config: "V3Config", mapping_group: IRHTTPMappingGroup
-    ) -> dict:
+    def generate_regex_rewrite(config: "V3Config", mapping_group: IRHTTPMappingGroup) -> dict:
         regex_rewrite = {}
         group_regex_rewrite = mapping_group.get("regex_rewrite", None)
         if group_regex_rewrite is not None:

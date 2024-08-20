@@ -95,17 +95,13 @@ def _get_config_and_ir(logger: logging.Logger, watt: str) -> Tuple[Config, IR]:
     return aconf, ir
 
 
-def _get_errors(
-    caplog: pytest.LogCaptureFixture, logger_name: str, watt_data_filename: str
-):
+def _get_errors(caplog: pytest.LogCaptureFixture, logger_name: str, watt_data_filename: str):
     watt_data = open(watt_data_filename).read()
 
     aconf, ir = _get_config_and_ir(logging.getLogger(logger_name), watt_data)
 
     log_errors = [
-        rec
-        for rec in caplog.record_tuples
-        if rec[0] == logger_name and rec[1] > logging.INFO
+        rec for rec in caplog.record_tuples if rec[0] == logger_name and rec[1] > logging.INFO
     ]
 
     aconf_errors = aconf.errors

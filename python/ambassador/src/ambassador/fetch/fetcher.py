@@ -106,9 +106,7 @@ class ResourceFetcher:
             init_dir = "/ambassador/init-config"
 
             if os.path.isdir(init_dir):
-                self.load_from_filesystem(
-                    init_dir, k8s=True, recurse=True, finalize=False
-                )
+                self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
 
     @property
     def elements(self) -> List[ACResource]:
@@ -170,22 +168,16 @@ class ResourceFetcher:
 
             try:
                 serialization = open(filepath, "r").read()
-                self.parse_yaml(
-                    serialization, k8s=k8s, filename=filename, finalize=False
-                )
+                self.parse_yaml(serialization, k8s=k8s, filename=filename, finalize=False)
             except IOError as e:
                 self.aconf.post_error("could not read YAML from %s: %s" % (filepath, e))
 
         for manifest in automatic_manifests:
             self.logger.debug("reading automatic manifest: %s" % manifest)
             try:
-                self.parse_yaml(
-                    manifest, k8s=k8s, filename="_automatic_", finalize=False
-                )
+                self.parse_yaml(manifest, k8s=k8s, filename="_automatic_", finalize=False)
             except IOError as e:
-                self.aconf.post_error(
-                    "could not read automatic manifest: %s\n%s" % (manifest, e)
-                )
+                self.aconf.post_error("could not read automatic manifest: %s\n%s" % (manifest, e))
 
         if finalize:
             self.finalize()
@@ -216,9 +208,7 @@ class ResourceFetcher:
                     else:
                         self.manager.emit(NormalizedResource(obj, rkey=rkey))
             except yaml.error.YAMLError as e:
-                self.aconf.post_error(
-                    "%s: could not parse YAML: %s" % (self.location, e)
-                )
+                self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
         if finalize:
             self.finalize()

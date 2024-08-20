@@ -85,10 +85,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
     def _update_status(self, obj: KubernetesObject) -> None:
         service_status = None
 
-        if (
-            not self.service_dep.ambassador_service
-            or not self.service_dep.ambassador_service.name
-        ):
+        if not self.service_dep.ambassador_service or not self.service_dep.ambassador_service.name:
             self.logger.error(
                 f"Unable to set Ingress {obj.name}'s load balancer, could not find Ambassador service"
             )
@@ -98,25 +95,17 @@ class IngressProcessor(ManagedKubernetesProcessor):
         if obj.status != service_status:
             if service_status:
                 status_update = (obj.gvk.kind, obj.namespace, service_status)
-                self.logger.debug(
-                    f"Updating Ingress {obj.name} status to {status_update}"
-                )
-                self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = (
-                    status_update
-                )
+                self.logger.debug(f"Updating Ingress {obj.name} status to {status_update}")
+                self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = status_update
         else:
             self.logger.debug(
                 f"Not reconciling Ingress {obj.name}: observed and current statuses are in sync"
             )
 
     def _try_resolve_service_port_number(self, namespace, service_name, service_port):
-        self.logger.debug(
-            f"Resolving named port '{service_port}' in service '{service_name}'"
-        )
+        self.logger.debug(f"Resolving named port '{service_port}' in service '{service_name}'")
 
-        key = KubernetesObjectKey(
-            KubernetesGVK("v1", "Service"), namespace, service_name
-        )
+        key = KubernetesObjectKey(KubernetesGVK("v1", "Service"), namespace, service_name)
         k8s_svc: Optional[KubernetesObject]
         k8s_svc = self.service_dep.discovered_services.get(key, None)
         if not k8s_svc:
@@ -127,20 +116,15 @@ class IngressProcessor(ManagedKubernetesProcessor):
             if service_port == port.get("name", None):
                 return port.get("port", service_port)
 
-        self.logger.debug(
-            f"Could not find port '{service_port}' in service '{service_name}'"
-        )
+        self.logger.debug(f"Could not find port '{service_port}' in service '{service_name}'")
         return service_port
 
     def _process(self, obj: KubernetesObject) -> None:
         ingress_class_name = obj.spec.get("ingressClassName", "")
 
-        has_ingress_class = (
-            ingress_class_name in self.ingress_classes_dep.ingress_classes
-        )
+        has_ingress_class = ingress_class_name in self.ingress_classes_dep.ingress_classes
         has_ambassador_ingress_class_annotation = (
-            obj.annotations.get("kubernetes.io/ingress.class", "").lower()
-            == "ambassador"
+            obj.annotations.get("kubernetes.io/ingress.class", "").lower() == "ambassador"
         )
 
         # check the Ingress resource has either:
@@ -201,9 +185,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
                         spec=spec,
                     )
 
-                    self.logger.debug(
-                        f"Generated Host from ingress {obj.name}: {ingress_host}"
-                    )
+                    self.logger.debug(f"Generated Host from ingress {obj.name}: {ingress_host}")
                     self.manager.emit(ingress_host)
 
         # parse ingress.spec.defaultBackend
@@ -317,9 +299,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
                     spec=spec,
                 )
 
-                self.logger.debug(
-                    f"Generated Mapping from Ingress {obj.name}: {path_mapping}"
-                )
+                self.logger.debug(f"Generated Mapping from Ingress {obj.name}: {path_mapping}")
                 self.manager.emit(path_mapping)
 
         # let's make arrangements to update Ingress' status now

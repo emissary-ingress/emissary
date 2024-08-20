@@ -48,9 +48,7 @@ class TestIR:
                 {"udp-0.0.0.0-8443": True},
             ),
             TestCase("raw-udp", default_udp_listener_manifest(), {}),
-            TestCase(
-                "raw-tcp", default_tcp_listener_manifest(), {"tcp-0.0.0.0-8443": False}
-            ),
+            TestCase("raw-tcp", default_tcp_listener_manifest(), {"tcp-0.0.0.0-8443": False}),
         ]
 
         for case in testcases:

@@ -270,9 +270,7 @@ service: https://{self.target3.path.fqdn}
         yield Query(self.url(self.name + "/wtfo/", port=9876), insecure=True)
 
         # 1: should hit target2, and use TLS
-        yield Query(
-            self.url(self.name + "/wtfo/", port=7654, scheme="http"), insecure=True
-        )
+        yield Query(self.url(self.name + "/wtfo/", port=7654, scheme="http"), insecure=True)
 
         # 2: should hit target1 via SNI, and use cleartext
         yield Query(
@@ -612,9 +610,7 @@ spec:
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
         assert self.results[0].json["request"]["tls"]["enabled"] is True
-        assert (
-            self.results[0].json["request"]["tls"]["server-name"] == "my-hilarious-name"
-        )
+        assert self.results[0].json["request"]["tls"]["server-name"] == "my-hilarious-name"
 
 
 class TCPMappingTLSOriginationContextCrossNamespaceTest(AmbassadorTest):
@@ -673,10 +669,7 @@ spec:
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
         assert self.results[0].json["request"]["tls"]["enabled"] is True
-        assert (
-            self.results[0].json["request"]["tls"]["server-name"]
-            == "my-hysterical-name"
-        )
+        assert self.results[0].json["request"]["tls"]["server-name"] == "my-hysterical-name"
 
 
 @abstract_test

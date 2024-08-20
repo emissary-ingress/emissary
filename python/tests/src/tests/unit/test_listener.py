@@ -39,9 +39,7 @@ def _verify_no_added_response_headers(listener):
             assert "response_headers_to_add" not in host
 
 
-def _generateListener(
-    name: str, protocol: Optional[str], protocol_stack: Optional[List[str]]
-):
+def _generateListener(name: str, protocol: Optional[str], protocol_stack: Optional[List[str]]):
     yaml = f"""
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
@@ -165,10 +163,7 @@ class TestListener:
         listener = listeners[0]
         assert "udp_listener_config" in listener
         assert "quic_options" in listener["udp_listener_config"]
-        assert (
-            listener["udp_listener_config"]["downstream_socket_config"]["prefer_gro"]
-            is True
-        )
+        assert listener["udp_listener_config"]["downstream_socket_config"]["prefer_gro"] is True
 
         # verify filter chains
         filter_chains = listener["filter_chains"]
@@ -176,9 +171,7 @@ class TestListener:
         filter_chain = filter_chains[0]
 
         assert filter_chain["filter_chain_match"]["transport_protocol"] == "quic"
-        assert (
-            filter_chain["transport_socket"]["name"] == "envoy.transport_sockets.quic"
-        )
+        assert filter_chain["transport_socket"]["name"] == "envoy.transport_sockets.quic"
 
         # verify HCM typed_config
         typed_config = filter_chain["filters"][0]["typed_config"]
@@ -213,9 +206,7 @@ spec:
         fetcher = ResourceFetcher(logger, aconf)
         fetcher.parse_yaml(yaml, k8s=True)
         aconf.load_all(fetcher.sorted())
-        secret_handler = EmptySecretHandler(
-            logger, source_root=None, cache_dir=None, version="V3"
-        )
+        secret_handler = EmptySecretHandler(logger, source_root=None, cache_dir=None, version="V3")
         ir = IR(aconf, secret_handler=secret_handler)
         econf = EnvoyConfig.generate(ir, cache=None).as_dict()
 
@@ -392,9 +383,7 @@ spec:
             ),
         ]
         for case in testcases:
-            applied_yaml = open(
-                os.path.join(testdata_dir, f"{case.name}_in.yaml"), "r"
-            ).read()
+            applied_yaml = open(os.path.join(testdata_dir, f"{case.name}_in.yaml"), "r").read()
             expected = yaml.safe_load(
                 open(os.path.join(testdata_dir, f"{case.name}_out.yaml"), "r")
             )

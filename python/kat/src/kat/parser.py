@@ -176,9 +176,7 @@ COERCIONS: Mapping[Type, Callable[[Any], Node]] = {
     bool: lambda b: ScalarNode(Tag.BOOL.value, str(b)),
     int: lambda i: ScalarNode(Tag.INT.value, str(i)),
     float: lambda f: ScalarNode(Tag.FLOAT.value, str(f)),
-    dict: lambda d: MappingNode(
-        Tag.MAPPING.value, [(node(k), node(v)) for k, v in d.items()]
-    ),
+    dict: lambda d: MappingNode(Tag.MAPPING.value, [(node(k), node(v)) for k, v in d.items()]),
 }
 
 
@@ -190,14 +188,11 @@ def load(name: str, value: Any, *allowed: Tag) -> SequenceView:
     if isinstance(value, str):
         value = StringIO(value)
         value.name = name
-    result = view(
-        SequenceNode(Tag.SEQUENCE.value, list(compose_all(value))), ViewMode.PYTHON
-    )
+    result = view(SequenceNode(Tag.SEQUENCE.value, list(compose_all(value))), ViewMode.PYTHON)
     for r in view(result, ViewMode.NODE):
         if r.tag not in allowed:
             raise ValueError(
-                "expecting %s, got %s"
-                % (", ".join(t.name for t in allowed), r.node.tag)
+                "expecting %s, got %s" % (", ".join(t.name for t in allowed), r.node.tag)
             )
     return result
 

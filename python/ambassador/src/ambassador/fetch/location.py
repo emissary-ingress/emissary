@@ -31,9 +31,7 @@ class LocationManager:
         self.previous = []
         self.current = Location()
 
-    def push(
-        self, filename: Optional[str] = None, ocount: int = 1
-    ) -> ContextManager[Location]:
+    def push(self, filename: Optional[str] = None, ocount: int = 1) -> ContextManager[Location]:
         current = Location(filename, ocount)
         self.previous.append(self.current)
         self.current = current

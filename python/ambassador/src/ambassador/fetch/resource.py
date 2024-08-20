@@ -20,9 +20,7 @@ class NormalizedResource:
 
     object: dict
     rkey: Optional[str] = None
-    log_resources: ClassVar[bool] = parse_bool(
-        os.environ.get("AMBASSADOR_LOG_RESOURCES")
-    )
+    log_resources: ClassVar[bool] = parse_bool(os.environ.get("AMBASSADOR_LOG_RESOURCES"))
 
     @classmethod
     def from_data(
@@ -134,22 +132,18 @@ class ResourceManager:
                 self.aconf.post_error("%s is empty" % self.location)
             else:
                 self.aconf.post_error(
-                    "%s is not a dictionary? %s"
-                    % (self.location, dump_json(obj, pretty=True))
+                    "%s is not a dictionary? %s" % (self.location, dump_json(obj, pretty=True))
                 )
             return True
 
         if not self.aconf.good_ambassador_id(obj):
-            self.logger.debug(
-                "%s ignoring object with mismatched ambassador_id" % self.location
-            )
+            self.logger.debug("%s ignoring object with mismatched ambassador_id" % self.location)
             return True
 
         if "kind" not in obj:
             # Bug!!
             self.aconf.post_error(
-                "%s is missing 'kind'?? %s"
-                % (self.location, dump_json(obj, pretty=True))
+                "%s is missing 'kind'?? %s" % (self.location, dump_json(obj, pretty=True))
             )
             return True
 

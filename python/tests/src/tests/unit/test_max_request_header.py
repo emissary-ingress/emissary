@@ -71,8 +71,8 @@ spec:
 
                 print(f"Found max_req_headers = {max_req_headers}")
                 key_found = True
-                assert (
-                    expected == int(max_req_headers)
+                assert expected == int(
+                    max_req_headers
                 ), "max_request_headers_kb must equal the value set on the ambassador Module"
     assert key_found, "max_request_headers_kb must be found in the envoy config"
 
@@ -116,7 +116,7 @@ spec:
 
                 print(f"Found max_req_headers = {max_req_headers}")
                 key_found = True
-                assert (
-                    expected == int(max_req_headers)
+                assert expected == int(
+                    max_req_headers
                 ), "max_request_headers_kb must equal the value set on the ambassador Module"
     assert key_found, "max_request_headers_kb must be found in the envoy config"

@@ -267,9 +267,7 @@ def econf_foreach_listener_chain(
         filters = chain["filters"]
         got_count = len(filters)
         got_plural = "" if (got_count == 1) else "s"
-        assert (
-            got_count == 1
-        ), f"Expected just one filter, got {got_count} filter{got_plural}"
+        assert got_count == 1, f"Expected just one filter, got {got_count} filter{got_plural}"
 
         # The http connection manager is the only filter on the chain from the one and only vhost.
         filter = filters[0]
@@ -348,9 +346,7 @@ def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
     crl.set_lastUpdate(when)
 
     for revokedCert in revokedCerts:
-        clientCert = crypto.load_certificate(
-            crypto.FILETYPE_PEM, bytes(revokedCert, "utf-8")
-        )
+        clientCert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(revokedCert, "utf-8"))
         r = crypto.Revoked()
         r.set_serial(bytes("{:x}".format(clientCert.get_serial_number()), "ascii"))
         r.set_rev_date(when)
@@ -361,7 +357,5 @@ def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
     key = crypto.load_privatekey(crypto.FILETYPE_PEM, bytes(issuerKey, "utf-8"))
     crl.sign(cert, key, b"sha256")
     return b64encode(
-        (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode(
-            "utf-8"
-        )
+        (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode("utf-8")
     ).decode("utf-8")

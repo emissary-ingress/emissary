@@ -104,9 +104,9 @@ spec:
     econf = EnvoyConfig.generate(ir)
 
     # check if custom_tags are added
-    assert econf.as_dict()["static_resources"]["listeners"][0]["filter_chains"][0][
-        "filters"
-    ][0]["typed_config"]["tracing"] == {
+    assert econf.as_dict()["static_resources"]["listeners"][0]["filter_chains"][0]["filters"][0][
+        "typed_config"
+    ]["tracing"] == {
         "custom_tags": [
             {"literal": {"value": "avalue"}, "tag": "ltag"},
             {
@@ -142,9 +142,7 @@ spec:
     }
 
     ads_config.pop("@type", None)
-    assert_valid_envoy_config(
-        ads_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")]
-    )
+    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")])
     assert_valid_envoy_config(
         bootstrap_config, extra_dirs=[str(tmp_path / "ambassador" / "snapshots")]
     )

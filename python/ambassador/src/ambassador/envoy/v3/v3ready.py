@@ -28,9 +28,7 @@ if ambassador_ready_port not in range(1, 32767):
     ambassador_ready_port = 8006
 ambassador_ready_log = parse_bool(os.getenv("AMBASSADOR_READY_LOG", "false"))
 ambassador_ready_ip = (
-    "::1"
-    if os.getenv("AMBASSADOR_HEALTHCHECK_IP_FAMILY", "ANY") == "IPV6_ONLY"
-    else "127.0.0.1"
+    "::1" if os.getenv("AMBASSADOR_HEALTHCHECK_IP_FAMILY", "ANY") == "IPV6_ONLY" else "127.0.0.1"
 )
 
 
@@ -39,8 +37,7 @@ class V3Ready(dict):
     def generate(cls, config: "V3Config") -> None:
         # Inject the ready listener to the list of listeners
         config.ir.logger.info(
-            "V3Ready: ==== listen on %s:%s"
-            % (ambassador_ready_ip, ambassador_ready_port)
+            "V3Ready: ==== listen on %s:%s" % (ambassador_ready_ip, ambassador_ready_port)
         )
 
         typed_config = {
@@ -63,15 +60,11 @@ class V3Ready(dict):
             typed_config["access_log"] = cls.access_log(config)
 
         # required for test_max_request_header.py
-        max_request_headers_kb = config.ir.ambassador_module.get(
-            "max_request_headers_kb", None
-        )
+        max_request_headers_kb = config.ir.ambassador_module.get("max_request_headers_kb", None)
         if max_request_headers_kb:
             typed_config["max_request_headers_kb"] = max_request_headers_kb
 
-        listener_idle_timeout_ms = config.ir.ambassador_module.get(
-            "listener_idle_timeout_ms", None
-        )
+        listener_idle_timeout_ms = config.ir.ambassador_module.get("listener_idle_timeout_ms", None)
         if listener_idle_timeout_ms:
             typed_config["common_http_protocol_options"] = {
                 "idle_timeout": "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
@@ -105,9 +98,7 @@ class V3Ready(dict):
             "buffer_limit_bytes", None
         )
         if per_connection_buffer_limit_bytes:
-            ready_listener["per_connection_buffer_limit_bytes"] = (
-                per_connection_buffer_limit_bytes
-            )
+            ready_listener["per_connection_buffer_limit_bytes"] = per_connection_buffer_limit_bytes
 
         config.static_resources["listeners"].append(ready_listener)
 
@@ -216,9 +207,7 @@ class V3Ready(dict):
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
                         "path": config.ir.ambassador_module.envoy_log_path,
-                        "log_format": {
-                            "text_format_source": {"inline_string": log_format + "\n"}
-                        },
+                        "log_format": {"text_format_source": {"inline_string": log_format + "\n"}},
                     },
                 }
             )

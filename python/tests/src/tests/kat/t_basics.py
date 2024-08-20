@@ -33,9 +33,7 @@ class Empty(AmbassadorTest):
 
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
-        yield Query(
-            self.url("_internal/v0/ping", scheme="http", port=8877), expected=403
-        )
+        yield Query(self.url("_internal/v0/ping", scheme="http", port=8877), expected=403)
         yield Query(self.url("ambassador/v0/check_ready", scheme="http", port=8877))
 
     def check(self):
@@ -354,9 +352,7 @@ service: http://{self.target.path.fqdn}
 
     def queries(self):
         yield Query(self.url(self.name + "/"), headers={"X-Foo": "hello"})
-        yield Query(
-            self.url(f"need-normalization/../{self.name}/"), headers={"X-Foo": "hello"}
-        )
+        yield Query(self.url(f"need-normalization/../{self.name}/"), headers={"X-Foo": "hello"})
         yield Query(self.url(self.name + "/"), expected=404)
         yield Query(self.url(f"need-normalization/../{self.name}/"), expected=404)
 
@@ -368,7 +364,4 @@ service: http://{self.target.path.fqdn}
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert (
-                    r.backend.request.headers["x-envoy-original-path"][0]
-                    == f"/{self.name}/"
-                )
+                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"

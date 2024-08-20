@@ -136,8 +136,8 @@ def _test_errorresponse(yaml, expectations, expect_fail=False):
 
     mappers = ir_conf.get("mappers", None)
     assert mappers
-    assert (
-        len(mappers) == len(expectations)
+    assert len(mappers) == len(
+        expectations
     ), f"unexpected len(mappers) {len(expectations)} != len(expectations) {len(expectations)}"
 
     for i in range(len(expectations)):
@@ -156,9 +156,7 @@ def _test_errorresponse(yaml, expectations, expect_fail=False):
             assert actual_body_format_override == expected_body_format_override
 
 
-def _test_errorresponse_onemapper(
-    yaml, expected_filter, expected_body_format_override, fail=False
-):
+def _test_errorresponse_onemapper(yaml, expected_filter, expected_body_format_override, fail=False):
     return _test_errorresponse(
         yaml, [(expected_filter, expected_body_format_override)], expect_fail=fail
     )
@@ -168,9 +166,7 @@ def _test_errorresponse_twomappers(yaml, expectation1, expectation2, fail=False)
     return _test_errorresponse(yaml, [expectation1, expectation2], expect_fail=fail)
 
 
-def _test_errorresponse_onemapper_onstatuscode_textformat(
-    status_code, text_format, fail=False
-):
+def _test_errorresponse_onemapper_onstatuscode_textformat(status_code, text_format, fail=False):
     _test_errorresponse_onemapper(
         _ambassador_module_onemapper(status_code, "text_format", text_format),
         _status_code_filter_eq_obj(status_code),
@@ -231,9 +227,7 @@ def _test_errorresponse_onemapper_onstatuscode_jsonformat(status_code, json_form
     )
 
 
-def _test_errorresponse_twomappers_onstatuscode_textformat(
-    code1, text1, code2, text2, fail=False
-):
+def _test_errorresponse_twomappers_onstatuscode_textformat(code1, text1, code2, text2, fail=False):
     _test_errorresponse_twomappers(
         f"""
 ---
@@ -264,9 +258,7 @@ def test_errorresponse_twomappers_onstatuscode_textformat():
     _test_errorresponse_twomappers_onstatuscode_textformat(
         "400", "bad request my friend", "504", "waited too long for an upstream resonse"
     )
-    _test_errorresponse_twomappers_onstatuscode_textformat(
-        "503", "boom", "403", "go away"
-    )
+    _test_errorresponse_twomappers_onstatuscode_textformat("503", "boom", "403", "go away")
 
 
 @pytest.mark.compilertest
@@ -286,9 +278,7 @@ def test_errorresponse_invalid_envoy_operator():
 
 @pytest.mark.compilertest
 def test_errorresponse_onemapper_onstatuscode_textformat_contenttype():
-    _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
-        "503", "oops", "text/what"
-    )
+    _test_errorresponse_onemapper_onstatuscode_textformat_contenttype("503", "oops", "text/what")
     _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
         "429",
         "<html>too fast, too furious on host %REQ(:authority)%</html>",

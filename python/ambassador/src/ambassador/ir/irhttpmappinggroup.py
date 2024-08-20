@@ -79,11 +79,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
     @staticmethod
     def helper_mappings(res: IRResource, k: str) -> Tuple[str, List[dict]]:
         return k, list(
-            reversed(
-                sorted(
-                    [x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]
-                )
-            )
+            reversed(sorted([x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]))
         )
 
     @staticmethod
@@ -140,9 +136,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
         )
 
         self.host_redirect = None
-        self.shadows: List[
-            IRBaseMapping
-        ] = []  # XXX This should really be IRHTTPMapping, no?
+        self.shadows: List[IRBaseMapping] = []  # XXX This should really be IRHTTPMapping, no?
 
         self.add_dict_helper("mappings", IRHTTPMappingGroup.helper_mappings)
         self.add_dict_helper("shadows", IRHTTPMappingGroup.helper_shadows)
@@ -281,9 +275,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
         if not cluster:
             # OK, we have to actually do some work.
-            self.ir.logger.debug(
-                f"IRHTTPMappingGroup: synthesizing Cluster for {mapping.name}"
-            )
+            self.ir.logger.debug(f"IRHTTPMappingGroup: synthesizing Cluster for {mapping.name}")
             cluster = IRCluster(
                 ir=self.ir,
                 aconf=self.ir.aconf,
@@ -445,8 +437,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
                         lkeys = label.keys()
                         if len(lkeys) > 1:
                             err = RichStatus.fromError(
-                                "label has multiple entries (%s) instead of just one"
-                                % lkeys
+                                "label has multiple entries (%s) instead of just one" % lkeys
                             )
                             aconf.post_error(err, self)
 
@@ -475,13 +466,9 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
             )
 
             for mapping in self.mappings:
-                mapping.cluster = self.add_cluster_for_mapping(
-                    mapping, mapping.cluster_tag
-                )
+                mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
-            self.ir.logger.debug(
-                "IRHTTPMappingGroup: normalizing weights for %s", self.group_id
-            )
+            self.ir.logger.debug("IRHTTPMappingGroup: normalizing weights for %s", self.group_id)
 
             if not self.normalize_weights_in_mappings():
                 self.post_error("Could not normalize mapping weights, ignoring...")

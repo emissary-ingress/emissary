@@ -45,9 +45,7 @@ class XRequestIdHeaderDefaultTest(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.xfail = (
-            "Need to figure out passing header through external connections from KAT"
-        )
+        self.xfail = "Need to figure out passing header through external connections from KAT"
         self.target = HTTP(name="target")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

@@ -85,9 +85,7 @@ class IRHost(IRResource):
 
         insecure_policy = request_policy.get("insecure", {})
         self.insecure_action = insecure_policy.get("action", "Redirect")
-        self.insecure_addl_port: Optional[int] = insecure_policy.get(
-            "additionalPort", None
-        )
+        self.insecure_addl_port: Optional[int] = insecure_policy.get("additionalPort", None)
 
         # If we have no mappingSelector, check for selector.
         mapsel = self.get("mappingSelector", None)
@@ -114,13 +112,9 @@ class IRHost(IRResource):
                     )
                     tls_full_name = tls_full_name + "." + tls_namespace
                 else:
-                    ir.logger.debug(
-                        f"Host {self.name}: resolving spec.tlsSecret.name: {tls_name}"
-                    )
+                    ir.logger.debug(f"Host {self.name}: resolving spec.tlsSecret.name: {tls_name}")
 
-                tls_ss = self.resolve(
-                    ir=ir, secret_name=tls_name, secret_namespace=tls_namespace
-                )
+                tls_ss = self.resolve(ir=ir, secret_name=tls_name, secret_namespace=tls_namespace)
 
                 if tls_ss:
                     # OK, we have a TLS secret! Fire up a TLS context for it, if one doesn't
@@ -135,17 +129,13 @@ class IRHost(IRResource):
 
                     host_tls_context_obj = self.get("tlsContext", {})
                     host_tls_context_name = host_tls_context_obj.get("name", None)
-                    self.logger.debug(
-                        f"Host {self.name}: spec.tlsContext: {host_tls_context_name}"
-                    )
+                    self.logger.debug(f"Host {self.name}: spec.tlsContext: {host_tls_context_name}")
 
                     host_tls_config = self.get("tls", None)
                     self.logger.debug(f"Host {self.name}: spec.tls: {host_tls_config}")
 
                     # Choose explicit TLS configuration over implicit TLSContext name
-                    if implicit_tls_exists and (
-                        host_tls_context_name or host_tls_config
-                    ):
+                    if implicit_tls_exists and (host_tls_context_name or host_tls_config):
                         self.logger.info(
                             f"Host {self.name}: even though TLSContext {ctx_name} exists in the cluster,"
                             f"it will be ignored in favor of 'tls'/'tlsConfig' specified in the Host."
@@ -167,16 +157,12 @@ class IRHost(IRResource):
                             f"Host {self.name}: resolving spec.tlsContext: {host_tls_context_name}"
                         )
 
-                        if not self.save_context(
-                            ir, host_tls_context_name, tls_ss, tls_full_name
-                        ):
+                        if not self.save_context(ir, host_tls_context_name, tls_ss, tls_full_name):
                             return False
 
                     elif host_tls_config:
                         # They defined a TLSContext inline, so go set that up if we can.
-                        ir.logger.debug(
-                            f"Host {self.name}: examining spec.tls {host_tls_config}"
-                        )
+                        ir.logger.debug(f"Host {self.name}: examining spec.tls {host_tls_config}")
 
                         camel_snake_map = {
                             "alpnProtocols": "alpn_protocols",
@@ -268,16 +254,12 @@ class IRHost(IRResource):
                     elif implicit_tls_exists:
                         # They didn't say anything explicitly, but it happens that a context with the
                         # correct name for this Host already exists. Save that, if it works out for us.
-                        ir.logger.debug(
-                            f"Host {self.name}: TLSContext {ctx_name} already exists"
-                        )
+                        ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
 
                         if not self.save_context(ir, ctx_name, tls_ss, tls_full_name):
                             return False
                     else:
-                        ir.logger.debug(
-                            f"Host {self.name}: creating TLSContext {ctx_name}"
-                        )
+                        ir.logger.debug(f"Host {self.name}: creating TLSContext {ctx_name}")
 
                         new_ctx = dict(
                             rkey=self.rkey,
@@ -363,13 +345,9 @@ class IRHost(IRResource):
                 pkey_name = pkey_secret.get("name", None)
 
                 if pkey_name:
-                    ir.logger.debug(
-                        f"Host {self.name}: ACME private key name is {pkey_name}"
-                    )
+                    ir.logger.debug(f"Host {self.name}: ACME private key name is {pkey_name}")
 
-                    pkey_ss = self.resolve(
-                        ir=ir, secret_name=pkey_name, secret_namespace=None
-                    )
+                    pkey_ss = self.resolve(ir=ir, secret_name=pkey_name, secret_namespace=None)
 
                     if not pkey_ss:
                         ir.logger.error(
@@ -387,8 +365,7 @@ class IRHost(IRResource):
         # First obvious thing: does a TLSContext with the right name even exist?
         if not ir.has_tls_context(ctx_name):
             self.post_error(
-                "Host %s: Specified TLSContext does not exist: %s"
-                % (self.name, ctx_name)
+                "Host %s: Specified TLSContext does not exist: %s" % (self.name, ctx_name)
             )
             return False
 
@@ -400,9 +377,7 @@ class IRHost(IRResource):
 
         if ctx.has_secret():
             secret_name = ctx.secret_name()
-            assert (
-                secret_name
-            )  # For mypy -- if has_secret() is true, secret_name() will be there.
+            assert secret_name  # For mypy -- if has_secret() is true, secret_name() will be there.
 
             # This is a little weird. Basically we're going to resolve the secret (which should just
             # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to
@@ -490,9 +465,7 @@ class IRHost(IRResource):
             # It matches.
             has_hostname = True
             host_match = True
-            self.logger.debug(
-                "-- hostname %s group regex => %s", self.hostname, host_match
-            )
+            self.logger.debug("-- hostname %s group regex => %s", self.hostname, host_match)
         else:
             # It is NOT A TYPO that we use group.get("host") here -- whether the Mapping supplies
             # "hostname" or "host", the Mapping code normalizes to "host" internally.
@@ -516,9 +489,7 @@ class IRHost(IRResource):
         mapsel = self.get("mappingSelector")
 
         if mapsel:
-            sel_match = selector_matches(
-                self.logger, mapsel, group.get("metadata_labels", {})
-            )
+            sel_match = selector_matches(self.logger, mapsel, group.get("metadata_labels", {}))
             self.logger.debug(
                 "-- host sel %s group labels %s => %s",
                 dump_json(mapsel),
@@ -581,9 +552,7 @@ class HostFactory:
 
         if hosts:
             for config in hosts.values():
-                ir.logger.debug(
-                    "HostFactory: creating host for %s" % repr(config.as_dict())
-                )
+                ir.logger.debug("HostFactory: creating host for %s" % repr(config.as_dict()))
 
                 host = IRHost(ir, aconf, **config)
 
@@ -670,8 +639,7 @@ class HostFactory:
 
             if not host.is_active():
                 ir.post_error(
-                    "Synthesized default host is inactive? %s"
-                    % dump_json(host.as_dict())
+                    "Synthesized default host is inactive? %s" % dump_json(host.as_dict())
                 )
             else:
                 host.referenced_by(ir.ambassador_module)

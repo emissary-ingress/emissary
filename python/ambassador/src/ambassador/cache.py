@@ -70,9 +70,7 @@ class Cache:
             # self.logger.info(f"CACHE: ignore, already present: {rsrc}")
             pass
         else:
-            self.logger.debug(
-                f"CACHE: adding {key}: {rsrc}, on_delete {self.fn_name(on_delete)}"
-            )
+            self.logger.debug(f"CACHE: adding {key}: {rsrc}, on_delete {self.fn_name(on_delete)}")
 
             self.cache[key] = (rsrc, on_delete)
 
@@ -156,9 +154,7 @@ class Cache:
                     # consider.
                     if key in self.links:
                         for owned in sorted(self.links[key]):
-                            self.logger.debug(
-                                f"CACHE: DEL {key}: will check owned {owned}"
-                            )
+                            self.logger.debug(f"CACHE: DEL {key}: will check owned {owned}")
                             worklist.append(owned)
 
                     # (If we have seen the key already, just ignore it and go to the next
@@ -178,9 +174,7 @@ class Cache:
             rsrc, on_delete = rdh
 
             if on_delete:
-                self.logger.debug(
-                    f"CACHE: DEL {key}: calling {self.fn_name(on_delete)}"
-                )
+                self.logger.debug(f"CACHE: DEL {key}: calling {self.fn_name(on_delete)}")
                 on_delete(rsrc)
 
     def __getitem__(self, key: str) -> Optional[Cacheable]:
@@ -214,9 +208,7 @@ class Cache:
             for k in sorted(self.cache.keys()):
                 rsrc, on_delete = self.cache[k]
 
-                self.logger.debug(
-                    f"CACHE DUMP: {k}, on_delete {self.fn_name(on_delete)}:"
-                )
+                self.logger.debug(f"CACHE DUMP: {k}, on_delete {self.fn_name(on_delete)}:")
 
                 if k in self.links:
                     for owned in sorted(self.links[k]):

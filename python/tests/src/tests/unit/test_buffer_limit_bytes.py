@@ -62,22 +62,16 @@ spec:
     conf = econf.as_dict()
 
     for listener in conf["static_resources"]["listeners"]:
-        per_connection_buffer_limit_bytes = listener.get(
-            "per_connection_buffer_limit_bytes", None
-        )
+        per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is not None
         ), f"per_connection_buffer_limit_bytes not found on listener: {listener['name']}"
-        print(
-            f"Found per_connection_buffer_limit_bytes = {per_connection_buffer_limit_bytes}"
-        )
+        print(f"Found per_connection_buffer_limit_bytes = {per_connection_buffer_limit_bytes}")
         key_found = True
-        assert (
-            expected == int(per_connection_buffer_limit_bytes)
+        assert expected == int(
+            per_connection_buffer_limit_bytes
         ), "per_connection_buffer_limit_bytes must equal the value set on the ambassador Module"
-    assert (
-        key_found
-    ), "per_connection_buffer_limit_bytes must be found in the envoy config"
+    assert key_found, "per_connection_buffer_limit_bytes must be found in the envoy config"
 
 
 @pytest.mark.compilertest
@@ -112,22 +106,16 @@ spec:
     conf = econf.as_dict()
 
     for listener in conf["static_resources"]["listeners"]:
-        per_connection_buffer_limit_bytes = listener.get(
-            "per_connection_buffer_limit_bytes", None
-        )
+        per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is not None
         ), f"per_connection_buffer_limit_bytes not found on listener: {listener['name']}"
-        print(
-            f"Found per_connection_buffer_limit_bytes = {per_connection_buffer_limit_bytes}"
-        )
+        print(f"Found per_connection_buffer_limit_bytes = {per_connection_buffer_limit_bytes}")
         key_found = True
-        assert (
-            expected == int(per_connection_buffer_limit_bytes)
+        assert expected == int(
+            per_connection_buffer_limit_bytes
         ), "per_connection_buffer_limit_bytes must equal the value set on the ambassador Module"
-    assert (
-        key_found
-    ), "per_connection_buffer_limit_bytes must be found in the envoy config"
+    assert key_found, "per_connection_buffer_limit_bytes must be found in the envoy config"
 
 
 # Tests that the default value of per_connection_buffer_limit_bytes is disabled when there is not Module config for it.
@@ -150,9 +138,7 @@ spec:
     conf = econf.as_dict()
 
     for listener in conf["static_resources"]["listeners"]:
-        per_connection_buffer_limit_bytes = listener.get(
-            "per_connection_buffer_limit_bytes", None
-        )
+        per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is None
         ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener['name']}"
@@ -177,9 +163,7 @@ spec:
     conf = econf.as_dict()
 
     for listener in conf["static_resources"]["listeners"]:
-        per_connection_buffer_limit_bytes = listener.get(
-            "per_connection_buffer_limit_bytes", None
-        )
+        per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is None
         ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener['name']}"
@@ -205,9 +189,7 @@ spec:
     conf = econf.as_dict()
 
     for listener in conf["static_resources"]["listeners"]:
-        per_connection_buffer_limit_bytes = listener.get(
-            "per_connection_buffer_limit_bytes", None
-        )
+        per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is None
         ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener['name']}"
@@ -232,9 +214,7 @@ spec:
     conf = econf.as_dict()
 
     for listener in conf["static_resources"]["listeners"]:
-        per_connection_buffer_limit_bytes = listener.get(
-            "per_connection_buffer_limit_bytes", None
-        )
+        per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is None
         ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener['name']}"

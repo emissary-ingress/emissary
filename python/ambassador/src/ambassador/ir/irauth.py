@@ -134,8 +134,7 @@ class IRAuth(IRFilter):
                     # Don't use self.post_error() here, since we need to explicitly override the
                     # resource. And don't use self.ir.post_error, since our module isn't an IRResource.
                     self.ir.aconf.post_error(
-                        "AuthService cannot support multiple %s values; using %s"
-                        % (key, previous),
+                        "AuthService cannot support multiple %s values; using %s" % (key, previous),
                         resource=module,
                     )
                 else:
@@ -148,9 +147,7 @@ class IRAuth(IRFilter):
         else:
             add_linkerd_headers = module.get("add_linkerd_headers", None)
             if add_linkerd_headers is None:
-                self["add_linkerd_headers"] = ir.ambassador_module.get(
-                    "add_linkerd_headers", False
-                )
+                self["add_linkerd_headers"] = ir.ambassador_module.get("add_linkerd_headers", False)
 
         if module.get("circuit_breakers", None):
             self["circuit_breakers"] = module.get("circuit_breakers")
@@ -198,17 +195,13 @@ class IRAuth(IRFilter):
 
         # Required fields check.
         if self["api_version"] is None:
-            self.post_error(
-                RichStatus.fromError("AuthService config requires apiVersion field")
-            )
+            self.post_error(RichStatus.fromError("AuthService config requires apiVersion field"))
 
         if self["proto"] is None:
             self.post_error(RichStatus.fromError("AuthService requires proto field."))
 
         if self.get("include_body") and self.get("allow_request_body"):
-            self.post_error(
-                "AuthService ignoring allow_request_body since include_body is present"
-            )
+            self.post_error("AuthService ignoring allow_request_body since include_body is present")
             del self["allow_request_body"]
 
         auth_service = module.get("auth_service", None)

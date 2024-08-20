@@ -8,7 +8,9 @@ from tests.integration.manifests import namespace_manifest
 from tests.selfsigned import TLSCerts
 from tests.utils import create_crl_pem_b64
 
-bug_404_routes = True  # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+bug_404_routes = (
+    True  # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+)
 
 
 class TLSContextsTest(AmbassadorTest):
@@ -84,9 +86,7 @@ service: {self.target.path.fqdn}
 
     def requirements(self):
         yield from (
-            r
-            for r in super().requirements()
-            if r[0] == "url" and r[1].url.startswith("http://")
+            r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://")
         )
 
 
@@ -227,10 +227,7 @@ add_request_headers:
         )
         assert self.results[0].backend.request.headers["x-cert-end"] == [
             "2099-11-10T13:12:00.000Z"
-        ], (
-            "unexpected x-cert-end value: %s"
-            % self.results[0].backend.request.headers["x-cert-end"]
-        )
+        ], "unexpected x-cert-end value: %s" % self.results[0].backend.request.headers["x-cert-end"]
         assert self.results[1].backend
         assert self.results[1].backend.request
         assert self.results[0].backend.request.headers["x-cert-start-custom"] == [
@@ -481,10 +478,7 @@ data:
         fingerprint = (
             hashlib.sha1(
                 (
-                    TLSCerts["localhost"].pubcert
-                    + "\n"
-                    + TLSCerts["localhost"].privkey
-                    + "\n"
+                    TLSCerts["localhost"].pubcert + "\n" + TLSCerts["localhost"].privkey + "\n"
                 ).encode("utf-8")
             )
             .hexdigest()
@@ -714,9 +708,7 @@ service: {self.target.path.fqdn}
 
         diff = expected - current
 
-        assert (
-            len(diff) == 0
-        ), f"expected {len(expected)} errors, got {len(errors)}: Missing {diff}"
+        assert len(diff) == 0, f"expected {len(expected)} errors, got {len(errors)}: Missing {diff}"
 
 
 class TLSContextTest(AmbassadorTest):
@@ -1007,9 +999,7 @@ redirect_cleartext_from: 8081
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
         num_errors = len(errors)
-        assert num_errors == 5, "expected 5 errors, got {} -\n{}".format(
-            num_errors, errors
-        )
+        assert num_errors == 5, "expected 5 errors, got {} -\n{}".format(num_errors, errors)
 
         errors_that_should_be_found = {
             "TLSContext TLSContextTest-no-secret has no certificate information at all?": False,
@@ -1051,13 +1041,10 @@ redirect_cleartext_from: 8081
                 if host_header == "tls-context-host-3":
                     host_header = "localhost"
 
-                assert host_header == tls_common_name, (
-                    "test %d wanted CN %s, but got %s"
-                    % (
-                        idx,
-                        host_header,
-                        tls_common_name,
-                    )
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
                 )
 
             idx += 1
@@ -1328,9 +1315,7 @@ service: https://{self.target.path.fqdn}
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
         num_errors = len(errors)
-        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(
-            num_errors, errors
-        )
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
 
         idx = 0
 
@@ -1355,13 +1340,10 @@ service: https://{self.target.path.fqdn}
                 if host_header == "tls-context-host-1":
                     host_header = "localhost"
 
-                assert host_header == tls_common_name, (
-                    "test %d wanted CN %s, but got %s"
-                    % (
-                        idx,
-                        host_header,
-                        tls_common_name,
-                    )
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
                 )
 
             idx += 1
@@ -1535,9 +1517,7 @@ max_tls_version: v1.2
 
         # See comment in queries for why these are None. They should be v1.2 and v1.1 respectively.
         assert tls_0_version is None, f"requesting TLS v1.2 got TLS {tls_0_version}"
-        assert (
-            tls_1_version is None
-        ), f"requesting TLS v1.0-v1.1 got TLS {tls_1_version}"
+        assert tls_1_version is None, f"requesting TLS v1.0-v1.1 got TLS {tls_1_version}"
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
@@ -1677,12 +1657,8 @@ max_tls_version: v1.3
 
         # Hmmm. Why does Envoy prefer 1.2 to 1.3 here?? This may be a client thing -- have to
         # rebuild with Go 1.13.
-        assert (
-            tls_0_version == "v1.2"
-        ), f"requesting TLS v1.2-v1.3 got TLS {tls_0_version}"
-        assert (
-            tls_1_version == "v1.2"
-        ), f"requesting TLS v1.1-v1.2 got TLS {tls_1_version}"
+        assert tls_0_version == "v1.2", f"requesting TLS v1.2-v1.3 got TLS {tls_0_version}"
+        assert tls_1_version == "v1.2", f"requesting TLS v1.1-v1.2 got TLS {tls_1_version}"
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
@@ -2077,6 +2053,8 @@ spec:
         for r in super().requirements():
             query = r[1]
             query.headers = {"Host": "a.domain.com"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["a.domain.com"].pubcert
             yield (r[0], query)

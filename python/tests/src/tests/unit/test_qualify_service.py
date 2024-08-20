@@ -29,9 +29,7 @@ config: {}
 def qualify_service_name(
     ir: "IR", service: str, namespace: Optional[str], rkey: Optional[str] = None
 ) -> str:
-    return normalize_service_name(
-        ir, service, namespace, "KubernetesTestResolver", rkey=rkey
-    )
+    return normalize_service_name(ir, service, namespace, "KubernetesTestResolver", rkey=rkey)
 
 
 def test_qualify_service():
@@ -56,26 +54,12 @@ def test_qualify_service():
     assert qualify_service_name(ir, "backoffice", "default") == "backoffice"
     assert qualify_service_name(ir, "backoffice", "otherns") == "backoffice.otherns"
     assert qualify_service_name(ir, "backoffice.otherns", None) == "backoffice.otherns"
-    assert (
-        qualify_service_name(ir, "backoffice.otherns", "default")
-        == "backoffice.otherns"
-    )
-    assert (
-        qualify_service_name(ir, "backoffice.otherns", "otherns")
-        == "backoffice.otherns"
-    )
+    assert qualify_service_name(ir, "backoffice.otherns", "default") == "backoffice.otherns"
+    assert qualify_service_name(ir, "backoffice.otherns", "otherns") == "backoffice.otherns"
 
-    assert (
-        normalize_service_name(ir, "backoffice", None, "ConsulResolver") == "backoffice"
-    )
-    assert (
-        normalize_service_name(ir, "backoffice", "default", "ConsulResolver")
-        == "backoffice"
-    )
-    assert (
-        normalize_service_name(ir, "backoffice", "otherns", "ConsulResolver")
-        == "backoffice"
-    )
+    assert normalize_service_name(ir, "backoffice", None, "ConsulResolver") == "backoffice"
+    assert normalize_service_name(ir, "backoffice", "default", "ConsulResolver") == "backoffice"
+    assert normalize_service_name(ir, "backoffice", "otherns", "ConsulResolver") == "backoffice"
     assert (
         normalize_service_name(ir, "backoffice.otherns", None, "ConsulResolver")
         == "backoffice.otherns"
@@ -91,21 +75,10 @@ def test_qualify_service():
 
     assert qualify_service_name(ir, "backoffice:80", None) == "backoffice:80"
     assert qualify_service_name(ir, "backoffice:80", "default") == "backoffice:80"
-    assert (
-        qualify_service_name(ir, "backoffice:80", "otherns") == "backoffice.otherns:80"
-    )
-    assert (
-        qualify_service_name(ir, "backoffice.otherns:80", None)
-        == "backoffice.otherns:80"
-    )
-    assert (
-        qualify_service_name(ir, "backoffice.otherns:80", "default")
-        == "backoffice.otherns:80"
-    )
-    assert (
-        qualify_service_name(ir, "backoffice.otherns:80", "otherns")
-        == "backoffice.otherns:80"
-    )
+    assert qualify_service_name(ir, "backoffice:80", "otherns") == "backoffice.otherns:80"
+    assert qualify_service_name(ir, "backoffice.otherns:80", None) == "backoffice.otherns:80"
+    assert qualify_service_name(ir, "backoffice.otherns:80", "default") == "backoffice.otherns:80"
+    assert qualify_service_name(ir, "backoffice.otherns:80", "otherns") == "backoffice.otherns:80"
 
     assert (
         qualify_service_name(ir, "[fe80::e022:9cff:fecc:c7c4]", None)
@@ -144,23 +117,16 @@ def test_qualify_service():
         == "https://[fe80::e022:9cff:fecc:c7c4]:443"
     )
     assert (
-        qualify_service_name(
-            ir, "https://[fe80::e022:9cff:fecc:c7c4%25zone]:443", "other"
-        )
+        qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4%25zone]:443", "other")
         == "https://[fe80::e022:9cff:fecc:c7c4%25zone]:443"
     )
 
+    assert normalize_service_name(ir, "backoffice:80", None, "ConsulResolver") == "backoffice:80"
     assert (
-        normalize_service_name(ir, "backoffice:80", None, "ConsulResolver")
-        == "backoffice:80"
+        normalize_service_name(ir, "backoffice:80", "default", "ConsulResolver") == "backoffice:80"
     )
     assert (
-        normalize_service_name(ir, "backoffice:80", "default", "ConsulResolver")
-        == "backoffice:80"
-    )
-    assert (
-        normalize_service_name(ir, "backoffice:80", "otherns", "ConsulResolver")
-        == "backoffice:80"
+        normalize_service_name(ir, "backoffice:80", "otherns", "ConsulResolver") == "backoffice:80"
     )
     assert (
         normalize_service_name(ir, "backoffice.otherns:80", None, "ConsulResolver")
@@ -176,16 +142,10 @@ def test_qualify_service():
     )
 
     assert qualify_service_name(ir, "http://backoffice", None) == "http://backoffice"
+    assert qualify_service_name(ir, "http://backoffice", "default") == "http://backoffice"
+    assert qualify_service_name(ir, "http://backoffice", "otherns") == "http://backoffice.otherns"
     assert (
-        qualify_service_name(ir, "http://backoffice", "default") == "http://backoffice"
-    )
-    assert (
-        qualify_service_name(ir, "http://backoffice", "otherns")
-        == "http://backoffice.otherns"
-    )
-    assert (
-        qualify_service_name(ir, "http://backoffice.otherns", None)
-        == "http://backoffice.otherns"
+        qualify_service_name(ir, "http://backoffice.otherns", None) == "http://backoffice.otherns"
     )
     assert (
         qualify_service_name(ir, "http://backoffice.otherns", "default")
@@ -213,25 +173,16 @@ def test_qualify_service():
         == "http://backoffice.otherns"
     )
     assert (
-        normalize_service_name(
-            ir, "http://backoffice.otherns", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://backoffice.otherns", "default", "ConsulResolver")
         == "http://backoffice.otherns"
     )
     assert (
-        normalize_service_name(
-            ir, "http://backoffice.otherns", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://backoffice.otherns", "otherns", "ConsulResolver")
         == "http://backoffice.otherns"
     )
 
-    assert (
-        qualify_service_name(ir, "http://backoffice:80", None) == "http://backoffice:80"
-    )
-    assert (
-        qualify_service_name(ir, "http://backoffice:80", "default")
-        == "http://backoffice:80"
-    )
+    assert qualify_service_name(ir, "http://backoffice:80", None) == "http://backoffice:80"
+    assert qualify_service_name(ir, "http://backoffice:80", "default") == "http://backoffice:80"
     assert (
         qualify_service_name(ir, "http://backoffice:80", "otherns")
         == "http://backoffice.otherns:80"
@@ -262,36 +213,23 @@ def test_qualify_service():
         == "http://backoffice:80"
     )
     assert (
-        normalize_service_name(
-            ir, "http://backoffice.otherns:80", None, "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://backoffice.otherns:80", None, "ConsulResolver")
         == "http://backoffice.otherns:80"
     )
     assert (
-        normalize_service_name(
-            ir, "http://backoffice.otherns:80", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://backoffice.otherns:80", "default", "ConsulResolver")
         == "http://backoffice.otherns:80"
     )
     assert (
-        normalize_service_name(
-            ir, "http://backoffice.otherns:80", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://backoffice.otherns:80", "otherns", "ConsulResolver")
         == "http://backoffice.otherns:80"
     )
 
     assert qualify_service_name(ir, "https://backoffice", None) == "https://backoffice"
+    assert qualify_service_name(ir, "https://backoffice", "default") == "https://backoffice"
+    assert qualify_service_name(ir, "https://backoffice", "otherns") == "https://backoffice.otherns"
     assert (
-        qualify_service_name(ir, "https://backoffice", "default")
-        == "https://backoffice"
-    )
-    assert (
-        qualify_service_name(ir, "https://backoffice", "otherns")
-        == "https://backoffice.otherns"
-    )
-    assert (
-        qualify_service_name(ir, "https://backoffice.otherns", None)
-        == "https://backoffice.otherns"
+        qualify_service_name(ir, "https://backoffice.otherns", None) == "https://backoffice.otherns"
     )
     assert (
         qualify_service_name(ir, "https://backoffice.otherns", "default")
@@ -319,26 +257,16 @@ def test_qualify_service():
         == "https://backoffice.otherns"
     )
     assert (
-        normalize_service_name(
-            ir, "https://backoffice.otherns", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://backoffice.otherns", "default", "ConsulResolver")
         == "https://backoffice.otherns"
     )
     assert (
-        normalize_service_name(
-            ir, "https://backoffice.otherns", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://backoffice.otherns", "otherns", "ConsulResolver")
         == "https://backoffice.otherns"
     )
 
-    assert (
-        qualify_service_name(ir, "https://backoffice:443", None)
-        == "https://backoffice:443"
-    )
-    assert (
-        qualify_service_name(ir, "https://backoffice:443", "default")
-        == "https://backoffice:443"
-    )
+    assert qualify_service_name(ir, "https://backoffice:443", None) == "https://backoffice:443"
+    assert qualify_service_name(ir, "https://backoffice:443", "default") == "https://backoffice:443"
     assert (
         qualify_service_name(ir, "https://backoffice:443", "otherns")
         == "https://backoffice.otherns:443"
@@ -361,33 +289,23 @@ def test_qualify_service():
         == "https://backoffice:443"
     )
     assert (
-        normalize_service_name(
-            ir, "https://backoffice:443", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://backoffice:443", "default", "ConsulResolver")
         == "https://backoffice:443"
     )
     assert (
-        normalize_service_name(
-            ir, "https://backoffice:443", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://backoffice:443", "otherns", "ConsulResolver")
         == "https://backoffice:443"
     )
     assert (
-        normalize_service_name(
-            ir, "https://backoffice.otherns:443", None, "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://backoffice.otherns:443", None, "ConsulResolver")
         == "https://backoffice.otherns:443"
     )
     assert (
-        normalize_service_name(
-            ir, "https://backoffice.otherns:443", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://backoffice.otherns:443", "default", "ConsulResolver")
         == "https://backoffice.otherns:443"
     )
     assert (
-        normalize_service_name(
-            ir, "https://backoffice.otherns:443", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://backoffice.otherns:443", "otherns", "ConsulResolver")
         == "https://backoffice.otherns:443"
     )
 
@@ -396,24 +314,12 @@ def test_qualify_service():
     assert qualify_service_name(ir, "localhost", "otherns") == "localhost"
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
     assert qualify_service_name(ir, "localhost.otherns", None) == "localhost.otherns"
-    assert (
-        qualify_service_name(ir, "localhost.otherns", "default") == "localhost.otherns"
-    )
-    assert (
-        qualify_service_name(ir, "localhost.otherns", "otherns") == "localhost.otherns"
-    )
+    assert qualify_service_name(ir, "localhost.otherns", "default") == "localhost.otherns"
+    assert qualify_service_name(ir, "localhost.otherns", "otherns") == "localhost.otherns"
 
-    assert (
-        normalize_service_name(ir, "localhost", None, "ConsulResolver") == "localhost"
-    )
-    assert (
-        normalize_service_name(ir, "localhost", "default", "ConsulResolver")
-        == "localhost"
-    )
-    assert (
-        normalize_service_name(ir, "localhost", "otherns", "ConsulResolver")
-        == "localhost"
-    )
+    assert normalize_service_name(ir, "localhost", None, "ConsulResolver") == "localhost"
+    assert normalize_service_name(ir, "localhost", "default", "ConsulResolver") == "localhost"
+    assert normalize_service_name(ir, "localhost", "otherns", "ConsulResolver") == "localhost"
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
     assert (
         normalize_service_name(ir, "localhost.otherns", None, "ConsulResolver")
@@ -432,30 +338,13 @@ def test_qualify_service():
     assert qualify_service_name(ir, "localhost:80", "default") == "localhost:80"
     assert qualify_service_name(ir, "localhost:80", "otherns") == "localhost:80"
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
-    assert (
-        qualify_service_name(ir, "localhost.otherns:80", None) == "localhost.otherns:80"
-    )
-    assert (
-        qualify_service_name(ir, "localhost.otherns:80", "default")
-        == "localhost.otherns:80"
-    )
-    assert (
-        qualify_service_name(ir, "localhost.otherns:80", "otherns")
-        == "localhost.otherns:80"
-    )
+    assert qualify_service_name(ir, "localhost.otherns:80", None) == "localhost.otherns:80"
+    assert qualify_service_name(ir, "localhost.otherns:80", "default") == "localhost.otherns:80"
+    assert qualify_service_name(ir, "localhost.otherns:80", "otherns") == "localhost.otherns:80"
 
-    assert (
-        normalize_service_name(ir, "localhost:80", None, "ConsulResolver")
-        == "localhost:80"
-    )
-    assert (
-        normalize_service_name(ir, "localhost:80", "default", "ConsulResolver")
-        == "localhost:80"
-    )
-    assert (
-        normalize_service_name(ir, "localhost:80", "otherns", "ConsulResolver")
-        == "localhost:80"
-    )
+    assert normalize_service_name(ir, "localhost:80", None, "ConsulResolver") == "localhost:80"
+    assert normalize_service_name(ir, "localhost:80", "default", "ConsulResolver") == "localhost:80"
+    assert normalize_service_name(ir, "localhost:80", "otherns", "ConsulResolver") == "localhost:80"
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
     assert (
         normalize_service_name(ir, "localhost.otherns:80", None, "ConsulResolver")
@@ -474,10 +363,7 @@ def test_qualify_service():
     assert qualify_service_name(ir, "http://localhost", "default") == "http://localhost"
     assert qualify_service_name(ir, "http://localhost", "otherns") == "http://localhost"
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
-    assert (
-        qualify_service_name(ir, "http://localhost.otherns", None)
-        == "http://localhost.otherns"
-    )
+    assert qualify_service_name(ir, "http://localhost.otherns", None) == "http://localhost.otherns"
     assert (
         qualify_service_name(ir, "http://localhost.otherns", "default")
         == "http://localhost.otherns"
@@ -488,8 +374,7 @@ def test_qualify_service():
     )
 
     assert (
-        normalize_service_name(ir, "http://localhost", None, "ConsulResolver")
-        == "http://localhost"
+        normalize_service_name(ir, "http://localhost", None, "ConsulResolver") == "http://localhost"
     )
     assert (
         normalize_service_name(ir, "http://localhost", "default", "ConsulResolver")
@@ -505,29 +390,17 @@ def test_qualify_service():
         == "http://localhost.otherns"
     )
     assert (
-        normalize_service_name(
-            ir, "http://localhost.otherns", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://localhost.otherns", "default", "ConsulResolver")
         == "http://localhost.otherns"
     )
     assert (
-        normalize_service_name(
-            ir, "http://localhost.otherns", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://localhost.otherns", "otherns", "ConsulResolver")
         == "http://localhost.otherns"
     )
 
-    assert (
-        qualify_service_name(ir, "http://localhost:80", None) == "http://localhost:80"
-    )
-    assert (
-        qualify_service_name(ir, "http://localhost:80", "default")
-        == "http://localhost:80"
-    )
-    assert (
-        qualify_service_name(ir, "http://localhost:80", "otherns")
-        == "http://localhost:80"
-    )
+    assert qualify_service_name(ir, "http://localhost:80", None) == "http://localhost:80"
+    assert qualify_service_name(ir, "http://localhost:80", "default") == "http://localhost:80"
+    assert qualify_service_name(ir, "http://localhost:80", "otherns") == "http://localhost:80"
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
     assert (
         qualify_service_name(ir, "http://localhost.otherns:80", None)
@@ -556,35 +429,24 @@ def test_qualify_service():
     )
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
     assert (
-        normalize_service_name(
-            ir, "http://localhost.otherns:80", None, "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://localhost.otherns:80", None, "ConsulResolver")
         == "http://localhost.otherns:80"
     )
     assert (
-        normalize_service_name(
-            ir, "http://localhost.otherns:80", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://localhost.otherns:80", "default", "ConsulResolver")
         == "http://localhost.otherns:80"
     )
     assert (
-        normalize_service_name(
-            ir, "http://localhost.otherns:80", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "http://localhost.otherns:80", "otherns", "ConsulResolver")
         == "http://localhost.otherns:80"
     )
 
     assert qualify_service_name(ir, "https://localhost", None) == "https://localhost"
-    assert (
-        qualify_service_name(ir, "https://localhost", "default") == "https://localhost"
-    )
-    assert (
-        qualify_service_name(ir, "https://localhost", "otherns") == "https://localhost"
-    )
+    assert qualify_service_name(ir, "https://localhost", "default") == "https://localhost"
+    assert qualify_service_name(ir, "https://localhost", "otherns") == "https://localhost"
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
     assert (
-        qualify_service_name(ir, "https://localhost.otherns", None)
-        == "https://localhost.otherns"
+        qualify_service_name(ir, "https://localhost.otherns", None) == "https://localhost.otherns"
     )
     assert (
         qualify_service_name(ir, "https://localhost.otherns", "default")
@@ -613,30 +475,17 @@ def test_qualify_service():
         == "https://localhost.otherns"
     )
     assert (
-        normalize_service_name(
-            ir, "https://localhost.otherns", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://localhost.otherns", "default", "ConsulResolver")
         == "https://localhost.otherns"
     )
     assert (
-        normalize_service_name(
-            ir, "https://localhost.otherns", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://localhost.otherns", "otherns", "ConsulResolver")
         == "https://localhost.otherns"
     )
 
-    assert (
-        qualify_service_name(ir, "https://localhost:443", None)
-        == "https://localhost:443"
-    )
-    assert (
-        qualify_service_name(ir, "https://localhost:443", "default")
-        == "https://localhost:443"
-    )
-    assert (
-        qualify_service_name(ir, "https://localhost:443", "otherns")
-        == "https://localhost:443"
-    )
+    assert qualify_service_name(ir, "https://localhost:443", None) == "https://localhost:443"
+    assert qualify_service_name(ir, "https://localhost:443", "default") == "https://localhost:443"
+    assert qualify_service_name(ir, "https://localhost:443", "otherns") == "https://localhost:443"
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
     assert (
         qualify_service_name(ir, "https://localhost.otherns:443", None)
@@ -665,27 +514,20 @@ def test_qualify_service():
     )
     # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
     assert (
-        normalize_service_name(
-            ir, "https://localhost.otherns:443", None, "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://localhost.otherns:443", None, "ConsulResolver")
         == "https://localhost.otherns:443"
     )
     assert (
-        normalize_service_name(
-            ir, "https://localhost.otherns:443", "default", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://localhost.otherns:443", "default", "ConsulResolver")
         == "https://localhost.otherns:443"
     )
     assert (
-        normalize_service_name(
-            ir, "https://localhost.otherns:443", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://localhost.otherns:443", "otherns", "ConsulResolver")
         == "https://localhost.otherns:443"
     )
 
     assert (
-        qualify_service_name(ir, "ambassador://foo.ns", "otherns")
-        == "ambassador://foo.ns"
+        qualify_service_name(ir, "ambassador://foo.ns", "otherns") == "ambassador://foo.ns"
     )  # let's not introduce silly semantics
     assert (
         qualify_service_name(ir, "//foo.ns:1234", "otherns") == "foo.ns:1234"
@@ -697,13 +539,9 @@ def test_qualify_service():
         == "ambassador://foo.ns"
     )  # let's not introduce silly semantics
     assert (
-        normalize_service_name(ir, "//foo.ns:1234", "otherns", "ConsulResolver")
-        == "foo.ns:1234"
+        normalize_service_name(ir, "//foo.ns:1234", "otherns", "ConsulResolver") == "foo.ns:1234"
     )  # we tell people "URL-ish", actually support URL-ish
-    assert (
-        normalize_service_name(ir, "foo.ns:1234", "otherns", "ConsulResolver")
-        == "foo.ns:1234"
-    )
+    assert normalize_service_name(ir, "foo.ns:1234", "otherns", "ConsulResolver") == "foo.ns:1234"
 
     assert not ir.aconf.errors
 
@@ -712,15 +550,10 @@ def test_qualify_service():
         == "https://bad-service:443:443"
     )
     assert (
-        qualify_service_name(
-            ir, "https://bad-service:443:443", "otherns", rkey="test-rkey"
-        )
+        qualify_service_name(ir, "https://bad-service:443:443", "otherns", rkey="test-rkey")
         == "https://bad-service:443:443"
     )
-    assert (
-        qualify_service_name(ir, "bad-service:443:443", "otherns")
-        == "bad-service:443:443"
-    )
+    assert qualify_service_name(ir, "bad-service:443:443", "otherns") == "bad-service:443:443"
     assert (
         qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4:443", "otherns")
         == "https://[fe80::e022:9cff:fecc:c7c4:443"
@@ -733,19 +566,14 @@ def test_qualify_service():
         qualify_service_name(ir, "https://fe80::e022:9cff:fecc:c7c4", "otherns")
         == "https://fe80::e022:9cff:fecc:c7c4"
     )
-    assert (
-        qualify_service_name(ir, "https://bad-service:-1", "otherns")
-        == "https://bad-service:-1"
-    )
+    assert qualify_service_name(ir, "https://bad-service:-1", "otherns") == "https://bad-service:-1"
     assert (
         qualify_service_name(ir, "https://bad-service:70000", "otherns")
         == "https://bad-service:70000"
     )
 
     assert (
-        normalize_service_name(
-            ir, "https://bad-service:443:443", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://bad-service:443:443", "otherns", "ConsulResolver")
         == "https://bad-service:443:443"
     )
     assert (
@@ -775,27 +603,19 @@ def test_qualify_service():
         == "https://[fe80::e022:9cff:fecc:c7c4"
     )
     assert (
-        normalize_service_name(
-            ir, "https://fe80::e022:9cff:fecc:c7c4", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://fe80::e022:9cff:fecc:c7c4", "otherns", "ConsulResolver")
         == "https://fe80::e022:9cff:fecc:c7c4"
     )
     assert (
-        normalize_service_name(
-            ir, "https://bad-service:-1", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://bad-service:-1", "otherns", "ConsulResolver")
         == "https://bad-service:-1"
     )
     assert (
-        normalize_service_name(
-            ir, "https://bad-service:70000", "otherns", "ConsulResolver"
-        )
+        normalize_service_name(ir, "https://bad-service:70000", "otherns", "ConsulResolver")
         == "https://bad-service:70000"
     )
     assert (
-        qualify_service_name(
-            ir, "https://[fe80::e022:9cff:fecc:c7c4%zone]:443", "other"
-        )
+        qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4%zone]:443", "other")
         == "https://[fe80::e022:9cff:fecc:c7c4%zone]:443"
     )
 

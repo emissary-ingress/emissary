@@ -63,12 +63,8 @@ def test_hostglob_matches():
         ("quote.*", "*.local:8500", True),
         ("quote.com:8500", "quote.com:8500", True),
     ]:
-        assert (
-            hostglob_matches(v1, v2) == wanted_result
-        ), f"1. {v1} ~ {v2} != {wanted_result}"
-        assert (
-            hostglob_matches(v2, v1) == wanted_result
-        ), f"2. {v2} ~ {v1} != {wanted_result}"
+        assert hostglob_matches(v1, v2) == wanted_result, f"1. {v1} ~ {v2} != {wanted_result}"
+        assert hostglob_matches(v2, v1) == wanted_result, f"2. {v2} ~ {v1} != {wanted_result}"
 
 
 if __name__ == "__main__":

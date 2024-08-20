@@ -79,10 +79,7 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert (
-                    r.backend.request.headers["x-envoy-original-path"][0]
-                    == f"/{self.name}/"
-                )
+                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
 
         # check for Ingress IP here
         ingress_cmd = [
@@ -169,10 +166,7 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert (
-                    r.backend.request.headers["x-envoy-original-path"][0]
-                    == f"/{self.name}/"
-                )
+                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
 
         # check for Ingress IP here
         ingress_cmd = [
@@ -264,10 +258,7 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert (
-                    r.backend.request.headers["x-envoy-original-path"][0]
-                    == f"/{self.name}/"
-                )
+                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
 
         # check for Ingress IP here
         ingress_cmd = [
@@ -583,10 +574,7 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert (
-                    r.backend.request.headers["x-envoy-original-path"][0]
-                    == f"/{self.name}/"
-                )
+                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
 
         # check for Ingress IP here
         ingress_cmd = [

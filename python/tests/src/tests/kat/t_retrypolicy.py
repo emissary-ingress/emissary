@@ -118,9 +118,7 @@ config:
         retry_duration = self.get_duration(retry_result)
         conflict_duration = self.get_duration(conflict_result)
 
-        assert (
-            retry_duration >= 2
-        ), f"retry time {retry_duration} must be at least 2 seconds"
+        assert retry_duration >= 2, f"retry time {retry_duration} must be at least 2 seconds"
         assert (
             conflict_duration >= 2
         ), f"conflict time {conflict_duration} must be at least 2 seconds"

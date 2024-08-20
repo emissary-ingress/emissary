@@ -26,9 +26,7 @@ class RedirectTests(AmbassadorTest):
     def requirements(self):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (
-            r
-            for r in super().requirements()
-            if r[0] == "url" and r[1].url.startswith("https")
+            r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https")
         )
 
     def manifests(self):
@@ -126,9 +124,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     def requirements(self):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (
-            r
-            for r in super().requirements()
-            if r[0] == "url" and r[1].url.startswith("https")
+            r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https")
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -199,9 +195,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     def requirements(self):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (
-            r
-            for r in super().requirements()
-            if r[0] == "url" and r[1].url.startswith("https")
+            r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https")
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

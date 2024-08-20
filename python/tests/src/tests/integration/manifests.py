@@ -57,9 +57,7 @@ def format(st: str, /, **kwargs):
 imagePullSecrets:
 - name: dev-image-pull-secret
 """
-    return st.format(
-        serviceAccountExtra=serviceAccountExtra, images=get_images(), **kwargs
-    )
+    return st.format(serviceAccountExtra=serviceAccountExtra, images=get_images(), **kwargs)
 
 
 def namespace_manifest(namespace: str) -> str:

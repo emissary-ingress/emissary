@@ -5,18 +5,12 @@ import pytest
 from ambassador_diag.diagd import ReconfigStats
 
 
-def assert_checks(
-    r: ReconfigStats, when: float, want_check: bool, want_timers: bool
-) -> None:
+def assert_checks(r: ReconfigStats, when: float, want_check: bool, want_timers: bool) -> None:
     got_check = r.needs_check(when)
-    assert (
-        got_check == want_check
-    ), f"{when}: wanted check {want_check}, got {got_check}"
+    assert got_check == want_check, f"{when}: wanted check {want_check}, got {got_check}"
 
     got_timers = r.needs_timers(when)
-    assert (
-        got_timers == want_timers
-    ), f"{when}: wanted timers {want_timers}, got {got_timers}"
+    assert got_timers == want_timers, f"{when}: wanted timers {want_timers}, got {got_timers}"
 
 
 def test_reconfig_stats():

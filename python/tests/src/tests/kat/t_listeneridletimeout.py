@@ -51,10 +51,7 @@ service: http://127.0.0.1:8001
         assert self.results[0].body
         body = json.loads(self.results[0].body)
         for config_obj in body.get("configs"):
-            if (
-                config_obj.get("@type")
-                == "type.googleapis.com/envoy.admin.v3.ListenersConfigDump"
-            ):
+            if config_obj.get("@type") == "type.googleapis.com/envoy.admin.v3.ListenersConfigDump":
                 listeners = config_obj.get("dynamic_listeners")
                 found_idle_timeout = False
                 for listener_obj in listeners:

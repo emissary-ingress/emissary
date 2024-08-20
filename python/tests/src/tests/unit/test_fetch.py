@@ -150,9 +150,7 @@ class TestKubernetesGVK:
 
 class TestKubernetesObject:
     def test_valid(self):
-        assert valid_knative_ingress.gvk == KubernetesGVK.for_knative_networking(
-            "Ingress"
-        )
+        assert valid_knative_ingress.gvk == KubernetesGVK.for_knative_networking("Ingress")
         assert valid_knative_ingress.namespace == "test"
         assert valid_knative_ingress.name == "helloworld-go"
         assert valid_knative_ingress.scope == KubernetesObjectScope.NAMESPACE
@@ -433,12 +431,8 @@ class TestCountingKubernetesProcessor:
         p = CountingKubernetesProcessor(aconf, valid_mapping.gvk, "test")
 
         assert p.try_process(valid_mapping), "Processor rejected matching resource"
-        assert p.try_process(
-            valid_mapping
-        ), "Processor rejected matching resource (again)"
-        assert not p.try_process(
-            valid_knative_ingress
-        ), "Processor accepted non-matching resource"
+        assert p.try_process(valid_mapping), "Processor rejected matching resource (again)"
+        assert not p.try_process(valid_knative_ingress), "Processor accepted non-matching resource"
 
         assert aconf.get_count("test") == 2, "Processor did not increment counter"
 

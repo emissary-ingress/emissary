@@ -261,9 +261,7 @@ end
                 }
             )
 
-        for key in list(
-            set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)
-        ):
+        for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
         allowed_request_headers = []
@@ -273,9 +271,7 @@ end
 
         if auth.get("add_linkerd_headers", False):
             svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))
-            headers_to_add.append(
-                {"key": "l5d-dst-override", "value": svc.hostname_port}
-            )
+            headers_to_add.append({"key": "l5d-dst-override", "value": svc.hostname_port})
 
         auth_info = {
             "name": "envoy.filters.http.ext_authz",
@@ -290,9 +286,7 @@ end
                     "path_prefix": auth.path_prefix,
                     "authorization_request": {
                         "allowed_headers": {
-                            "patterns": sorted(
-                                allowed_request_headers, key=header_pattern_key
-                            )
+                            "patterns": sorted(allowed_request_headers, key=header_pattern_key)
                         },
                         "headers_to_add": headers_to_add,
                     },
@@ -413,9 +407,7 @@ def V3HTTPFilter_ratelimit(ratelimit: IRRateLimit, v3config: "V3Config"):
     # If here, we must have a ratelimit service configured.
     assert v3config.ratelimit
     config["rate_limit_service"] = dict(v3config.ratelimit)
-    config["@type"] = (
-        "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit"
-    )
+    config["@type"] = "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit"
 
     return {
         "name": "envoy.filters.http.ratelimit",

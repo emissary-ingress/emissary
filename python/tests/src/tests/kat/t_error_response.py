@@ -187,9 +187,7 @@ error_response_overrides:
         ], f"unexpected Content-Type: {self.results[8].headers}"
 
         # [9] should just succeed
-        assert (
-            self.results[9].text is None
-        ), f"unexpected response body: {self.results[9].text}"
+        assert self.results[9].text is None, f"unexpected response body: {self.results[9].text}"
 
         # [10] envoy-generated 503, since the upstream is 'invalidservice'.
         assert (
@@ -197,9 +195,7 @@ error_response_overrides:
         ), f"unexpected response body: {self.results[10].text}"
 
         # [11] envoy-generated 503, with an empty body override
-        assert (
-            self.results[11].text == ""
-        ), f"unexpected response body: {self.results[11].text}"
+        assert self.results[11].text == "", f"unexpected response body: {self.results[11].text}"
 
 
 class ErrorResponseOnStatusCodeMappingCRD(AmbassadorTest):
@@ -339,9 +335,7 @@ spec:
     def check(self):
         # [0] does not match the error response mapping, so no 404 response.
         # when envoy directly replies with 404, we see it as an empty string.
-        assert (
-            self.results[0].text == ""
-        ), f"unexpected response body: {self.results[0].text}"
+        assert self.results[0].text == "", f"unexpected response body: {self.results[0].text}"
 
         # [1]
         assert (
@@ -387,9 +381,7 @@ spec:
         ], f"unexpected Content-Type: {self.results[8].headers}"
 
         # [9] should just succeed
-        assert (
-            self.results[9].text is None
-        ), f"unexpected response body: {self.results[9].text}"
+        assert self.results[9].text is None, f"unexpected response body: {self.results[9].text}"
 
         # [10] envoy-generated 503, since the upstream is 'invalidservice'.
         # this response body comes unmodified from envoy, since it goes through
@@ -791,19 +783,13 @@ bypass_error_response_overrides: true
             expected=503,
         )
         # [8]
-        yield Query(
-            self.url("bypass/"), headers={"kat-req-http-requested-status": "200"}
-        )
+        yield Query(self.url("bypass/"), headers={"kat-req-http-requested-status": "200"})
         # [9]
-        yield Query(
-            self.url("target/"), headers={"kat-req-http-requested-status": "200"}
-        )
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "200"})
 
     def check(self):
         # [0]
-        assert (
-            self.results[0].text is None
-        ), f"unexpected response body: {self.results[0].text}"
+        assert self.results[0].text is None, f"unexpected response body: {self.results[0].text}"
 
         # [1]
         assert (
@@ -814,9 +800,7 @@ bypass_error_response_overrides: true
         ], f"unexpected Content-Type: {self.results[1].headers}"
 
         # [2]
-        assert (
-            self.results[2].text is None
-        ), f"unexpected response body: {self.results[2].text}"
+        assert self.results[2].text is None, f"unexpected response body: {self.results[2].text}"
 
         # [3]
         assert (
@@ -837,9 +821,7 @@ bypass_error_response_overrides: true
         ], f"unexpected Content-Type: {self.results[5].headers}"
 
         # [6]
-        assert (
-            self.results[6].text is None
-        ), f"unexpected response body: {self.results[6].text}"
+        assert self.results[6].text is None, f"unexpected response body: {self.results[6].text}"
 
         # [7]
         assert (
@@ -847,14 +829,10 @@ bypass_error_response_overrides: true
         ), f"unexpected response body: {self.results[7].text}"
 
         # [8]
-        assert (
-            self.results[8].text is None
-        ), f"unexpected response body: {self.results[8].text}"
+        assert self.results[8].text is None, f"unexpected response body: {self.results[8].text}"
 
         # [9]
-        assert (
-            self.results[9].text is None
-        ), f"unexpected response body: {self.results[9].text}"
+        assert self.results[9].text is None, f"unexpected response body: {self.results[9].text}"
 
 
 class ErrorResponseMappingBypassAlternate(AmbassadorTest):
@@ -940,9 +918,7 @@ bypass_error_response_overrides: true
         ], f"unexpected Content-Type: {self.results[0].headers}"
 
         # [1]
-        assert (
-            self.results[1].text is None
-        ), f"unexpected response body: {self.results[1].text}"
+        assert self.results[1].text is None, f"unexpected response body: {self.results[1].text}"
 
         # [2]
         assert (
@@ -1033,24 +1009,16 @@ error_response_overrides:
     def check(self):
         # [0] does not match the error response mapping, so no 404 response.
         # when envoy directly replies with 404, we see it as an empty string.
-        assert (
-            self.results[0].text == ""
-        ), f"unexpected response body: {self.results[0].text}"
+        assert self.results[0].text == "", f"unexpected response body: {self.results[0].text}"
 
         # [1]
-        assert (
-            self.results[1].text is None
-        ), f"unexpected response body: {self.results[1].text}"
+        assert self.results[1].text is None, f"unexpected response body: {self.results[1].text}"
 
         # [2]
-        assert (
-            self.results[2].text is None
-        ), f"unexpected response body: {self.results[2].text}"
+        assert self.results[2].text is None, f"unexpected response body: {self.results[2].text}"
 
         # [3]
-        assert (
-            self.results[3].text is None
-        ), f"unexpected response body: {self.results[3].text}"
+        assert self.results[3].text is None, f"unexpected response body: {self.results[3].text}"
 
 
 class ErrorResponseMappingOverride(AmbassadorTest):
@@ -1213,24 +1181,16 @@ error_response_overrides:
         ], f"unexpected Content-Type: {self.results[2].headers}"
 
         # [3] Mapping has 401 rule, but response code is 503, no rewrite.
-        assert (
-            self.results[3].text is None
-        ), f"unexpected response body: {self.results[3].text}"
+        assert self.results[3].text is None, f"unexpected response body: {self.results[3].text}"
 
         # [4] Mapping has 503 rule, but response code is 401, no rewrite.
-        assert (
-            self.results[4].text is None
-        ), f"unexpected response body: {self.results[4].text}"
+        assert self.results[4].text is None, f"unexpected response body: {self.results[4].text}"
 
         # [5] Mapping has 401 rule, but response code is 504, no rewrite.
-        assert (
-            self.results[5].text is None
-        ), f"unexpected response body: {self.results[5].text}"
+        assert self.results[5].text is None, f"unexpected response body: {self.results[5].text}"
 
         # [6] Mapping has 503 rule, but response code is 504, no rewrite.
-        assert (
-            self.results[6].text is None
-        ), f"unexpected response body: {self.results[6].text}"
+        assert self.results[6].text is None, f"unexpected response body: {self.results[6].text}"
 
         # [7] Module's 503 rule, no custom header
         assert (

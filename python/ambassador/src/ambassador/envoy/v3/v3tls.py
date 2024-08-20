@@ -33,9 +33,7 @@ EnvoyValidationContext = Dict[str, EnvoyValidationElements]
 
 EnvoyTLSParams = Dict[str, Union[str, List[str]]]
 
-EnvoyCommonTLSElements = Union[
-    List[str], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams
-]
+EnvoyCommonTLSElements = Union[List[str], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams]
 EnvoyCommonTLSContext = Dict[str, EnvoyCommonTLSElements]
 
 ElementHandler = Callable[[str, str], None]

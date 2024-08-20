@@ -56,9 +56,7 @@ def _get_ratelimit_default_conf():
         "rate_limit_service": {
             "transport_api_version": "V3",
             "grpc_service": {
-                "envoy_grpc": {
-                    "cluster_name": "cluster_{}_default".format(SERVICE_NAME)
-                }
+                "envoy_grpc": {"cluster_name": "cluster_{}_default".format(SERVICE_NAME)}
             },
         },
     }
@@ -194,9 +192,7 @@ spec: {}
 
     errors = econf.ir.aconf.errors
     assert "ir.ratelimit" in errors
-    assert (
-        errors["ir.ratelimit"][0]["error"] == "service is required in RateLimitService"
-    )
+    assert errors["ir.ratelimit"][0]["error"] == "service is required in RateLimitService"
 
 
 @pytest.mark.compilertest

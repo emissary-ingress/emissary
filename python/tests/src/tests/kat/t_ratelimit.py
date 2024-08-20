@@ -294,9 +294,7 @@ protocol_version: "v3"
         yield Query(self.url("target/"))
 
         # Header instructing dummy ratelimit-service to allow request
-        yield Query(
-            self.url("target/"), expected=200, headers={"kat-req-rls-allow": "true"}
-        )
+        yield Query(self.url("target/"), expected=200, headers={"kat-req-rls-allow": "true"})
 
         # Header instructing dummy ratelimit-service to reject request
         yield Query(

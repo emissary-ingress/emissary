@@ -33,23 +33,15 @@ def test_cluster_max_connection_lifetime_ms_missing():
 @pytest.mark.compilertest
 def test_cluster_max_connection_lifetime_ms_module_only():
     # If we only set the config on the Module, it should show up.
-    yaml = module_and_mapping_manifests(
-        ["cluster_max_connection_lifetime_ms: 2005"], []
-    )
-    _test_common_http_protocol_options(
-        yaml, expectations={"max_connection_duration": "2.005s"}
-    )
+    yaml = module_and_mapping_manifests(["cluster_max_connection_lifetime_ms: 2005"], [])
+    _test_common_http_protocol_options(yaml, expectations={"max_connection_duration": "2.005s"})
 
 
 @pytest.mark.compilertest
 def test_cluster_max_connection_lifetime_ms_mapping_only():
     # If we only set the config on the Mapping, it should show up.
-    yaml = module_and_mapping_manifests(
-        None, ["cluster_max_connection_lifetime_ms: 2005"]
-    )
-    _test_common_http_protocol_options(
-        yaml, expectations={"max_connection_duration": "2.005s"}
-    )
+    yaml = module_and_mapping_manifests(None, ["cluster_max_connection_lifetime_ms: 2005"])
+    _test_common_http_protocol_options(yaml, expectations={"max_connection_duration": "2.005s"})
 
 
 @pytest.mark.compilertest
@@ -59,9 +51,7 @@ def test_cluster_max_connection_lifetime_ms_mapping_override():
         ["cluster_max_connection_lifetime_ms: 2005"],
         ["cluster_max_connection_lifetime_ms: 17005"],
     )
-    _test_common_http_protocol_options(
-        yaml, expectations={"max_connection_duration": "17.005s"}
-    )
+    _test_common_http_protocol_options(yaml, expectations={"max_connection_duration": "17.005s"})
 
 
 @pytest.mark.compilertest

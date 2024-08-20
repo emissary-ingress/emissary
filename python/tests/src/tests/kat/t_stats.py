@@ -14,9 +14,7 @@ class StatsdTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
         self.target2 = HTTP(name="alt-statsd")
-        self.sink = StatsDSink(
-            target_cluster=f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}"
-        )
+        self.sink = StatsDSink(target_cluster=f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}")
         self.stats_name = ALT_STATSD_TEST_CLUSTER
         if DEV:
             self.skip_node = True
@@ -91,12 +89,8 @@ service: http://127.0.0.1:8877
         rq_total = cluster_stats.get("upstream_rq_total", -1)
         rq_200 = cluster_stats.get("upstream_rq_200", -1)
 
-        assert (
-            rq_total == 1000
-        ), f"{STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}"
-        assert (
-            rq_200 > 990
-        ), f"{STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}"
+        assert rq_total == 1000, f"{STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}"
+        assert rq_200 > 990, f"{STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}"
 
         cluster_stats = stats.get(ALT_STATSD_TEST_CLUSTER, {})
         rq_total = cluster_stats.get("upstream_rq_total", -1)
@@ -123,19 +117,11 @@ service: http://127.0.0.1:8877
         found_alt = False
 
         for line in metrics.split("\n"):
-            if (
-                wanted_metric in line
-                and wanted_status in line
-                and wanted_cluster_name in line
-            ):
+            if wanted_metric in line and wanted_status in line and wanted_cluster_name in line:
                 print(f"line '{line}'")
                 found_normal = True
 
-            if (
-                wanted_metric in line
-                and wanted_status in line
-                and alt_wanted_cluster_name in line
-            ):
+            if wanted_metric in line and wanted_status in line and alt_wanted_cluster_name in line:
                 print(f"line '{line}'")
                 found_alt = True
 

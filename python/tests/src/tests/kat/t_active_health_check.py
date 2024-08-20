@@ -35,9 +35,7 @@ health_checks:
         )  # The round robin load balancer is not necessary for the test but should help make the request distribution even across the pods
 
     def queries(self):
-        yield Query(
-            self.url("healthcheck/"), phase=1
-        )  # Just making sure things are running
+        yield Query(self.url("healthcheck/"), phase=1)  # Just making sure things are running
         yield Query(self.url("ambassador/v0/diag/"), phase=1)
 
         yield Query(
@@ -105,9 +103,7 @@ load_balancer:
         )  # The round robin load balancer is not necessary for the test but should help make the request distribution even across the pods
 
     def queries(self):
-        yield Query(
-            self.url("healthcheck/"), phase=1
-        )  # Just making sure things are running
+        yield Query(self.url("healthcheck/"), phase=1)  # Just making sure things are running
         yield Query(self.url("ambassador/v0/diag/"), phase=1)
 
         yield Query(

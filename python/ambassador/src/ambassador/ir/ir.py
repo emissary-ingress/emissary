@@ -188,13 +188,9 @@ class IR:
                             # This is an error.
                             delta_errors += 1
 
-                            logger.error(
-                                f"Delta object needs name and namespace: {delta}"
-                            )
+                            logger.error(f"Delta object needs name and namespace: {delta}")
                         else:
-                            key = IRBaseMapping.make_cache_key(
-                                delta_kind, name, namespace
-                            )
+                            key = IRBaseMapping.make_cache_key(delta_kind, name, namespace)
                             to_invalidate.append(key)
 
                             # If we're invalidating the Mapping, we need to invalidate its Group.
@@ -265,26 +261,18 @@ class IR:
         # The secret_handler is _required_.
         self.secret_handler = secret_handler
 
-        assert (
-            self.secret_handler
-        ), "Ambassador.IR requires a SecretHandler at initialization"
+        assert self.secret_handler, "Ambassador.IR requires a SecretHandler at initialization"
 
         self.logger.debug("IR __init__:")
-        self.logger.debug(
-            "IR: Version         %s built from commit %s" % (Version, Commit)
-        )
+        self.logger.debug("IR: Version         %s built from commit %s" % (Version, Commit))
         self.logger.debug("IR: AMBASSADOR_ID   %s" % self.ambassador_id)
         self.logger.debug("IR: Namespace       %s" % self.ambassador_namespace)
         self.logger.debug("IR: Nodename        %s" % self.ambassador_nodename)
         self.logger.debug(
-            "IR: Endpoints       %s" % "enabled"
-            if Config.enable_endpoints
-            else "disabled"
+            "IR: Endpoints       %s" % "enabled" if Config.enable_endpoints else "disabled"
         )
 
-        self.logger.debug(
-            "IR: file checker:   %s" % getattr(self, "file_checker").__name__
-        )
+        self.logger.debug("IR: file checker:   %s" % getattr(self, "file_checker").__name__)
         self.logger.debug("IR: secret handler: %s" % type(self.secret_handler).__name__)
 
         # First up: save the Config object. Its source map may be necessary later.
@@ -374,9 +362,7 @@ class IR:
         # "companion" TCP Listener. If a UDP listener was the first to be parsed then
         # we wouldn't know at that time. Thus we need to wait until after all of them have been loaded.
         udp_listeners = (
-            listener
-            for listener in self.listeners.values()
-            if listener.socket_protocol == "UDP"
+            listener for listener in self.listeners.values() if listener.socket_protocol == "UDP"
         )
         for udp_listener in udp_listeners:
             ## this matches the `listener.bind_to` for the tcp listener
@@ -423,9 +409,7 @@ class IR:
 
         # Save tracing, ratelimit, and logging settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
-        self.ratelimit = typecast(
-            IRRateLimit, self.save_resource(IRRateLimit(self, aconf))
-        )
+        self.ratelimit = typecast(IRRateLimit, self.save_resource(IRRateLimit(self, aconf)))
         IRLogServiceFactory.load_all(self, aconf)
 
         # After the Ambassador and TLS modules are done, we need to set up the
@@ -640,8 +624,7 @@ class IR:
 
         if extant_host:
             self.post_error(
-                "Duplicate Host %s; keeping definition from %s"
-                % (host.name, extant_host.location)
+                "Duplicate Host %s; keeping definition from %s" % (host.name, extant_host.location)
             )
             is_valid = False
 
@@ -749,21 +732,15 @@ class IR:
             self.secret_handler.still_needed(resource, secret_name, namespace)
         else:
             # No secret_info, so ask the secret_handler to find us one.
-            self.logger.debug(
-                f"resolve_secret {ss_key}: no secret_info, asking handler to load"
-            )
-            secret_info = self.secret_handler.load_secret(
-                resource, secret_name, namespace
-            )
+            self.logger.debug(f"resolve_secret {ss_key}: no secret_info, asking handler to load")
+            secret_info = self.secret_handler.load_secret(resource, secret_name, namespace)
 
         if not secret_info:
             self.logger.error(f"Secret {ss_key} unknown")
 
             ss = SavedSecret(secret_name, namespace, None, None, None, None, None)
         else:
-            self.logger.debug(
-                f"resolve_secret {ss_key}: found secret, asking handler to cache"
-            )
+            self.logger.debug(f"resolve_secret {ss_key}: found secret, asking handler to cache")
 
             # OK, we got a secret_info. Cache that using the secret handler.
             ss = self.secret_handler.cache_secret(resource, secret_info)
@@ -802,9 +779,7 @@ class IR:
 
         if is_ip_address:
             # Already an IP address, great.
-            self.logger.debug(
-                f"cluster {cluster.name}: {hostname} is already an IP address"
-            )
+            self.logger.debug(f"cluster {cluster.name}: {hostname} is already an IP address")
 
             return [{"ip": hostname, "port": port, "target_kind": "IPaddr"}]
 
@@ -849,9 +824,7 @@ class IR:
         if is_valid:
             self.listeners[listener_key] = listener
 
-    def add_mapping(
-        self, aconf: Config, mapping: IRBaseMapping
-    ) -> Optional[IRBaseMappingGroup]:
+    def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
         mapping.check_status()
 
         if mapping.is_active():
@@ -954,22 +927,16 @@ class IR:
             },
             "ambassador": self.ambassador_module.as_dict(),
             "clusters": {
-                cluster_name: cluster.as_dict()
-                for cluster_name, cluster in self.clusters.items()
+                cluster_name: cluster.as_dict() for cluster_name, cluster in self.clusters.items()
             },
             "grpc_services": {
-                svc_name: cluster.as_dict()
-                for svc_name, cluster in self.grpc_services.items()
+                svc_name: cluster.as_dict() for svc_name, cluster in self.grpc_services.items()
             },
             "hosts": [host.as_dict() for host in self.hosts.values()],
-            "listeners": [
-                self.listeners[x].as_dict() for x in sorted(self.listeners.keys())
-            ],
+            "listeners": [self.listeners[x].as_dict() for x in sorted(self.listeners.keys())],
             "filters": [filt.as_dict() for filt in self.filters],
             "groups": [group.as_dict() for group in self.ordered_groups()],
-            "tls_contexts": [
-                context.as_dict() for context in self.tls_contexts.values()
-            ],
+            "tls_contexts": [context.as_dict() for context in self.tls_contexts.values()],
             "services": self.services,
             "k8s_status_updates": self.k8s_status_updates,
         }
@@ -1050,31 +1017,21 @@ class IR:
         od["headers_with_underscores_action"] = self.ambassador_module.get(
             "headers_with_underscores_action", None
         )
-        od["max_request_headers_kb"] = self.ambassador_module.get(
-            "max_request_headers_kb", None
-        )
+        od["max_request_headers_kb"] = self.ambassador_module.get("max_request_headers_kb", None)
 
         od["server_name"] = bool(self.ambassador_module.server_name != "envoy")
 
         od["custom_ambassador_id"] = bool(self.ambassador_id != "default")
 
-        od["buffer_limit_bytes"] = self.ambassador_module.get(
-            "buffer_limit_bytes", None
-        )
+        od["buffer_limit_bytes"] = self.ambassador_module.get("buffer_limit_bytes", None)
 
         default_port = (
-            Constants.SERVICE_PORT_HTTPS
-            if tls_termination_count
-            else Constants.SERVICE_PORT_HTTP
+            Constants.SERVICE_PORT_HTTPS if tls_termination_count else Constants.SERVICE_PORT_HTTP
         )
 
-        od["custom_listener_port"] = bool(
-            self.ambassador_module.service_port != default_port
-        )
+        od["custom_listener_port"] = bool(self.ambassador_module.service_port != default_port)
 
-        od["allow_chunked_length"] = self.ambassador_module.get(
-            "allow_chunked_length", None
-        )
+        od["allow_chunked_length"] = self.ambassador_module.get("allow_chunked_length", None)
 
         cluster_count = 0
         cluster_grpc_count = 0  # clusters using GRPC upstream
@@ -1095,9 +1052,7 @@ class IR:
         endpoint_routing_envoy_rr_count = 0  # endpoints Envoy round robin is routing to
         endpoint_routing_envoy_rh_count = 0  # endpoints Envoy ring hash is routing to
         endpoint_routing_envoy_maglev_count = 0  # endpoints Envoy maglev is routing to
-        endpoint_routing_envoy_lr_count = (
-            0  # endpoints Envoy least request is routing to
-        )
+        endpoint_routing_envoy_lr_count = 0  # endpoints Envoy least request is routing to
 
         for cluster in self.clusters.values():
             cluster_count += 1
@@ -1132,9 +1087,7 @@ class IR:
                 using_http = True
                 cluster_http_count += 1
 
-            cluster_endpoints = (
-                cluster.urls if (lb_type == "kube") else cluster.get("targets", [])
-            )
+            cluster_endpoints = cluster.urls if (lb_type == "kube") else cluster.get("targets", [])
 
             # Paranoia, really.
             if not cluster_endpoints:

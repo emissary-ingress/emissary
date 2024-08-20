@@ -7,9 +7,9 @@ _quote_pos = re.compile("(?=[^-0-9a-zA-Z_./\n])")
 
 def quote(arg):
     r"""
-    >>> quote('\t')
+    >>> quote("\t")
     '\\\t'
-    >>> quote('foo bar')
+    >>> quote("foo bar")
     'foo\\ bar'
     """
 

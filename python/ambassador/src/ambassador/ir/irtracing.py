@@ -32,9 +32,7 @@ class IRTracing(IRResource):
     ) -> None:
         del kwargs  # silence unused-variable warning
 
-        super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace
-        )
+        super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace)
         self.cluster = None
 
     def setup(self, ir: "IR", aconf: Config) -> bool:
@@ -52,9 +50,7 @@ class IRTracing(IRResource):
         if number_configs != 1:
             self.post_error(
                 RichStatus.fromError(
-                    "exactly one TracingService is supported, got {}".format(
-                        number_configs
-                    ),
+                    "exactly one TracingService is supported, got {}".format(number_configs),
                     module=aconf,
                 )
             )
@@ -64,16 +60,12 @@ class IRTracing(IRResource):
 
         service = config.get("service")
         if not service:
-            self.post_error(
-                RichStatus.fromError("service field is required in TracingService")
-            )
+            self.post_error(RichStatus.fromError("service field is required in TracingService"))
             return False
 
         driver = config.get("driver")
         if not driver:
-            self.post_error(
-                RichStatus.fromError("driver field is required in TracingService")
-            )
+            self.post_error(RichStatus.fromError("driver field is required in TracingService"))
             return False
 
         self.namespace = config.get("namespace", self.namespace)

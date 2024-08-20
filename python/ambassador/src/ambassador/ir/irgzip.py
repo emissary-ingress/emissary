@@ -27,8 +27,6 @@ class IRGzip(IRFilter):
         self["window_bits"] = self.pop("window_bits", None)
         self["content_type"] = self.pop("content_type", [])
         self["disable_on_etag_header"] = self.pop("disable_on_etag_header", None)
-        self["remove_accept_encoding_header"] = self.pop(
-            "remove_accept_encoding_header", None
-        )
+        self["remove_accept_encoding_header"] = self.pop("remove_accept_encoding_header", None)
 
         return True

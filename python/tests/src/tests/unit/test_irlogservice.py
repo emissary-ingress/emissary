@@ -55,9 +55,7 @@ def _get_logfilter_http_default_conf():
             "transport_api_version": "V3",
             "log_name": "logservice",
             "grpc_service": {
-                "envoy_grpc": {
-                    "cluster_name": "cluster_logging_cool_log_svcname_default"
-                }
+                "envoy_grpc": {"cluster_name": "cluster_logging_cool_log_svcname_default"}
             },
             "buffer_flush_interval": "1s",
             "buffer_size_bytes": 16384,
@@ -75,9 +73,7 @@ def _get_logfilter_tcp_default_conf():
             "transport_api_version": "V3",
             "log_name": "logservice",
             "grpc_service": {
-                "envoy_grpc": {
-                    "cluster_name": "cluster_logging_cool_log_svcname_default"
-                }
+                "envoy_grpc": {"cluster_name": "cluster_logging_cool_log_svcname_default"}
             },
             "buffer_flush_interval": "1s",
             "buffer_size_bytes": 16384,

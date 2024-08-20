@@ -80,9 +80,7 @@ class IRIPAllowDeny(IRFilter):
         action = action.upper()
 
         if (action != "ALLOW") and (action != "DENY"):
-            raise RuntimeError(
-                f"IRIPAllowDeny action must be ALLOW or DENY, not {action}"
-            )
+            raise RuntimeError(f"IRIPAllowDeny action must be ALLOW or DENY, not {action}")
 
         self.action = action
         self.principals = []

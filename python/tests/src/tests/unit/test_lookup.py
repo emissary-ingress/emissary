@@ -84,12 +84,7 @@ def test_lookup():
     assert t1.lookup("max_request_words", default_class="test_resource") == 3
     assert t1.lookup("max_request_words", 77, default_class="test_resource") == 3
     assert t1.lookup("max_request_words", 77, default_class="test_resource2") == 1
-    assert (
-        t1.lookup(
-            "max_request_words", default_key="altered", default_class="test_resource"
-        )
-        == 4
-    )
+    assert t1.lookup("max_request_words", default_key="altered", default_class="test_resource") == 4
     assert (
         t1.lookup(
             "max_request_words",
@@ -100,9 +95,7 @@ def test_lookup():
         == 4
     )
     assert (
-        t1.lookup(
-            "max_request_words", default_key="altered2", default_class="test_resource"
-        )
+        t1.lookup("max_request_words", default_key="altered2", default_class="test_resource")
         is None
     )
     assert (
@@ -137,18 +130,9 @@ def test_lookup():
     assert t2.lookup("max_request_words", 77, default_class="/") == 1
     assert t2.lookup("max_request_words", 77, default_class="/2") == 1
     assert t2.lookup("max_request_words", default_key="altered", default_class="/") == 2
-    assert (
-        t2.lookup("max_request_words", 77, default_key="altered", default_class="/")
-        == 2
-    )
-    assert (
-        t2.lookup("max_request_words", default_key="altered2", default_class="/")
-        is None
-    )
-    assert (
-        t2.lookup("max_request_words", 77, default_key="altered2", default_class="/")
-        == 77
-    )
+    assert t2.lookup("max_request_words", 77, default_key="altered", default_class="/") == 2
+    assert t2.lookup("max_request_words", default_key="altered2", default_class="/") is None
+    assert t2.lookup("max_request_words", 77, default_key="altered2", default_class="/") == 77
 
     assert t2.lookup("funk") == 8
     assert t2.lookup("funk", 77) == 8

@@ -62,9 +62,7 @@ def test_mapping_canary_group_selectors(test_case):
     with open(os.path.join(testdata_dir, f"{test_case}_out.yaml"), "r") as f:
         out = yaml.safe_load(f)
 
-    expected_output = [
-        MappingGroupTestOutput(**group_yaml) for group_yaml in out["mapping_groups"]
-    ]
+    expected_output = [MappingGroupTestOutput(**group_yaml) for group_yaml in out["mapping_groups"]]
     assert sorted(mapping_groups, key=lambda g: g.group_id) == sorted(
         expected_output, key=lambda g: g.group_id
     )

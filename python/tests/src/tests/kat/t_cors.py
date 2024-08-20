@@ -72,9 +72,7 @@ cors:
 
         assert self.results[1].backend
         assert self.results[1].backend.name == self.target.path.k8s
-        assert self.results[1].headers["Access-Control-Allow-Origin"] == [
-            "http://foo.example.com"
-        ]
+        assert self.results[1].headers["Access-Control-Allow-Origin"] == ["http://foo.example.com"]
 
         assert self.results[2].backend
         assert self.results[2].backend.name == self.target.path.k8s
@@ -86,9 +84,7 @@ cors:
 
         assert self.results[4].backend
         assert self.results[4].backend.name == self.target.path.k8s
-        assert self.results[4].headers["Access-Control-Allow-Origin"] == [
-            "http://bar.example.com"
-        ]
+        assert self.results[4].headers["Access-Control-Allow-Origin"] == ["http://bar.example.com"]
 
         assert self.results[5].backend
         assert self.results[5].backend.name == self.target.path.k8s

@@ -42,13 +42,9 @@ class IRCORS(IRResource):
         # it in a different shape than it is in the CRD.
         origins = kwargs.get("origins", None)
         if origins is not None:
-            new_kwargs["allow_origin_string_match"] = [
-                {"exact": origin} for origin in origins
-            ]
+            new_kwargs["allow_origin_string_match"] = [{"exact": origin} for origin in origins]
 
-        super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **new_kwargs
-        )
+        super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **new_kwargs)
 
     def setup(self, ir: "IR", aconf: Config) -> bool:
         # This IRCORS has not been finalized with an ID, so leave with an 'unset' ID so far.

@@ -71,11 +71,7 @@ class CIDRRange:
         is not None, and the prefix_len is not None.
         """
 
-        return (
-            (not self.error)
-            and (self.address is not None)
-            and (self.prefix_len is not None)
-        )
+        return (not self.error) and (self.address is not None) and (self.prefix_len is not None)
 
     def __str__(self) -> str:
         if self:

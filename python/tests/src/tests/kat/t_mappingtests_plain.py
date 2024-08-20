@@ -40,9 +40,7 @@ class SimpleMapping(MappingTest):
 
             yield cls(
                 st,
-                unique(
-                    v for v in variants(OptionTest) if not getattr(v, "isolated", False)
-                ),
+                unique(v for v in variants(OptionTest) if not getattr(v, "isolated", False)),
                 name="{self.target.name}-all",
             )
 
@@ -74,10 +72,7 @@ service: http://{self.target.path.fqdn}
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert (
-                    r.backend.request.headers["x-envoy-original-path"][0]
-                    == f"/{self.name}/"
-                )
+                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
 
 
 class SimpleMappingIngress(MappingTest):
@@ -125,10 +120,7 @@ spec:
                     self.target.path.k8s,
                 )
                 assert r.backend.request
-                assert (
-                    r.backend.request.headers["x-envoy-original-path"][0]
-                    == f"/{self.name}/"
-                )
+                assert r.backend.request.headers["x-envoy-original-path"][0] == f"/{self.name}/"
 
 
 # Disabled SimpleMappingIngressDefaultBackend since adding a default fallback mapping would break other
@@ -272,9 +264,7 @@ spec:
             headers={"Host": "inspector.internal"},
             expected=404,
         )
-        yield Query(
-            self.parent.url(self.name + "/"), headers={"Host": "inspector.external"}
-        )
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
 
 
 class HostHeaderMapping(MappingTest):
@@ -308,9 +298,7 @@ host: inspector.external
             headers={"Host": "inspector.internal"},
             expected=404,
         )
-        yield Query(
-            self.parent.url(self.name + "/"), headers={"Host": "inspector.external"}
-        )
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
         # Test that a host header with a port value that does match the listener's configured port is not
         # stripped for the purpose of routing, so it does not match the Mapping. This is the default behavior,
         # and can be overridden using `strip_matching_host_port`, tested below.
@@ -355,9 +343,7 @@ service: http://{self.target.path.fqdn}:80.invalid
             for error in error_list:
                 if error.find(error_string) != -1:
                     found_error = True
-        assert found_error, "could not find the relevant error - {}".format(
-            error_string
-        )
+        assert found_error, "could not find the relevant error - {}".format(error_string)
 
 
 class WebSocketMapping(MappingTest):
@@ -393,8 +379,8 @@ use_websocket: true
         )
 
     def check(self):
-        assert self.results[-1].messages == ["one", "two", "three"], (
-            "invalid messages: %s" % repr(self.results[-1].messages)
+        assert self.results[-1].messages == ["one", "two", "three"], "invalid messages: %s" % repr(
+            self.results[-1].messages
         )
 
 
@@ -513,19 +499,13 @@ redirect_response_code: 308
 
     def queries(self):
         # [0]
-        yield Query(
-            self.parent.url(self.name + "/anything?itworked=true"), expected=301
-        )
+        yield Query(self.parent.url(self.name + "/anything?itworked=true"), expected=301)
 
         # [1]
-        yield Query(
-            self.parent.url(self.name.upper() + "/anything?itworked=true"), expected=404
-        )
+        yield Query(self.parent.url(self.name.upper() + "/anything?itworked=true"), expected=404)
 
         # [2]
-        yield Query(
-            self.parent.url(self.name + "-2/anything?itworked=true"), expected=301
-        )
+        yield Query(self.parent.url(self.name + "-2/anything?itworked=true"), expected=301)
 
         # [3]
         yield Query(
@@ -537,14 +517,10 @@ redirect_response_code: 308
         yield Query(self.parent.url(self.name + "-3/foo/anything"), expected=302)
 
         # [5]
-        yield Query(
-            self.parent.url(self.name + "-4/foo/bar/baz/anything"), expected=307
-        )
+        yield Query(self.parent.url(self.name + "-4/foo/bar/baz/anything"), expected=307)
 
         # [6]
-        yield Query(
-            self.parent.url(self.name + "-5/assets/abcd0000f123/images"), expected=308
-        )
+        yield Query(self.parent.url(self.name + "-5/assets/abcd0000f123/images"), expected=308)
 
         # [7]
         yield Query(
@@ -568,9 +544,7 @@ redirect_response_code: 308
 
         # [3]
         assert self.results[3].headers["Location"] == [
-            self.format(
-                "http://foobar.com/" + self.name.upper() + "-2/anything?itworked=true"
-            )
+            self.format("http://foobar.com/" + self.name.upper() + "-2/anything?itworked=true")
         ], f"Unexpected Location {self.results[3].headers['Location']}"
 
         # [4]
@@ -604,9 +578,7 @@ class CanaryMapping(MappingTest):
     def variants(cls) -> Generator[Node, None, None]:
         for v in variants(ServiceType):
             for w in (0, 10, 50, 100):
-                yield cls(
-                    v, v.clone("canary"), w, name="{self.target.name}-{self.weight}"
-                )
+                yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
     # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
@@ -687,9 +659,7 @@ class CanaryDiffMapping(MappingTest):
     def variants(cls) -> Generator[Node, None, None]:
         for v in variants(ServiceType):
             for w in (0, 10, 50, 100):
-                yield cls(
-                    v, v.clone("canary"), w, name="{self.target.name}-{self.weight}"
-                )
+                yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
     # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
@@ -803,9 +773,7 @@ add_response_headers:
         )
 
     def queries(self):
-        yield Query(
-            self.parent.url(self.name) + "/response-headers?zoo=Zoo&test=Test&koo=Koot"
-        )
+        yield Query(self.parent.url(self.name) + "/response-headers?zoo=Zoo&test=Test&koo=Koot")
 
     def check(self):
         for r in self.results:

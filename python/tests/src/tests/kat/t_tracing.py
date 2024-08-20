@@ -196,9 +196,7 @@ custom_tags:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query(
-            f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase
-        )
+        yield Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase)
         yield Query(
             f"http://{self.zipkin.path.fqdn}:9411/api/v2/spans?serviceName=tracingtest-default",
             phase=check_phase,
@@ -219,8 +217,7 @@ custom_tags:
 
         print(f"self.results[100] = {self.results[100]}")
         assert (
-            self.results[100].backend is not None
-            and self.results[100].backend.name == "raw"
+            self.results[100].backend is not None and self.results[100].backend.name == "raw"
         ), f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == "tracingtest-default"
@@ -330,14 +327,10 @@ driver: zipkin
 
         print(f"self.results[100] = {self.results[100]}")
         assert (
-            self.results[100].backend is not None
-            and self.results[100].backend.name == "raw"
+            self.results[100].backend is not None and self.results[100].backend.name == "raw"
         ), f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
-        assert (
-            self.results[100].backend.response[0]
-            == "tracingtestlongclustername-default"
-        )
+        assert self.results[100].backend.response[0] == "tracingtestlongclustername-default"
 
         assert self.results[101].backend
         assert self.results[101].backend.name == "raw"
@@ -345,8 +338,7 @@ driver: zipkin
         tracelist = set(x for x in self.results[101].backend.response)
         print(f"tracelist = {tracelist}")
         assert (
-            "router tracingtestlongclustername_http_default_svc_cluster_local egress"
-            in tracelist
+            "router tracingtestlongclustername_http_default_svc_cluster_local egress" in tracelist
         )
 
         # Look for the host that we actually queried, since that's what appears in the spans.
@@ -407,9 +399,7 @@ config:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query(
-            f"http://{self.zipkin.path.fqdn}:9411/api/v2/traces", phase=check_phase
-        )
+        yield Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/traces", phase=check_phase)
 
         # The diagnostics page should load properly
         yield Query(self.url("ambassador/v0/diag/"), phase=check_phase)
@@ -495,22 +485,10 @@ allowed_request_headers:
             extauth_res["request"]["headers"]["x-b3-parentspanid"]
             == request_headers["x-b3-parentspanid"]
         )
-        assert (
-            extauth_res["request"]["headers"]["x-b3-sampled"]
-            == request_headers["x-b3-sampled"]
-        )
-        assert (
-            extauth_res["request"]["headers"]["x-b3-spanid"]
-            == request_headers["x-b3-spanid"]
-        )
-        assert (
-            extauth_res["request"]["headers"]["x-b3-traceid"]
-            == request_headers["x-b3-traceid"]
-        )
-        assert (
-            extauth_res["request"]["headers"]["x-request-id"]
-            == request_headers["x-request-id"]
-        )
+        assert extauth_res["request"]["headers"]["x-b3-sampled"] == request_headers["x-b3-sampled"]
+        assert extauth_res["request"]["headers"]["x-b3-spanid"] == request_headers["x-b3-spanid"]
+        assert extauth_res["request"]["headers"]["x-b3-traceid"] == request_headers["x-b3-traceid"]
+        assert extauth_res["request"]["headers"]["x-request-id"] == request_headers["x-request-id"]
 
 
 class TracingTestSampling(AmbassadorTest):
@@ -645,9 +623,7 @@ config:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query(
-            f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase
-        )
+        yield Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase)
         yield Query(
             f"http://{self.zipkin.path.fqdn}:9411/api/v2/spans?serviceName=tracingtestzipkinv2-default",
             phase=check_phase,
@@ -668,8 +644,7 @@ config:
 
         print(f"self.results[100] = {self.results[100]}")
         assert (
-            self.results[100].backend is not None
-            and self.results[100].backend.name == "raw"
+            self.results[100].backend is not None and self.results[100].backend.name == "raw"
         ), f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == "tracingtestzipkinv2-default"
@@ -679,10 +654,7 @@ config:
 
         tracelist = set(x for x in self.results[101].backend.response)
         print(f"tracelist = {tracelist}")
-        assert (
-            "router tracingtestzipkinv2_http_default_svc_cluster_local egress"
-            in tracelist
-        )
+        assert "router tracingtestzipkinv2_http_default_svc_cluster_local egress" in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend
@@ -749,9 +721,7 @@ config:
             yield Query(self.url("target/"), phase=1)
 
         # result 100
-        yield Query(
-            f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase
-        )
+        yield Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase)
         # result 101
         yield Query(
             f"http://{self.zipkin.path.fqdn}:9411/api/v2/spans?serviceName=tracingtestzipkinv1-default",
@@ -843,9 +813,7 @@ custom_tags:
             )
 
         # query index-20: ask Jaeger for services
-        yield Query(
-            f"http://{self.jaeger.path.fqdn}:16686/api/services", phase=check_phase
-        )
+        yield Query(f"http://{self.jaeger.path.fqdn}:16686/api/services", phase=check_phase)
 
         # query index-21: ask for envoy traces for ambassador service
         # since the check_readiness also creates spans we need to pull more than 20 to ensure
@@ -864,8 +832,7 @@ custom_tags:
         # verify "ambassador" is the list of services from jaeger
         print(f"self.results[20] = {self.results[20]}")
         assert (
-            self.results[20].json is not None
-            and "ambassador" in self.results[20].json["data"]
+            self.results[20].json is not None and "ambassador" in self.results[20].json["data"]
         ), f"unexpected self.results[20] = {self.results[20]}"
 
         # verify traces for /target egress and its route

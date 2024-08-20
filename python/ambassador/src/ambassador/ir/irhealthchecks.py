@@ -100,9 +100,7 @@ class IRHealthChecks(IRResource):
                 http_mapper: Dict[str, Any] = {"path": path}
 
                 # Process header add/remove operations
-                request_headers_to_add = http_health_check.get(
-                    "add_request_headers", None
-                )
+                request_headers_to_add = http_health_check.get("add_request_headers", None)
                 if request_headers_to_add is not None:
                     if isinstance(request_headers_to_add, list):
                         self.post_error(
@@ -112,9 +110,7 @@ class IRHealthChecks(IRResource):
                     addHeaders = self.generate_headers_to_add(request_headers_to_add)
                     if len(addHeaders) > 0:
                         http_mapper["request_headers_to_add"] = addHeaders
-                request_headers_to_remove = http_health_check.get(
-                    "remove_request_headers", None
-                )
+                request_headers_to_remove = http_health_check.get("remove_request_headers", None)
                 if request_headers_to_remove is not None:
                     if not isinstance(request_headers_to_remove, list):
                         self.post_error(
@@ -122,9 +118,7 @@ class IRHealthChecks(IRResource):
                             log_level=logging.ERROR,
                         )
                     else:
-                        http_mapper["request_headers_to_remove"] = (
-                            request_headers_to_remove
-                        )
+                        http_mapper["request_headers_to_remove"] = request_headers_to_remove
 
                 host = http_health_check.get("hostname", None)
                 if host is not None:
@@ -191,9 +185,7 @@ class IRHealthChecks(IRResource):
             if isinstance(v, dict):
                 if "append" in v:
                     append = bool(v["append"])
-                headers.append(
-                    {"header": {"key": k, "value": v["value"]}, "append": append}
-                )
+                headers.append({"header": {"key": k, "value": v["value"]}, "append": append})
             else:
                 headers.append(
                     {

@@ -82,9 +82,7 @@ class IRBaseMappingGroup(IRResource):
         for mapping in self.mappings:
             if "weight" in mapping:
                 if mapping.weight > 100:
-                    self.post_error(
-                        f"Mapping {mapping.name} has invalid weight {mapping.weight}"
-                    )
+                    self.post_error(f"Mapping {mapping.name} has invalid weight {mapping.weight}")
                     return False
 
                 # increment current weight by mapping's weight
@@ -126,9 +124,7 @@ class IRBaseMappingGroup(IRResource):
             # what we want in the "scale the canary to 100% and then delete the original" case
             # described above. (Not coincidentally, our CanaryDiffMapping tests exercise this.)
             remaining_weight = 100 - current_weight
-            weight_per_weightless_mapping = round(
-                remaining_weight / num_weightless_mappings
-            )
+            weight_per_weightless_mapping = round(remaining_weight / num_weightless_mappings)
 
             self.logger.debug(
                 f"Assigning calculated weight {weight_per_weightless_mapping} of remaining weight {remaining_weight} to each of {num_weightless_mappings} weightless mappings"

@@ -27,14 +27,10 @@ class V3Admin(dict):
         self.update(
             {
                 "access_log_path": "/tmp/admin_access_log",
-                "address": {
-                    "socket_address": {"address": "127.0.0.1", "port_value": aport}
-                },
+                "address": {"socket_address": {"address": "127.0.0.1", "port_value": aport}},
             }
         )
 
     @classmethod
     def generate(cls, config: "V3Config") -> None:
-        config.admin = config.save_element(
-            "admin", config.ir.ambassador_module, V3Admin(config)
-        )
+        config.admin = config.save_element("admin", config.ir.ambassador_module, V3Admin(config))

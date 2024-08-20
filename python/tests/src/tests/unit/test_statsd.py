@@ -89,9 +89,7 @@ service: beepboop
 @pytest.mark.compilertest
 @httpretty.activate
 def test_statsd_other():
-    httpretty.register_uri(
-        httpretty.GET, "other-statsd-sink", body='{"origin": "127.0.0.1"}'
-    )
+    httpretty.register_uri(httpretty.GET, "other-statsd-sink", body='{"origin": "127.0.0.1"}')
     yaml = """
 apiVersion: getambassador.io/v3alpha1
 kind:  Mapping

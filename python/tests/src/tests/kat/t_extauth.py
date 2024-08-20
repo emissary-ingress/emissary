@@ -167,12 +167,12 @@ auth_context_extensions:
         assert self.results[1].backend
         assert self.results[1].backend.name == self.auth.path.k8s
         assert self.results[1].backend.request
-        assert self.results[1].backend.request.headers[
-            "kat-req-extauth-requested-status"
-        ] == ["302"]
-        assert self.results[1].backend.request.headers[
-            "kat-req-extauth-requested-location"
-        ] == ["foo"]
+        assert self.results[1].backend.request.headers["kat-req-extauth-requested-status"] == [
+            "302"
+        ]
+        assert self.results[1].backend.request.headers["kat-req-extauth-requested-location"] == [
+            "foo"
+        ]
         assert self.results[1].status == 302
         assert self.results[1].headers["Location"] == ["foo"]
         assert self.results[1].headers["Kat-Resp-Extauth-Protocol-Version"] == ["v3"]
@@ -181,12 +181,12 @@ auth_context_extensions:
         assert self.results[2].backend
         assert self.results[2].backend.name == self.auth.path.k8s
         assert self.results[2].backend.request
-        assert self.results[2].backend.request.headers[
-            "kat-req-extauth-requested-status"
-        ] == ["401"]
-        assert self.results[2].backend.request.headers[
-            "kat-req-extauth-requested-header"
-        ] == ["x-foo"]
+        assert self.results[2].backend.request.headers["kat-req-extauth-requested-status"] == [
+            "401"
+        ]
+        assert self.results[2].backend.request.headers["kat-req-extauth-requested-header"] == [
+            "x-foo"
+        ]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
@@ -196,21 +196,21 @@ auth_context_extensions:
         # [3] Verifies default whitelisted Authorization request header.
         assert self.results[3].backend
         assert self.results[3].backend.request
-        assert self.results[3].backend.request.headers[
-            "kat-req-extauth-requested-status"
-        ] == ["200"]
-        assert self.results[3].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["Authorization"]
+        assert self.results[3].backend.request.headers["kat-req-extauth-requested-status"] == [
+            "200"
+        ]
+        assert self.results[3].backend.request.headers["kat-req-http-requested-header"] == [
+            "Authorization"
+        ]
         assert self.results[3].backend.request.headers["authorization"] == ["foo-11111"]
         assert self.results[3].backend.request.headers["foo"] == ["foo,bar"]
         assert self.results[3].backend.request.headers["baz"] == ["bar"]
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
-        assert self.results[3].backend.request.headers[
-            "kat-resp-extauth-protocol-version"
-        ] == ["v3"]
+        assert self.results[3].backend.request.headers["kat-resp-extauth-protocol-version"] == [
+            "v3"
+        ]
 
         # [4] Verifies that auth_context_extension is passed along by Envoy.
         assert self.results[4].status == 200
@@ -219,9 +219,7 @@ auth_context_extensions:
         assert self.results[4].backend
         assert self.results[4].backend.request
         context_ext = json.loads(
-            self.results[4].backend.request.headers[
-                "kat-resp-extauth-context-extensions"
-            ][0]
+            self.results[4].backend.request.headers["kat-resp-extauth-context-extensions"][0]
         )
         assert context_ext["first"] == "first element"
         assert context_ext["second"] == "second element"
@@ -233,9 +231,7 @@ auth_context_extensions:
         assert self.results[5].backend
         assert self.results[5].backend.request
         context_ext = json.loads(
-            self.results[5].backend.request.headers[
-                "kat-resp-extauth-context-extensions"
-            ][0]
+            self.results[5].backend.request.headers["kat-resp-extauth-context-extensions"][0]
         )
         assert context_ext["context"] == "auth-context-name"
         assert context_ext["data"] == "auth-data"
@@ -343,40 +339,28 @@ service: {self.target.path.fqdn}
         extauth_res1 = json.loads(self.results[0].headers["Extauth"][0])
         assert self.results[0].backend
         assert self.results[0].backend.request
-        assert self.results[0].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["200"]
+        assert self.results[0].backend.request.headers["kat-req-http-requested-status"] == ["200"]
         assert self.results[0].status == 200
         assert self.results[0].headers["Server"] == ["envoy"]
-        assert extauth_res1["request"]["headers"]["kat-resp-http-request-body"] == [
-            "message"
-        ]
+        assert extauth_res1["request"]["headers"]["kat-resp-http-request-body"] == ["message"]
 
         # [1] Verifies that the authorization server received the full message body.
         extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
         assert self.results[1].backend
         assert self.results[1].backend.request
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["200"]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-status"] == ["200"]
         assert self.results[1].status == 200
         assert self.results[1].headers["Server"] == ["envoy"]
-        assert extauth_res2["request"]["headers"]["kat-resp-http-request-body"] == [
-            "body"
-        ]
+        assert extauth_res2["request"]["headers"]["kat-resp-http-request-body"] == ["body"]
 
         # [2] Verifies that the authorization server received added headers
         assert self.results[2].backend
         assert self.results[2].backend.request
-        assert self.results[2].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["401"]
+        assert self.results[2].backend.request.headers["kat-req-http-requested-status"] == ["401"]
         assert self.results[2].backend.request.headers["x-added-auth"] == ["auth-added"]
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
-        assert extauth_res2["request"]["headers"]["kat-resp-http-request-body"] == [
-            "body"
-        ]
+        assert extauth_res2["request"]["headers"]["kat-resp-http-request-body"] == ["body"]
 
 
 class AuthenticationHTTPBufferedTest(AmbassadorTest):
@@ -531,12 +515,10 @@ service: {self.target.path.fqdn}
         assert self.results[1].backend
         assert self.results[1].backend.name == self.auth.path.k8s
         assert self.results[1].backend.request
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["302"]
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["location"]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-status"] == ["302"]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-header"] == [
+            "location"
+        ]
         assert self.results[1].backend.request.headers["location"] == ["foo"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Server"] == ["envoy"]
@@ -551,12 +533,8 @@ service: {self.target.path.fqdn}
         assert self.results[2].backend
         assert self.results[2].backend.name == self.auth.path.k8s
         assert self.results[2].backend.request
-        assert self.results[2].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["401"]
-        assert self.results[2].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["X-Foo"]
+        assert self.results[2].backend.request.headers["kat-req-http-requested-status"] == ["401"]
+        assert self.results[2].backend.request.headers["kat-req-http-requested-header"] == ["X-Foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
@@ -566,12 +544,8 @@ service: {self.target.path.fqdn}
         assert self.results[3].backend
         assert self.results[3].backend.name == self.auth.path.k8s
         assert self.results[3].backend.request
-        assert self.results[3].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["401"]
-        assert self.results[3].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["X-Bar"]
+        assert self.results[3].backend.request.headers["kat-req-http-requested-status"] == ["401"]
+        assert self.results[3].backend.request.headers["kat-req-http-requested-header"] == ["X-Bar"]
         assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
         assert self.results[3].status == 401
         assert self.results[3].headers["Server"] == ["envoy"]
@@ -580,12 +554,10 @@ service: {self.target.path.fqdn}
         # [4] Verifies default whitelisted Authorization request header.
         assert self.results[4].backend
         assert self.results[4].backend.request
-        assert self.results[4].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["200"]
-        assert self.results[4].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["Authorization"]
+        assert self.results[4].backend.request.headers["kat-req-http-requested-status"] == ["200"]
+        assert self.results[4].backend.request.headers["kat-req-http-requested-header"] == [
+            "Authorization"
+        ]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
         assert self.results[4].backend.request.headers["l5d-dst-override"] == [
             f"{self.target.path.fqdn}:80"
@@ -679,9 +651,7 @@ service: {self.target.path.fqdn}
         # extauth_res1 = json.loads(self.results[0].headers["Extauth"][0])
         assert self.results[0].backend
         assert self.results[0].backend.request
-        assert self.results[0].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["200"]
+        assert self.results[0].backend.request.headers["kat-req-http-requested-status"] == ["200"]
         assert self.results[0].status == 200
         assert self.results[0].headers["Server"] == ["envoy"]
 
@@ -689,9 +659,7 @@ service: {self.target.path.fqdn}
         # extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
         assert self.results[1].backend
         assert self.results[1].backend.request
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["503"]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-status"] == ["503"]
         assert self.results[1].headers["Server"] == ["envoy"]
 
 
@@ -836,9 +804,7 @@ bypass_auth: true
         )
 
         # [5]
-        yield Query(
-            self.url("target/5"), headers={"X-Forwarded-Proto": "https"}, expected=200
-        )
+        yield Query(self.url("target/5"), headers={"X-Forwarded-Proto": "https"}, expected=200)
 
         # [6]
         yield Query(
@@ -869,9 +835,7 @@ bypass_auth: true
         self.backend_counts.setdefault(backend_name, 0)
         self.backend_counts[backend_name] += 1
 
-        return (backend_name == self.auth1.path.k8s) or (
-            backend_name == self.auth2.path.k8s
-        )
+        return (backend_name == self.auth1.path.k8s) or (backend_name == self.auth2.path.k8s)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -891,12 +855,10 @@ bypass_auth: true
         assert self.check_backend_name(self.results[1])
         assert self.results[1].backend
         assert self.results[1].backend.request
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["302"]
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["location"]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-status"] == ["302"]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-header"] == [
+            "location"
+        ]
         assert self.results[1].backend.request.headers["location"] == ["foo"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Server"] == ["envoy"]
@@ -906,12 +868,8 @@ bypass_auth: true
         assert self.check_backend_name(self.results[2])
         assert self.results[2].backend
         assert self.results[2].backend.request
-        assert self.results[2].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["401"]
-        assert self.results[2].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["X-Foo"]
+        assert self.results[2].backend.request.headers["kat-req-http-requested-status"] == ["401"]
+        assert self.results[2].backend.request.headers["kat-req-http-requested-header"] == ["X-Foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
@@ -921,12 +879,8 @@ bypass_auth: true
         assert self.check_backend_name(self.results[3])
         assert self.results[3].backend
         assert self.results[3].backend.request
-        assert self.results[3].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["401"]
-        assert self.results[3].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["X-Bar"]
+        assert self.results[3].backend.request.headers["kat-req-http-requested-status"] == ["401"]
+        assert self.results[3].backend.request.headers["kat-req-http-requested-header"] == ["X-Bar"]
         assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
         assert self.results[3].status == 401
         assert self.results[3].headers["Server"] == ["envoy"]
@@ -938,12 +892,10 @@ bypass_auth: true
             self.results[4].backend.name == self.target.path.k8s
         )  # this response is from an auth success
         assert self.results[4].backend.request
-        assert self.results[4].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["200"]
-        assert self.results[4].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["Authorization"]
+        assert self.results[4].backend.request.headers["kat-req-http-requested-status"] == ["200"]
+        assert self.results[4].backend.request.headers["kat-req-http-requested-header"] == [
+            "Authorization"
+        ]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
@@ -959,9 +911,7 @@ bypass_auth: true
         r5 = self.results[5]
         assert r5
         assert r5.backend
-        assert (
-            r5.backend.name == self.target.path.k8s
-        )  # this response is from an auth success
+        assert r5.backend.name == self.target.path.k8s  # this response is from an auth success
 
         assert r5.status == 200
         assert r5.headers["Server"] == ["envoy"]
@@ -980,9 +930,7 @@ bypass_auth: true
             self.results[6]
         )  # ensure the request did not go to the auth service
         assert self.results[6].backend.request
-        assert self.results[6].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["200"]
+        assert self.results[6].backend.request.headers["kat-req-http-requested-status"] == ["200"]
         assert self.results[6].status == 200
         assert self.results[6].headers["Server"] == ["envoy"]
 
@@ -1004,20 +952,10 @@ bypass_auth: true
         for i in range(20):
             assert self.check_backend_name(self.results[8 + i])
 
-        print(
-            "auth1 service got %d requests"
-            % self.backend_counts.get(self.auth1.path.k8s, -1)
-        )
-        print(
-            "auth2 service got %d requests"
-            % self.backend_counts.get(self.auth2.path.k8s, -1)
-        )
-        assert (
-            self.backend_counts.get(self.auth1.path.k8s, 0) > 0
-        ), "auth1 got no requests"
-        assert (
-            self.backend_counts.get(self.auth2.path.k8s, 0) > 0
-        ), "auth2 got no requests"
+        print("auth1 service got %d requests" % self.backend_counts.get(self.auth1.path.k8s, -1))
+        print("auth2 service got %d requests" % self.backend_counts.get(self.auth2.path.k8s, -1))
+        assert self.backend_counts.get(self.auth1.path.k8s, 0) > 0, "auth1 got no requests"
+        assert self.backend_counts.get(self.auth2.path.k8s, 0) > 0, "auth2 got no requests"
 
 
 class AuthenticationTest(AmbassadorTest):
@@ -1122,9 +1060,7 @@ service: {self.target.path.fqdn}
             expected=200,
         )
         # [5]
-        yield Query(
-            self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200
-        )
+        yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -1145,15 +1081,11 @@ service: {self.target.path.fqdn}
         assert self.results[1].backend
         assert self.results[1].backend.name == self.auth.path.k8s
         assert self.results[1].backend.request
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["302"]
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["location"]
-        assert self.results[1].backend.request.headers[
-            "kat-req-http-requested-location"
-        ] == ["foo"]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-status"] == ["302"]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-header"] == [
+            "location"
+        ]
+        assert self.results[1].backend.request.headers["kat-req-http-requested-location"] == ["foo"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Server"] == ["envoy"]
         assert self.results[1].headers["Location"] == ["foo"]
@@ -1162,12 +1094,8 @@ service: {self.target.path.fqdn}
         assert self.results[2].backend
         assert self.results[2].backend.name == self.auth.path.k8s
         assert self.results[2].backend.request
-        assert self.results[2].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["401"]
-        assert self.results[2].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["X-Foo"]
+        assert self.results[2].backend.request.headers["kat-req-http-requested-status"] == ["401"]
+        assert self.results[2].backend.request.headers["kat-req-http-requested-header"] == ["X-Foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
@@ -1177,12 +1105,8 @@ service: {self.target.path.fqdn}
         assert self.results[3].backend
         assert self.results[3].backend.name == self.auth.path.k8s
         assert self.results[3].backend.request
-        assert self.results[3].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["401"]
-        assert self.results[3].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["X-Bar"]
+        assert self.results[3].backend.request.headers["kat-req-http-requested-status"] == ["401"]
+        assert self.results[3].backend.request.headers["kat-req-http-requested-header"] == ["X-Bar"]
         assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
         assert self.results[3].status == 401
         assert self.results[3].headers["Server"] == ["envoy"]
@@ -1191,12 +1115,10 @@ service: {self.target.path.fqdn}
         # [4] Verifies default whitelisted Authorization request header.
         assert self.results[4].backend
         assert self.results[4].backend.request
-        assert self.results[4].backend.request.headers[
-            "kat-req-http-requested-status"
-        ] == ["200"]
-        assert self.results[4].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["Authorization"]
+        assert self.results[4].backend.request.headers["kat-req-http-requested-status"] == ["200"]
+        assert self.results[4].backend.request.headers["kat-req-http-requested-header"] == [
+            "Authorization"
+        ]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
@@ -1269,9 +1191,7 @@ use_websocket: true
     def queries(self):
         yield Query(self.url(self.name + "/"), expected=404)
 
-        yield Query(
-            self.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"]
-        )
+        yield Query(self.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"])
 
     def check(self):
         assert self.results[-1].messages == ["one", "two", "three"]
@@ -1423,12 +1343,12 @@ service: {self.target.path.fqdn}
         assert self.results[1].backend
         assert self.results[1].backend.name == self.auth.path.k8s
         assert self.results[1].backend.request
-        assert self.results[1].backend.request.headers[
-            "kat-req-extauth-requested-status"
-        ] == ["302"]
-        assert self.results[1].backend.request.headers[
-            "kat-req-extauth-requested-location"
-        ] == ["foo"]
+        assert self.results[1].backend.request.headers["kat-req-extauth-requested-status"] == [
+            "302"
+        ]
+        assert self.results[1].backend.request.headers["kat-req-extauth-requested-location"] == [
+            "foo"
+        ]
         assert self.results[1].status == 302
         assert self.results[1].headers["Location"] == ["foo"]
         assert self.results[1].headers["Kat-Resp-Extauth-Protocol-Version"] == [
@@ -1439,12 +1359,12 @@ service: {self.target.path.fqdn}
         assert self.results[2].backend
         assert self.results[2].backend.name == self.auth.path.k8s
         assert self.results[2].backend.request
-        assert self.results[2].backend.request.headers[
-            "kat-req-extauth-requested-status"
-        ] == ["401"]
-        assert self.results[2].backend.request.headers[
-            "kat-req-extauth-requested-header"
-        ] == ["x-foo"]
+        assert self.results[2].backend.request.headers["kat-req-extauth-requested-status"] == [
+            "401"
+        ]
+        assert self.results[2].backend.request.headers["kat-req-extauth-requested-header"] == [
+            "x-foo"
+        ]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
@@ -1456,21 +1376,21 @@ service: {self.target.path.fqdn}
         # [3] Verifies default whitelisted Authorization request header.
         assert self.results[3].backend
         assert self.results[3].backend.request
-        assert self.results[3].backend.request.headers[
-            "kat-req-extauth-requested-status"
-        ] == ["200"]
-        assert self.results[3].backend.request.headers[
-            "kat-req-http-requested-header"
-        ] == ["Authorization"]
+        assert self.results[3].backend.request.headers["kat-req-extauth-requested-status"] == [
+            "200"
+        ]
+        assert self.results[3].backend.request.headers["kat-req-http-requested-header"] == [
+            "Authorization"
+        ]
         assert self.results[3].backend.request.headers["authorization"] == ["foo-11111"]
         assert self.results[3].backend.request.headers["foo"] == ["foo,bar"]
         assert self.results[3].backend.request.headers["baz"] == ["bar"]
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
-        assert self.results[3].backend.request.headers[
-            "kat-resp-extauth-protocol-version"
-        ] == [self.expected_protocol_version]
+        assert self.results[3].backend.request.headers["kat-resp-extauth-protocol-version"] == [
+            self.expected_protocol_version
+        ]
 
 
 class AuthenticationDisabledOnRedirectTest(AmbassadorTest):
@@ -1602,11 +1522,7 @@ spec:
         # we should NOT make a call to the backend service,
         # rather envoy should have redirected to https
         assert self.results[0].backend is None
-        assert self.results[0].headers["Location"] == [
-            f"https://{self.path.fqdn}/target/"
-        ]
+        assert self.results[0].headers["Location"] == [f"https://{self.path.fqdn}/target/"]
 
         assert self.results[1].backend is None
-        assert self.results[1].headers["Location"] == [
-            f"https://{self.target.path.fqdn}/target/"
-        ]
+        assert self.results[1].headers["Location"] == [f"https://{self.target.path.fqdn}/target/"]

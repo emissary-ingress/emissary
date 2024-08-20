@@ -292,9 +292,7 @@ service: globalloadbalancing-service
         for result in generic_queries:
             assert result.backend
             generic_dict[result.backend.name] = (
-                generic_dict[result.backend.name] + 1
-                if result.backend.name in generic_dict
-                else 1
+                generic_dict[result.backend.name] + 1 if result.backend.name in generic_dict else 1
             )
         assert len(generic_dict) == 3
 
@@ -303,9 +301,7 @@ service: globalloadbalancing-service
         for result in header_queries:
             assert result.backend
             header_dict[result.backend.name] = (
-                header_dict[result.backend.name] + 1
-                if result.backend.name in header_dict
-                else 1
+                header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
             )
         assert len(header_dict) == 3
 
@@ -314,9 +310,7 @@ service: globalloadbalancing-service
         for result in cookie_queries:
             assert result.backend
             cookie_dict[result.backend.name] = (
-                cookie_dict[result.backend.name] + 1
-                if result.backend.name in cookie_dict
-                else 1
+                cookie_dict[result.backend.name] + 1 if result.backend.name in cookie_dict else 1
             )
         assert len(cookie_dict) == 1
 

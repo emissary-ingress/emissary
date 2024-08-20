@@ -56,9 +56,7 @@ def test_cidrrange():
             assert c.prefix_len == wanted_prefix_len
             assert c.error is None
         else:
-            assert not bool(
-                c
-            ), f"{spec} should be an invalid CIDRRange but is valid? {c}"
+            assert not bool(c), f"{spec} should be an invalid CIDRRange but is valid? {c}"
 
             assert c.address is None
             assert c.prefix_len is None
@@ -107,9 +105,7 @@ def test_cidrrange_v3():
             assert c.prefix_len == wanted_prefix_len
             assert c.error is None
         else:
-            assert not bool(
-                c
-            ), f"{spec} should be an invalid CIDRRange but is valid? {c}"
+            assert not bool(c), f"{spec} should be an invalid CIDRRange but is valid? {c}"
 
             assert c.address is None
             assert c.prefix_len is None

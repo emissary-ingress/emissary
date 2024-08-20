@@ -36,9 +36,7 @@ config:
     def check(self):
         access_log_entry_regex = re.compile("^MY_REQUEST 200 .*")
 
-        cmd = ShellCommand(
-            "tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path
-        )
+        cmd = ShellCommand("tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path)
         if not cmd.check("check envoy access log"):
             pytest.exit("envoy access log does not exist")
 
@@ -79,9 +77,7 @@ config:
     def check(self):
         access_log_entry_regex = re.compile('^({"duration":|{"protocol":)')
 
-        cmd = ShellCommand(
-            "tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path
-        )
+        cmd = ShellCommand("tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path)
         if not cmd.check("check envoy access log"):
             pytest.exit("envoy access log does not exist")
 
@@ -122,9 +118,7 @@ config:
     def check(self):
         access_log_entry_regex = re.compile('^({"duration":|{"protocol":)')
 
-        cmd = ShellCommand(
-            "tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path
-        )
+        cmd = ShellCommand("tools/bin/kubectl", "exec", self.path.k8s, "cat", self.log_path)
         if not cmd.check("check envoy access log"):
             pytest.exit("envoy access log does not exist")
 

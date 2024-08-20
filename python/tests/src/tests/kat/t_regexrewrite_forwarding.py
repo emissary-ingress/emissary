@@ -37,17 +37,11 @@ regex_rewrite:
     def check(self):
         assert self.results[0].backend
         assert self.results[0].backend.request
-        assert (
-            self.results[0].backend.request.headers["x-envoy-original-path"][0]
-            == "/foo/bar"
-        )
+        assert self.results[0].backend.request.headers["x-envoy-original-path"][0] == "/foo/bar"
         assert self.results[0].backend.request.url.path == "/foo/bar"
         assert self.results[1].backend
         assert self.results[1].backend.request
-        assert (
-            self.results[1].backend.request.headers["x-envoy-original-path"][0]
-            == "/foo/baz"
-        )
+        assert self.results[1].backend.request.headers["x-envoy-original-path"][0] == "/foo/baz"
         assert self.results[1].backend.request.url.path == "/baz/foo"
 
 

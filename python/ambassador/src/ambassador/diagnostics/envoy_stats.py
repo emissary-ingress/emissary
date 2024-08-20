@@ -117,9 +117,7 @@ class EnvoyStats:
             }
 
         cstat = dict(**cstat[name])
-        cstat.update(
-            {"valid": True, "reason": "Cluster %s updated at %d" % (name, when)}
-        )
+        cstat.update({"valid": True, "reason": "Cluster %s updated at %d" % (name, when)})
 
         pct = cstat.get("healthy_percent", None)
 
@@ -131,9 +129,7 @@ class EnvoyStats:
             elif pct < 90:
                 color = "yellow"
 
-            cstat.update(
-                {"health": "%d%% healthy" % pct, "hmetric": str(pct), "hcolor": color}
-            )
+            cstat.update({"health": "%d%% healthy" % pct, "hmetric": str(pct), "hcolor": color})
         else:
             cstat.update(
                 {
@@ -205,9 +201,7 @@ class EnvoyStatsMgr:
             self.logger.warning("EnvoyStats.update failed: %s" % e)
             return None
 
-    def update_log_levels(
-        self, last_attempt: float, level: Optional[str] = None
-    ) -> bool:
+    def update_log_levels(self, last_attempt: float, level: Optional[str] = None) -> bool:
         """
         Heavy lifting around updating the Envoy log levels.
 
@@ -388,9 +382,7 @@ class EnvoyStatsMgr:
 
                 upstream_4xx = cluster.get("upstream_rq_4xx", 0)
                 upstream_5xx = cluster.get("upstream_rq_5xx", 0)
-                upstream_bad = (
-                    upstream_5xx  # used to include 4XX here, but that seems wrong.
-                )
+                upstream_bad = upstream_5xx  # used to include 4XX here, but that seems wrong.
 
                 upstream_ok = upstream_total - upstream_bad
 

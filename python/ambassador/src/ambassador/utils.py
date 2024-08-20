@@ -94,9 +94,7 @@ def dump_json(obj: Any, pretty=False) -> str:
         return bytes.decode(
             orjson.dumps(
                 obj,
-                option=orjson.OPT_NON_STR_KEYS
-                | orjson.OPT_SORT_KEYS
-                | orjson.OPT_INDENT_2,
+                option=orjson.OPT_NON_STR_KEYS | orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
             )
         )
     else:
@@ -185,9 +183,7 @@ def parse_bool(s: Optional[Union[str, bool]]) -> bool:
 
     # OK, we got _something_, so try strtobool.
     try:
-        return bool(
-            strtobool(s)
-        )  # the linter does not like a Literal[0, 1] being returned here
+        return bool(strtobool(s))  # the linter does not like a Literal[0, 1] being returned here
     except ValueError:
         return False
 
@@ -227,9 +223,7 @@ class RichStatus:
         return key in self.info
 
     def __str__(self):
-        attrs = [
-            "%s=%s" % (key, repr(self.info[key])) for key in sorted(self.info.keys())
-        ]
+        attrs = ["%s=%s" % (key, repr(self.info[key])) for key in sorted(self.info.keys())]
         astr = " ".join(attrs)
 
         if astr:
@@ -581,9 +575,7 @@ class SecretInfo:
         if not b64_pem:
             return False
 
-        return not (
-            b64_pem.startswith("-----BEGIN") or b64_pem.startswith("-sanitized-")
-        )
+        return not (b64_pem.startswith("-----BEGIN") or b64_pem.startswith("-sanitized-"))
 
     @staticmethod
     def decode(b64_pem: str) -> Optional[str]:
@@ -790,10 +782,7 @@ class SavedSecret:
         return "secret %s in namespace %s" % (self.secret_name, self.namespace)
 
     def __bool__(self) -> bool:
-        return bool(
-            (bool(self.cert_path) or bool(self.user_path))
-            and (self.cert_data is not None)
-        )
+        return bool((bool(self.cert_path) or bool(self.user_path)) and (self.cert_data is not None))
 
     def __str__(self) -> str:
         return (
@@ -871,9 +860,7 @@ class SecretHandler:
 
         return None
 
-    def still_needed(
-        self, resource: "IRResource", secret_name: str, namespace: str
-    ) -> None:
+    def still_needed(self, resource: "IRResource", secret_name: str, namespace: str) -> None:
         """
         still_needed: remember that a given secret is still needed, so that we can tell watt to
         keep paying attention to it.
@@ -889,9 +876,7 @@ class SecretHandler:
             % (resource.kind, resource.name, secret_name, namespace)
         )
 
-    def cache_secret(
-        self, resource: "IRResource", secret_info: SecretInfo
-    ) -> SavedSecret:
+    def cache_secret(self, resource: "IRResource", secret_info: SecretInfo) -> SavedSecret:
         """
         cache_secret: stash the SecretInfo from load_secret into Ambassador’s internal cache,
         so that we don’t have to call load_secret again if we need it again.
@@ -908,9 +893,7 @@ class SecretHandler:
         user_key = secret_info.user_key
         root_crt = secret_info.root_crt
 
-        return self.cache_internal(
-            name, namespace, tls_crt, tls_key, user_key, root_crt
-        )
+        return self.cache_internal(name, namespace, tls_crt, tls_key, user_key, root_crt)
 
     def cache_internal(
         self,
@@ -937,9 +920,7 @@ class SecretHandler:
 
             hd = h.hexdigest().upper()
 
-            secret_dir = os.path.join(
-                self.cache_dir, namespace, "secrets-decoded", name
-            )
+            secret_dir = os.path.join(self.cache_dir, namespace, "secrets-decoded", name)
 
             try:
                 os.makedirs(secret_dir)
@@ -1005,9 +986,7 @@ class SecretHandler:
             try:
                 objects = parse_yaml(serialization)
             except yaml.error.YAMLError as e:
-                self.logger.error(
-                    f"{resource.kind} {resource.name}: could not parse {source}: {e}"
-                )
+                self.logger.error(f"{resource.kind} {resource.name}: could not parse {source}: {e}")
 
         if not objects:
             # Nothing in the serialization, we're done.
@@ -1087,14 +1066,10 @@ class NullSecretHandler(SecretHandler):
             source_root = self.tempdir_source.name
 
         if not cache_dir:
-            self.tempdir_cache = tempfile.TemporaryDirectory(
-                prefix="null-secret-", suffix="-cache"
-            )
+            self.tempdir_cache = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
             cache_dir = self.tempdir_cache.name
 
-        logger.info(
-            f"NullSecretHandler using source_root {source_root}, cache_dir {cache_dir}"
-        )
+        logger.info(f"NullSecretHandler using source_root {source_root}, cache_dir {cache_dir}")
 
         super().__init__(logger, source_root, cache_dir, version)
 
@@ -1148,9 +1123,7 @@ class FSSecretHandler(SecretHandler):
             % (resource.kind, resource.name, secret_name, namespace)
         )
 
-        source = os.path.join(
-            self.source_root, namespace, "secrets", "%s.yaml" % secret_name
-        )
+        source = os.path.join(self.source_root, namespace, "secrets", "%s.yaml" % secret_name)
 
         serialization = None
 
@@ -1158,8 +1131,7 @@ class FSSecretHandler(SecretHandler):
             serialization = open(source, "r").read()
         except IOError:
             self.logger.error(
-                "%s %s: FSSecretHandler could not open %s"
-                % (resource.kind, resource.name, source)
+                "%s %s: FSSecretHandler could not open %s" % (resource.kind, resource.name, source)
             )
 
         # Yes, this duplicates part of self.secret_info_from_k8s, but whatever.
@@ -1171,8 +1143,7 @@ class FSSecretHandler(SecretHandler):
                 objects = parse_yaml(serialization)
             except yaml.error.YAMLError as e:
                 self.logger.error(
-                    "%s %s: could not parse %s: %s"
-                    % (resource.kind, resource.name, source, e)
+                    "%s %s: could not parse %s: %s" % (resource.kind, resource.name, source, e)
                 )
 
         if not objects:
@@ -1206,9 +1177,7 @@ class FSSecretHandler(SecretHandler):
             )
 
         # Didn't look like an Ambassador object. Try K8s.
-        return self.secret_info_from_k8s(
-            resource, secret_name, namespace, source, serialization
-        )
+        return self.secret_info_from_k8s(resource, secret_name, namespace, source, serialization)
 
 
 # TODO(gsagula): This duplicates code from ircluster.py.

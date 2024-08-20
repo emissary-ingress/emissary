@@ -227,12 +227,8 @@ class AmbassadorTest(Test):
 
                 if ids:
                     print("Killing old containers...")
-                    ShellCommand.run(
-                        "kill old containers", "docker", "kill", *ids, verbose=True
-                    )
-                    ShellCommand.run(
-                        "rm old containers", "docker", "rm", *ids, verbose=True
-                    )
+                    ShellCommand.run("kill old containers", "docker", "kill", *ids, verbose=True)
+                    ShellCommand.run("rm old containers", "docker", "rm", *ids, verbose=True)
 
             context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
@@ -584,9 +580,7 @@ class WebsocketEcho(ServiceType):
 
     def __init__(self, *args, **kwargs) -> None:
         # Do this unconditionally, because that's the point of this class.
-        kwargs["service_manifests"] = integration_manifests.load(
-            "websocket_echo_backend"
-        )
+        kwargs["service_manifests"] = integration_manifests.load("websocket_echo_backend")
         super().__init__(*args, **kwargs)
 
     def requirements(self):

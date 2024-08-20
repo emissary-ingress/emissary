@@ -41,9 +41,7 @@ service: {self.target.path.fqdn}
         )
 
     def queries(self):
-        yield Query(
-            self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200
-        )
+        yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
 
     def check(self):
         assert self.results[0].headers["Content-Encoding"] == ["gzip"]
@@ -89,9 +87,7 @@ service: {self.target.path.fqdn}
         )
 
     def queries(self):
-        yield Query(
-            self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200
-        )
+        yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
 
     def check(self):
         assert self.results[0].headers["Content-Encoding"] == ["gzip"]
@@ -136,9 +132,7 @@ service: {self.target.path.fqdn}
         )
 
     def queries(self):
-        yield Query(
-            self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200
-        )
+        yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
 
     def check(self):
         assert "Content-Encoding" not in self.results[0].headers

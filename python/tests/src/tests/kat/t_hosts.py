@@ -9,11 +9,13 @@ from tests.utils import create_crl_pem_b64
 # Mappings without host attributes (infer via Host resource)
 # Host where a TLSContext with the inferred name already exists
 
-bug_single_insecure_action = (
-    False  # Do all Hosts have to have the same insecure.action?
+bug_single_insecure_action = False  # Do all Hosts have to have the same insecure.action?
+bug_forced_star = (
+    True  # Do we erroneously send replies in cleartext instead of TLS for unknown hosts?
 )
-bug_forced_star = True  # Do we erroneously send replies in cleartext instead of TLS for unknown hosts?
-bug_404_routes = True  # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+bug_404_routes = (
+    True  # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+)
 bug_clientcert_reset = True  # Do we sometimes just close the connection instead of sending back tls certificate_required?
 
 
@@ -176,9 +178,7 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-        yield Query(
-            self.url("target/", scheme="http"), error=["EOF", "connection refused"]
-        )
+        yield Query(self.url("target/", scheme="http"), error=["EOF", "connection refused"])
 
 
 class HostCRDManualContext(AmbassadorTest):
@@ -663,9 +663,7 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-        yield Query(
-            self.url("target/", scheme="https"), error=["EOF", "connection refused"]
-        )
+        yield Query(self.url("target/", scheme="https"), error=["EOF", "connection refused"])
 
 
 class HostCRDDouble(AmbassadorTest):
@@ -1081,9 +1079,7 @@ spec:
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json or []
         num_errors = len(errors)
-        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(
-            num_errors, errors
-        )
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
 
         idx = 0
 
@@ -1092,13 +1088,10 @@ spec:
                 host_header = result.query.headers["Host"]
                 tls_common_name = result.tls[0]["Subject"]["CommonName"]
 
-                assert host_header == tls_common_name, (
-                    "test %d wanted CN %s, but got %s"
-                    % (
-                        idx,
-                        host_header,
-                        tls_common_name,
-                    )
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
                 )
 
             idx += 1
@@ -1396,9 +1389,7 @@ spec:
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json or []
         num_errors = len(errors)
-        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(
-            num_errors, errors
-        )
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
 
         idx = 0
 
@@ -1407,13 +1398,10 @@ spec:
                 host_header = result.query.headers["Host"]
                 tls_common_name = result.tls[0]["Subject"]["CommonName"]
 
-                assert host_header == tls_common_name, (
-                    "test %d wanted CN %s, but got %s"
-                    % (
-                        idx,
-                        host_header,
-                        tls_common_name,
-                    )
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
                 )
 
             idx += 1
@@ -1707,9 +1695,7 @@ spec:
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json or []
         num_errors = len(errors)
-        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(
-            num_errors, errors
-        )
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
 
         idx = 0
 
@@ -1718,13 +1704,10 @@ spec:
                 host_header = result.query.headers["Host"]
                 tls_common_name = result.tls[0]["Subject"]["CommonName"]
 
-                assert host_header == tls_common_name, (
-                    "test %d wanted CN %s, but got %s"
-                    % (
-                        idx,
-                        host_header,
-                        tls_common_name,
-                    )
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
                 )
 
             idx += 1
@@ -1881,9 +1864,7 @@ spec:
         yield Query(
             **self.secure("1-200"), headers={"Host": "wc.domain.com"}, expected=200
         )  # Host=*.domain.com
-        yield Query(
-            **self.secure("2-200"), headers={"Host": "127.0.0.1"}, expected=200
-        )  # Host=*
+        yield Query(**self.secure("2-200"), headers={"Host": "127.0.0.1"}, expected=200)  # Host=*
 
         yield Query(
             **self.insecure("3-301"), headers={"Host": "a.domain.com"}, expected=301
@@ -1891,9 +1872,7 @@ spec:
         yield Query(
             **self.insecure("4-200"), headers={"Host": "wc.domain.com"}, expected=200
         )  # Host=*.domain.com
-        yield Query(
-            **self.insecure("5-301"), headers={"Host": "127.0.0.1"}, expected=301
-        )  # Host=*
+        yield Query(**self.insecure("5-301"), headers={"Host": "127.0.0.1"}, expected=301)  # Host=*
 
     def scheme(self) -> str:
         return "https"
@@ -1902,7 +1881,9 @@ spec:
         for r in super().requirements():
             query = r[1]
             query.headers = {"Host": "127.0.0.1"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["*.domain.com"].pubcert
             yield (r[0], query)
 
@@ -2039,7 +2020,9 @@ spec:
         for r in super().requirements():
             query = r[1]
             query.headers = {"Host": "ambassador.example.com"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["master.datawire.io"].pubcert
             query.client_cert = TLSCerts["presto.example.com"].pubcert
             query.client_key = TLSCerts["presto.example.com"].privkey
@@ -2195,7 +2178,9 @@ spec:
         for r in super().requirements():
             query = r[1]
             query.headers = {"Host": "ambassador.example.com"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["master.datawire.io"].pubcert
             query.client_cert = TLSCerts["presto.example.com"].pubcert
             query.client_key = TLSCerts["presto.example.com"].privkey
@@ -2556,7 +2541,9 @@ data:
         for r in super().requirements():
             query = r[1]
             query.headers = {"Host": "tls-context-host-1"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
             yield (r[0], query)
 
@@ -2656,7 +2643,9 @@ spec:
         for r in super().requirements():
             query = r[1]
             query.headers = {"Host": "tls-context-host-1"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
             yield (r[0], query)
 
@@ -2769,7 +2758,9 @@ spec:
         for r in super().requirements():
             query = r[1]
             query.headers = {"Host": "tls-context-host-1"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
             yield (r[0], query)
 
@@ -2900,11 +2891,7 @@ spec:
             sni=True,
             insecure=True,
             expected=200,
-            error=(
-                "http: server gave HTTP response to HTTPS client"
-                if bug_forced_star
-                else None
-            ),
+            error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None),
         )
 
         # 6-7: TLS 404
@@ -2922,18 +2909,16 @@ spec:
             sni=True,
             insecure=True,
             expected=404,
-            error=(
-                "http: server gave HTTP response to HTTPS client"
-                if bug_forced_star
-                else None
-            ),
+            error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None),
         )
 
     def requirements(self):
         for r in super().requirements():
             query = r[1]
             query.headers = {"Host": "tls-context-host-1"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
             yield (r[0], query)
 
@@ -3036,9 +3021,7 @@ spec:
         # XXX If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json or []
         num_errors = len(errors)
-        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(
-            num_errors, errors
-        )
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
 
         idx = 0
 
@@ -3047,13 +3030,10 @@ spec:
                 host_header = result.query.headers["Host"]
                 tls_common_name = result.tls[0]["Subject"]["CommonName"]
 
-                assert host_header == tls_common_name, (
-                    "test %d wanted CN %s, but got %s"
-                    % (
-                        idx,
-                        host_header,
-                        tls_common_name,
-                    )
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
                 )
 
             idx += 1
@@ -3255,9 +3235,7 @@ spec:
         # XXX If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json or []
         num_errors = len(errors)
-        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(
-            num_errors, errors
-        )
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
 
         idx = 0
 
@@ -3266,13 +3244,10 @@ spec:
                 host_header = result.query.headers["Host"]
                 tls_common_name = result.tls[0]["Subject"]["CommonName"]
 
-                assert host_header == tls_common_name, (
-                    "test %d wanted CN %s, but got %s"
-                    % (
-                        idx,
-                        host_header,
-                        tls_common_name,
-                    )
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
                 )
 
             idx += 1

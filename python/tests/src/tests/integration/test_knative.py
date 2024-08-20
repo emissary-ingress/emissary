@@ -204,9 +204,7 @@ class KnativeTesting:
         assert code == 404, f"Expected 404, got {code}"
         print(f"{kservice_url} returns 404 with no host")
 
-        code = get_code_with_retry(
-            kservice_url, headers={"Host": "random.host.whatever"}
-        )
+        code = get_code_with_retry(kservice_url, headers={"Host": "random.host.whatever"})
         assert code == 404, f"Expected 404, got {code}"
         print(f"{kservice_url} returns 404 with a random host")
 
@@ -233,9 +231,7 @@ class KnativeTesting:
                 break
 
         assert code == 200, f"Expected 200, got {code}"
-        print(
-            f"{kservice_url} returns 200 OK with host helloworld-go.{namespace}.example.com"
-        )
+        print(f"{kservice_url} returns 200 OK with host helloworld-go.{namespace}.example.com")
 
 
 def test_knative_counters():
@@ -248,9 +244,7 @@ def test_knative_counters():
     ir = IR(aconf, secret_handler=secret_handler)
     feats = ir.features()
 
-    assert (
-        feats["knative_ingress_count"] == 1
-    ), "Expected a Knative ingress, did not find one"
+    assert feats["knative_ingress_count"] == 1, "Expected a Knative ingress, did not find one"
     assert (
         feats["cluster_ingress_count"] == 0
     ), "Expected no Knative cluster ingresses, found at least one"

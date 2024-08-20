@@ -80,9 +80,7 @@ def Compile(
 
     aconf.load_all(fetcher.sorted())
 
-    ir = IR(
-        aconf, cache=cache, file_checker=file_checker, secret_handler=secret_handler
-    )
+    ir = IR(aconf, cache=cache, file_checker=file_checker, secret_handler=secret_handler)
 
     out: _CompileResult = {"ir": ir}
 

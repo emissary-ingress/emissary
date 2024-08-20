@@ -69,9 +69,7 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     )
 
     # Proceed to install Ambassador now
-    rbac_manifest_name = (
-        "rbac_namespace_scope" if single_namespace else "rbac_cluster_scope"
-    )
+    rbac_manifest_name = "rbac_namespace_scope" if single_namespace else "rbac_cluster_scope"
 
     # Hackish fakes of actual KAT structures -- it's _far_ too much work to synthesize
     # actual KAT Nodes and Paths.
@@ -126,9 +124,7 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
             final_yaml.append(manifest)
 
     apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(final_yaml))
-    apply_kube_artifacts(
-        namespace="emissary-system", artifacts=yaml.safe_dump_all(apiext_yaml)
-    )
+    apply_kube_artifacts(namespace="emissary-system", artifacts=yaml.safe_dump_all(apiext_yaml))
 
 
 def update_envs(envs, name, value):
