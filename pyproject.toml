@@ -63,6 +63,7 @@ dev-dependencies = [
     "tests==4.*",
     # Dev Requirements
     "mypy>=1",
+    "ruff>=0.6",
     "retry2>=0.9",
     "pytest==8.*",
     "awscli>=1.33",
@@ -249,7 +250,6 @@ known-local-folder = [
     "ambassador_diag",
 ]
 lines-after-imports = 2
-lines-between-types = 1
 combine-as-imports = true
 force-single-line = false
 force-wrap-aliases = true

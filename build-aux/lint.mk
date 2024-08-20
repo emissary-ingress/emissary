@@ -34,12 +34,12 @@ clean: .dmypy.json.rm .mypy_cache.rm-r
 
 lint-goals += lint/black
 lint/black: $(OSS_HOME)/.venv
-	uv run -- ruff --config='pyproject.toml' format --check ./python/
+	uv run -- ruff check --config='pyproject.toml' python/
 .PHONY: lint/black
 
 format-goals += format/black
 format/black: $(OSS_HOME)/.venv
-	uv run -- ruff --config='pyproject.toml' format ./python/
+	uv run -- ruff format --config='pyproject.toml' python/
 .PHONY: format/black
 
 #
