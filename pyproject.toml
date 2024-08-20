@@ -185,7 +185,6 @@ python_version = 3.11
 show_column_numbers = true
 show_error_codes = true
 show_error_context = true
-show_none_errors = false
 strict_optional = false
 
 
