@@ -42,10 +42,10 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml.in
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
-generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
-generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
-generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
-generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/src/tests/integration/manifests/ambassador.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/src/tests/integration/manifests/crds.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/src/tests/integration/manifests/rbac_cluster_scope.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/src/tests/integration/manifests/rbac_namespace_scope.yaml
 generate-fast/files += $(OSS_HOME)/test/apiext/testdata/deployment.yaml
 generate-fast/files += $(OSS_HOME)/test/apiext/testdata/crds.yaml
 generate-fast/files += $(OSS_HOME)/test/apiext/testdata/rbac.yaml
@@ -54,7 +54,7 @@ generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
 generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.key
-generate-fast/files += $(OSS_HOME)/python/tests/selfsigned.py
+generate-fast/files += $(OSS_HOME)/python/tests/src/tests/selfsigned.py
 
 generate: ## Update generated sources that get committed to Git
 generate:
@@ -107,7 +107,7 @@ $(OSS_HOME)/docker/test-shadow/shadowsvc.crt: $(tools/testcert-gen)
 $(OSS_HOME)/docker/test-shadow/shadowsvc.key: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=demosvc.datawire.io
 
-$(OSS_HOME)/python/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
+$(OSS_HOME)/python/tests/src/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
 	$@.gen $(tools/testcert-gen) >$@
 
 #
@@ -186,7 +186,7 @@ $(OSS_HOME)/%/zz_generated.conversion-spoke.go: build-aux/conversion-spoke.go.aw
 $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=apiserver-kubectl $(sort $(wildcard $</*.yaml)) >$@
 
-$(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+$(OSS_HOME)/python/tests/src/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=apiserver-kat $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
@@ -248,13 +248,13 @@ clean: k8s-config.clean
 $(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
 
-$(OSS_HOME)/python/tests/integration/manifests/%.yaml: $(OSS_HOME)/k8s-config/kat-%/output.yaml
+$(OSS_HOME)/python/tests/src/tests/integration/manifests/%.yaml: $(OSS_HOME)/k8s-config/kat-%/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 
-$(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-multinamespace/output.yaml
+$(OSS_HOME)/python/tests/src/tests/integration/manifests/rbac_cluster_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-multinamespace/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 
-$(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-singlenamespace/output.yaml
+$(OSS_HOME)/python/tests/src/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-singlenamespace/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 
 #

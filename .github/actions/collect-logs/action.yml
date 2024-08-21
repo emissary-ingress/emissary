@@ -48,8 +48,12 @@ runs:
 
           tools/bin/kubectl cp xfpredirect:/tmp/ambassador/snapshots /tmp/test-logs/cluster/xfpredirect.snapshots || true
         fi
-        cp /tmp/*.yaml /tmp/test-logs || true
-        cp /tmp/kat-client-*.log /tmp/test-logs || true
+        if compgen -G '/tmp/*.yaml' > /dev/null; then
+          cp /tmp/*.yaml /tmp/test-logs/ || true
+        fi
+        if compgen -G '/tmp/kat-client-*.log' > /dev/null; then
+          cp /tmp/kat-client-*.log /tmp/test-logs/ || true
+        fi
     - name: Upload Logs
       uses: actions/upload-artifact@v4
       with:

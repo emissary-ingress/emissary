@@ -1,1 +1,0 @@
-from .fetcher import ResourceFetcher

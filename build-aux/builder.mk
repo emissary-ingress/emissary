@@ -127,7 +127,7 @@ test-ready: push preflight-cluster
 PYTEST_ARGS ?=
 export PYTEST_ARGS
 
-python-virtual-environment: $(OSS_HOME)/venv
+python-virtual-environment: $(OSS_HOME)/.venv
 .PHONY: python-virtual-environment
 
 python-integration-test-environment: push-pytest-images
@@ -143,7 +143,7 @@ pytest-run-tests:
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
 	set -e; { \
-	  . $(OSS_HOME)/venv/bin/activate; \
+	  . $(OSS_HOME)/.venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
 	  export ENVOY_DOCKER_TAG=ghcr.io/emissary-ingress/emissary:latest-$(ARCH)
 	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
@@ -152,7 +152,7 @@ pytest-run-tests:
 .PHONY: pytest-run-tests
 
 pytest: python-integration-test-environment
-	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests"
+	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests/src/tests"
 .PHONY: pytest
 
 # XXX We use python -m pytest to force the current directory to be included in
@@ -161,9 +161,8 @@ pytest: python-integration-test-environment
 pytest-unit-tests: python-virtual-environment
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	set -e; { \
-		. $(OSS_HOME)/venv/bin/activate; \
 		export SOURCE_ROOT=$(CURDIR); \
-		cd python && python -m pytest --tb=short $(PYTEST_ARGS) tests/unit; \
+		uv run pytest --tb=short $(PYTEST_ARGS) python/tests/src/tests/unit; \
 	}
 .PHONY: pytest-unit-tests
 # Make sure to clobber python/.coverage.
@@ -173,41 +172,37 @@ pytest-unit: python-virtual-environment pytest-unit-tests
 .PHONY: pytest-unit
 
 pytest-integration-tests:
-	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
+	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests/src/tests/integration"
 .PHONY: pytest-integration-tests
 
 pytest-integration: python-integration-test-environment pytest-integration-tests
 .PHONY: pytest-integration
 
 pytest-kat-envoy3-tests: # doing this all at once is too much for CI...
-	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests/src/tests/kat"
 pytest-kat-envoy3: python-integration-test-environment pytest-kat-envoy3-tests
 # ... so we have a separate rule to run things split up
-build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images $(tools/kubectl) FORCE
-	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | cut -d. -f1 | sort -u > $@
+build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/.venv push-pytest-images $(tools/kubectl) FORCE
+	set -o pipefail && uv run pytest --collect-only python/tests/src/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | cut -d. -f1 | sort -u > $@
 build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 clean: build-aux/.pytest-kat.txt.stamp.rm build-aux/pytest-kat.txt.rm
 pytest-kat-envoy3-tests-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
-	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
+	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/src/tests/kat"
 pytest-kat-envoy3-%: python-integration-test-environment pytest-kat-envoy3-tests-%
 
-$(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
+$(OSS_HOME)/.venv: pyproject.toml
 	rm -rf $@
-	python3 -m venv $@
-	$@/bin/pip3 install -r python/requirements.txt
-	$@/bin/pip3 install -r python/requirements-dev.txt
-	$@/bin/pip3 install -e $(OSS_HOME)/python
-clobber: venv.rm-r
+	uv sync
+clobber: .venv.rm-r
 
 GOTEST_ARGS ?= -race -count=1 -timeout=30m -ldflags=-linkmode=internal
 GOTEST_ARGS += -parallel=150 # The ./pkg/envoy-control-plane/cache/v{2,3}/ tests require high parallelism to reliably work
 GOTEST_PKGS ?= ./...
-gotest: $(OSS_HOME)/venv $(tools/kubectl)
+gotest: $(OSS_HOME)/.venv $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
-	{ . $(OSS_HOME)/venv/bin/activate && \
-	  export PATH=$(tools.bindir):$${PATH} && \
-	  go test $(GOTEST_ARGS) $(GOTEST_PKGS); }
+	{ export PATH=$(tools.bindir):$${PATH} && \
+	  uv run go test $(GOTEST_ARGS) $(GOTEST_PKGS); }
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.

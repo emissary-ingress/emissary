@@ -1,0 +1,33 @@
+[project]
+name = "ambassador_diag"
+version = "4.0.0-dev"
+readme = "../README.md"
+dependencies = [
+    "click==8.*",
+    "flask==3.*",
+    "requests==2.*",
+    "gunicorn==22.*",
+    "jsonpatch==1.*",
+    "expiringdict==1.*",
+    "typing-extensions>=4",
+    "prometheus-client<=1.0",
+]
+
+
+[project.scripts]
+diagd = "ambassador_diag.diagd:main"
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "templates/*.ico",
+    "templates/*.html",
+]
+
+
+[tool.ruff.lint.isort]
+known-local-folder = ["ambassador_diag"]

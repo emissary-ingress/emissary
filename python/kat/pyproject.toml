@@ -1,0 +1,23 @@
+[project]
+name = "kat"
+version = "4.0.0-dev"
+readme = "README.md"
+dependencies = [
+    "tests>=4.0",
+    "pytest==8.*",
+    "pyyaml==6.*",
+    "packaging==24.*",
+]
+
+
+[tool.uv.sources]
+tests = { workspace = true }
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.ruff.lint.isort]
+known-local-folder = ["kat"]
