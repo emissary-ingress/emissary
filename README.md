@@ -6,6 +6,7 @@ Emissary-ingress
 [![Docker Repository][badge-docker-img]][badge-docker-link]
 [![Join Slack][badge-slack-img]][badge-slack-link]
 [![Core Infrastructure Initiative: Best Practices][badge-cii-img]][badge-cii-link]
+[![Artifact HUB][badge-artifacthub-img]][badge-artifacthub-link]
 
 [badge-version-img]: https://img.shields.io/docker/v/emissaryingress/emissary?sort=semver
 [badge-version-link]: https://github.com/emissary-ingress/emissary/releases
@@ -15,6 +16,8 @@ Emissary-ingress
 [badge-slack-link]: https://communityinviter.com/apps/cloud-native/cncf
 [badge-cii-img]: https://bestpractices.coreinfrastructure.org/projects/1852/badge
 [badge-cii-link]: https://bestpractices.coreinfrastructure.org/projects/1852
+[badge-artifacthub-img]: https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/emissary-ingress
+[badge-artifacthub-link]: https://artifacthub.io/packages/helm/datawire/emissary-ingress
 
 <!-- Links are (mostly) at the end of this document, for legibility. -->
 
@@ -87,7 +90,7 @@ The best way to join the community is to join the [CNCF Slack](https://community
 
 Check out the [`DevDocumentation/`](DevDocumentation/) directory for
 information on the technicals of Emissary, most notably the
-[`DEVELOPING.md`](DevDocumentation/DEVELOPING.md) contributor's guide.
+[`CONTRIBUTING.md`](DevDocumentation/CONTRIBUTING.md) contributor's guide.
 
 If you're interested in contributing, here are some ways:
 * Write a blog post for [our blog](https://blog.getambassador.io)
