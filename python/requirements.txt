@@ -44,7 +44,7 @@ prometheus-client==0.20.0
     # via -r requirements.in
 python-json-logger==2.0.7
     # via -r requirements.in
-pyyaml==6.0.1
+pyyaml==6.0.2
     # via -r requirements.in
 requests==2.31.0
     # via -r requirements.in
