@@ -82,11 +82,45 @@ jobs:
         uses: ./.github/actions/collect-logs
         if: always()
 
+  kat-tests:  ######################################################################
+    runs-on: ubuntu-latest
+    name: Run KAT Tests
+    needs:
+      - pytest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+        with:
+          install-golang: "false"
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: ~> v2
+          install-only: true
+          distribution: goreleaser
+      - name: Create Python Virtual Env
+        shell: bash
+        run: >-
+          make python-virtual-environment
+      - name: Run KAT Tests
+        env:
+          PYTEST_ARGS: --no-cov
+        run: |
+          make pytest-kat-envoy3
+      - name: Collect Job Logs
+        uses: ./.github/actions/collect-logs
+        if: always()
+
   build:  #######################################################################
     name: Build w/ GoReleaser
     needs:
       - gotest
       - pytest
+      - kat-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
