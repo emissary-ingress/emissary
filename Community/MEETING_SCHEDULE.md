@@ -6,6 +6,6 @@ The Emissary-ingress Contributors Meeting is held on the first Wednesday of ever
 
 New contributors are always welcome! Check out our [contributor's guide](../DevDocumentation/CONTRIBUTING.md) to learn how you can help make Emissary-ingress better.
 
-**Zoom Meeting Link**: [https://ambassadorlabs.zoom.us/j/86139262248?pwd=bzZlcU96WjAxN2E1RFZFZXJXZ1FwQT09](https://ambassadorlabs.zoom.us/j/86139262248?pwd=bzZlcU96WjAxN2E1RFZFZXJXZ1FwQT09)
-- Meeting ID: 861 3926 2248
-- Passcode: 113675
+**Zoom Meeting Link**: [https://ambassadorlabs.zoom.us/j/81589589470?pwd=U8qNvZSqjQx7abIzwRtGryFU35pi3T.1](https://ambassadorlabs.zoom.us/j/81589589470?pwd=U8qNvZSqjQx7abIzwRtGryFU35pi3T.1)
+- Meeting ID: 815 8958 9470
+- Passcode: 199217
