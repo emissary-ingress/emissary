@@ -37,6 +37,7 @@ generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.conv
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion-spoke.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generated.conversion-hub.go
+generate-fast/files += $(OSS_HOME)/pkg/api/emissary-ingress.dev/v4alpha1/zz_generated.conversion-hub.go
 # Individual files: YAML
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml.in
