@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+import re
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from typing import cast as typecast
 
 from ...cache import Cacheable
-from ...ir.irbasemapping import IRBaseMapping
+from ...ir.irhttpmapping import IRHTTPMapping
 from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
-from ...ir.irutils import hostglob_matches
+from ...ir.irutils import are_mapping_group_fixes_disabled, hostglob_matches
 from ..common import EnvoyRoute
 from .v3ratelimitaction import V3RateLimitAction
 
@@ -262,14 +263,19 @@ class V3RouteVariants:
 
 
 class V3Route(Cacheable):
+    _group: IRHTTPMappingGroup
+
     def __init__(
-        self, config: "V3Config", group: IRHTTPMappingGroup, mapping: IRBaseMapping
+        self, config: "V3Config", group: IRHTTPMappingGroup, mapping: IRHTTPMapping
     ) -> None:
         super().__init__()
 
         # Save the logger and the group.
         self.logger = group.logger
         self._group = group
+
+        # To start, get all the route matching settings from the group since every Mapping within it shares the same
+        # matching settings
 
         # Passing a list to set is _very important_ here, lest you get a set of
         # the individual characters in group.host!
@@ -279,6 +285,10 @@ class V3Route(Cacheable):
             self["_precedence"] = group["precedence"]
 
         envoy_route = EnvoyRoute(group).envoy_route
+
+        seed_mapping = mapping
+        if are_mapping_group_fixes_disabled():
+            seed_mapping = group.seed_mapping
 
         mapping_prefix = mapping.get("prefix", None)
         route_prefix = mapping_prefix if mapping_prefix is not None else group.get("prefix")
@@ -294,8 +304,15 @@ class V3Route(Cacheable):
             "default_value": {"numerator": mapping.get("_weight", 100), "denominator": "HUNDRED"}
         }
 
+        match = {"case_sensitive": case_sensitive, "runtime_fraction": runtime_fraction}
+
         if len(mapping) > 0:
-            if not "cluster" in mapping:
+            if "cluster" in mapping:
+                runtime_fraction[
+                    "runtime_key"
+                ] = f"routing.traffic_shift.{mapping.cluster.envoy_name}"
+            # If it's a redirect mapping we don't have a cluster, otherwise this is an error
+            elif mapping.get("host_redirect", None) == None:
                 config.ir.logger.error(
                     "%s: Mapping %s has no cluster? %s",
                     mapping.rkey,
@@ -303,10 +320,6 @@ class V3Route(Cacheable):
                     mapping.as_json(),
                 )
                 self["_failed"] = True
-            else:
-                runtime_fraction[
-                    "runtime_key"
-                ] = f"routing.traffic_shift.{mapping.cluster.envoy_name}"
 
         match = {"case_sensitive": case_sensitive, "runtime_fraction": runtime_fraction}
 
@@ -331,15 +344,18 @@ class V3Route(Cacheable):
             else:
                 match.update(regex_matcher(config, route_prefix))
 
-        headers = self.generate_headers(config, group)
-        if len(headers) > 0:
-            match["headers"] = headers
+        headers_match = self.generate_headers_match(config, group)
+        if len(headers_match) > 0:
+            match["headers"] = headers_match
 
-        query_parameters = self.generate_query_parameters(config, group)
-        if len(query_parameters) > 0:
-            match["query_parameters"] = query_parameters
+        query_params_match = self.generate_query_params_match(config, group)
+        if len(query_params_match) > 0:
+            match["query_parameters"] = query_params_match
 
         self["match"] = match
+
+        # Ok, now we move on to getting all of the traffic transformations and routing settings that can be different for
+        # each Mapping within the group
 
         # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
         typed_per_filter_config = {}
@@ -378,7 +394,7 @@ class V3Route(Cacheable):
                         "response_map": {"mappers": filter_config["mappers"]},
                     }
 
-        if mapping.get("bypass_auth", False) or (group.get("host_redirect", None) != None):
+        if mapping.get("bypass_auth", False) or (mapping.get("host_redirect", None) != None):
             typed_per_filter_config["envoy.filters.http.ext_authz"] = {
                 "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                 "disabled": True,
@@ -395,36 +411,36 @@ class V3Route(Cacheable):
         if len(typed_per_filter_config) > 0:
             self["typed_per_filter_config"] = typed_per_filter_config
 
-        request_headers_to_add = group.get("add_request_headers", None)
+        request_headers_to_add = seed_mapping.get("add_request_headers", None)
         if request_headers_to_add:
             self["request_headers_to_add"] = self.generate_headers_to_add(request_headers_to_add)
 
-        response_headers_to_add = group.get("add_response_headers", None)
+        response_headers_to_add = seed_mapping.get("add_response_headers", None)
         if response_headers_to_add:
             self["response_headers_to_add"] = self.generate_headers_to_add(response_headers_to_add)
 
-        request_headers_to_remove = group.get("remove_request_headers", None)
+        request_headers_to_remove = seed_mapping.get("remove_request_headers", None)
         if request_headers_to_remove:
             if type(request_headers_to_remove) != list:
                 request_headers_to_remove = [request_headers_to_remove]
             self["request_headers_to_remove"] = request_headers_to_remove
 
-        response_headers_to_remove = group.get("remove_response_headers", None)
+        response_headers_to_remove = seed_mapping.get("remove_response_headers", None)
         if response_headers_to_remove:
             if type(response_headers_to_remove) != list:
                 response_headers_to_remove = [response_headers_to_remove]
             self["response_headers_to_remove"] = response_headers_to_remove
 
-        host_redirect = group.get("host_redirect", None)
+        host_redirect = seed_mapping.get("host_redirect", None)
 
         if host_redirect:
             # We have a host_redirect. Deal with it.
-            self["redirect"] = {"host_redirect": host_redirect.service}
+            self["redirect"] = {"host_redirect": mapping.service}
 
-            path_redirect = host_redirect.get("path_redirect", None)
-            prefix_redirect = host_redirect.get("prefix_redirect", None)
-            regex_redirect = host_redirect.get("regex_redirect", None)
-            response_code = host_redirect.get("redirect_response_code", None)
+            path_redirect = mapping.get("path_redirect", None)
+            prefix_redirect = mapping.get("prefix_redirect", None)
+            regex_redirect = mapping.get("regex_redirect", None)
+            response_code = mapping.get("redirect_response_code", None)
 
             # We enforce that only one of path_redirect or prefix_redirect is set in the IR.
             # But here, we just prefer path_redirect if that's set.
@@ -477,7 +493,7 @@ class V3Route(Cacheable):
         if idle_timeout_ms is not None:
             route["idle_timeout"] = "%0.3fs" % (idle_timeout_ms / 1000.0)
 
-        regex_rewrite = self.generate_regex_rewrite(config, group)
+        regex_rewrite = self.generate_regex_rewrite(config, mapping)
         if len(regex_rewrite) > 0:
             route["regex_rewrite"] = regex_rewrite
         elif mapping.get("rewrite", None):
@@ -489,50 +505,51 @@ class V3Route(Cacheable):
         if "auto_host_rewrite" in mapping:
             route["auto_host_rewrite"] = mapping["auto_host_rewrite"]
 
-        hash_policy = self.generate_hash_policy(group)
+        hash_policy = self.generate_hash_policy(seed_mapping)
         if len(hash_policy) > 0:
             route["hash_policy"] = [hash_policy]
 
         cors = None
 
-        if "cors" in group:
-            cors = group.cors
+        if "cors" in seed_mapping:
+            cors = seed_mapping.cors
         elif "cors" in config.ir.ambassador_module:
             cors = config.ir.ambassador_module.cors
 
         if cors:
-            # Duplicate this IRCORS, then set its group ID correctly.
             cors = cors.dup()
-            cors.set_id(group.group_id)
+            cors.set_id(mapping.cache_key)
 
             route["cors"] = cors.as_dict()
 
         retry_policy = None
 
-        if "retry_policy" in group:
-            retry_policy = group.retry_policy.as_dict()
+        if "retry_policy" in seed_mapping:
+            retry_policy = seed_mapping.retry_policy.as_dict()
         elif "retry_policy" in config.ir.ambassador_module:
             retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
 
         if retry_policy:
             route["retry_policy"] = retry_policy
 
-        # Is shadowing enabled?
-        shadow = group.get("shadows", None)
-
-        if shadow:
-            shadow = shadow[0]
-
-            weight = shadow.get("weight", 100)
-
-            route["request_mirror_policies"] = [
-                {
-                    "cluster": shadow.cluster.envoy_name,
-                    "runtime_fraction": {
-                        "default_value": {"numerator": weight, "denominator": "HUNDRED"}
-                    },
-                }
-            ]
+        # Are we doing any traffic shadowing?
+        # Shadow mappings get added to all generated routes for a mapping group since it is an addition to the routing action, and not a replacement for the
+        # routing action like a redirect would be. This is why we keep them separate from the regular Mappings.
+        if len(group.shadow_mappings) > 0:
+            mirror_policies = []
+            for shadow_mapping in group.shadow_mappings:
+                mirror_policies.append(
+                    {
+                        "cluster": shadow_mapping.cluster.envoy_name,
+                        "runtime_fraction": {
+                            "default_value": {
+                                "numerator": shadow_mapping.get("weight", 100),
+                                "denominator": "HUNDRED",
+                            }
+                        },
+                    }
+                )
+            route["request_mirror_policies"] = mirror_policies
 
         # Is RateLimit a thing?
         rlsvc = config.ir.ratelimit
@@ -542,13 +559,13 @@ class V3Route(Cacheable):
             # labels have already been handled, as has translating from v0 'rate_limits' to
             # v1 'labels').
 
-            if "labels" in group:
+            if "labels" in mapping:
                 # The Envoy RateLimit filter only supports one domain, so grab the configured domain
                 # from the RateLimitService and use that to look up the labels we should use.
 
                 rate_limits = []
 
-                for rl in group.labels.get(rlsvc.domain, []):
+                for rl in mapping.labels.get(rlsvc.domain, []):
                     action = V3RateLimitAction(config, rl)
 
                     if action.valid:
@@ -558,9 +575,9 @@ class V3Route(Cacheable):
                     route["rate_limits"] = rate_limits
 
         # Save upgrade configs.
-        if group.get("allow_upgrade"):
+        if seed_mapping.get("allow_upgrade"):
             route["upgrade_configs"] = [
-                {"upgrade_type": proto} for proto in group.get("allow_upgrade", [])
+                {"upgrade_type": proto} for proto in seed_mapping.get("allow_upgrade", [])
             ]
 
         self["route"] = route
@@ -593,7 +610,11 @@ class V3Route(Cacheable):
 
     @classmethod
     def get_route(
-        cls, config: "V3Config", cache_key: str, irgroup: IRHTTPMappingGroup, mapping: IRBaseMapping
+        cls,
+        config: "V3Config",
+        cache_key: str,
+        mapping_group: IRHTTPMappingGroup,
+        mapping: IRHTTPMapping,
     ) -> "V3Route":
         route: "V3Route"
 
@@ -601,25 +622,19 @@ class V3Route(Cacheable):
 
         if cached_route is None:
             # Cache miss.
-            # config.ir.logger.info(f"V3Route: cache miss for {cache_key}, synthesizing route")
-
-            route = V3Route(config, irgroup, mapping)
+            route = V3Route(config, mapping_group, mapping)
 
             # Cheat a bit and force the route's cache_key.
             route.cache_key = cache_key
-
-            # config.ir.logger.info("V3Route: synthesized %s" % v3prettyroute(route))
-
             config.cache.add(route)
-            config.cache.link(irgroup, route)
+            # config.cache.link(mapping, route)
+            config.cache.link(mapping_group, route)
             config.cache.dump("V3Route synth %s: %s", cache_key, v3prettyroute(route))
         else:
             # Cache hit. We know a priori that it's a V3Route, but let's assert that
             # before casting.
             assert isinstance(cached_route, V3Route)
             route = cached_route
-
-            # config.ir.logger.info(f"V3Route: cache hit for {cache_key}")
 
         # One way or another, we have a route now.
         return route
@@ -628,47 +643,25 @@ class V3Route(Cacheable):
     def generate(cls, config: "V3Config") -> None:
         config.routes = []
 
-        for irgroup in config.ir.ordered_groups():
-            if not isinstance(irgroup, IRHTTPMappingGroup):
-                # We only want HTTP mapping groups here.
-                continue
-
-            if irgroup.get("host_redirect") is not None and len(irgroup.get("mappings", [])) == 0:
-                # This is a host-redirect-only group, which is weird, but can happen. Do we
-                # have a cached route for it?
-                key = f"Route-{irgroup.group_id}-hostredirect"
-
-                # Casting an empty dict to an IRBaseMapping may look weird, but in fact IRBaseMapping
-                # is (ultimately) a subclass of dict, so it's the cleanest way to pass in a completely
-                # empty IRBaseMapping to V3Route().
-                #
-                # (We could also have written V3Route to allow the mapping to be Optional, but that
-                # makes a lot of its constructor much uglier.)
-                route = config.save_element(
-                    "route",
-                    irgroup,
-                    cls.get_route(config, key, irgroup, typecast(IRBaseMapping, {})),
-                )
-                config.routes.append(route)
-
-            # Repeat for our real mappings.
-            for mapping in irgroup.mappings:
-                key = f"Route-{irgroup.group_id}-{mapping.cache_key}"
-
-                route = cls.get_route(config, key, irgroup, mapping)
-
+        # Build a route for each Mapping we have
+        for mapping_group in config.ir.ordered_http_mapping_groups():
+            for mapping in mapping_group.mappings:
+                assert isinstance(mapping, IRHTTPMapping)
+                key = f"Route-{mapping_group.group_id}-{mapping.cache_key}"
+                route = cls.get_route(config, key, mapping_group, mapping)
                 if not route.get("_failed", False):
-                    config.routes.append(config.save_element("route", irgroup, route))
+                    config.routes.append(config.save_element("route", mapping_group, route))
+                else:
+                    config.ir.post_error(f'Route with key "{key}" failed to build')
 
         # Once that's done, go build the variants on each route.
         config.route_variants = []
-
         for route in config.routes:
             # Set up a currently-empty set of variants for this route.
             config.route_variants.append(V3RouteVariants(route))
 
     @staticmethod
-    def generate_headers(config: "V3Config", mapping_group: IRHTTPMappingGroup) -> List[dict]:
+    def generate_headers_match(config: "V3Config", mapping_group: IRHTTPMappingGroup) -> List[dict]:
         headers = []
 
         group_headers = mapping_group.get("headers", [])
@@ -708,7 +701,7 @@ class V3Route(Cacheable):
         return headers
 
     @staticmethod
-    def generate_query_parameters(
+    def generate_query_params_match(
         config: "V3Config", mapping_group: IRHTTPMappingGroup
     ) -> List[dict]:
         query_parameters = []
@@ -740,9 +733,9 @@ class V3Route(Cacheable):
         return query_parameters
 
     @staticmethod
-    def generate_hash_policy(mapping_group: IRHTTPMappingGroup) -> dict:
+    def generate_hash_policy(mapping: IRHTTPMapping) -> dict:
         hash_policy = {}
-        load_balancer = mapping_group.get("load_balancer", None)
+        load_balancer = mapping.get("load_balancer", None)
         if load_balancer is not None:
             lb_policy = load_balancer.get("policy")
             if lb_policy in ["ring_hash", "maglev"]:
@@ -782,9 +775,9 @@ class V3Route(Cacheable):
         return headers
 
     @staticmethod
-    def generate_regex_rewrite(config: "V3Config", mapping_group: IRHTTPMappingGroup) -> dict:
+    def generate_regex_rewrite(config: "V3Config", mapping: IRHTTPMapping) -> dict:
         regex_rewrite = {}
-        group_regex_rewrite = mapping_group.get("regex_rewrite", None)
+        group_regex_rewrite = mapping.get("regex_rewrite", None)
         if group_regex_rewrite is not None:
             pattern = group_regex_rewrite.get("pattern", None)
             if pattern is not None:
