@@ -66,6 +66,7 @@ func TestTracingSvcRoundTrip(t *testing.T) {
 func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 	bytes, err := ioutil.ReadFile(path.Join("testdata", filename))
 	require.NoError(t, err)
+	t.Logf("checkRoundtrip: loaded %s\n", filename)
 
 	canonical := func() string {
 		var untyped interface{}
@@ -79,8 +80,10 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 		// Round-trip twice, to get map field ordering, instead of struct field ordering.
 
 		// first
+		t.Logf("actual: bytes %s\n", string(bytes))
 		require.NoError(t, yaml.UnmarshalStrict(bytes, ptr))
 		first, err := json.Marshal(ptr)
+		t.Logf("actual marshal 1: %s\n", string(first))
 		require.NoError(t, err)
 
 		// second

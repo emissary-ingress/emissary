@@ -1,102 +1,102 @@
-- apiVersion: "getambassador.io/v3alpha1"
-  kind: "TracingService"
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
   metadata:
-      creationTimestamp: "2020-07-03T02:19:06Z"
-      name: "tracingsvc-no-sampling"
-      namespace: "default"
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-no-sampling
+    namespace: default
   spec:
-      driver: "zipkin"
-      service: "zipkin-65:9411"
-      config:
-          trace_id_128bit: false
-- apiVersion: "getambassador.io/v3alpha1"
-  kind: "TracingService"
+    config:
+      traceID128bit: false
+    driver: zipkin
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
   metadata:
-      creationTimestamp: "2020-07-03T02:19:06Z"
-      name: "tracingsvc-with-stats-name"
-      namespace: "default"
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-with-stats-name
+    namespace: default
   spec:
-      driver: "zipkin"
-      service: "zipkin-65:9411"
-      config:
-          trace_id_128bit: false
-      stats_name: "alt-stats-name"
-- apiVersion: "getambassador.io/v3alpha1"
-  kind: "TracingService"
+    config:
+      traceID128bit: false
+    driver: zipkin
+    service: zipkin-65:9411
+    statsName: alt-stats-name
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
   metadata:
-      creationTimestamp: "2020-07-03T02:19:06Z"
-      name: "tracingsvc-empty-sampling"
-      namespace: "default"
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-empty-sampling
+    namespace: default
   spec:
-      driver: "zipkin"
-      sampling: {}
-      service: "zipkin-65:9411"
-      config:
-          shared_span_context: false
-- apiVersion: "getambassador.io/v3alpha1"
-  kind: "TracingService"
+    config:
+      sharedSpanContext: false
+    driver: zipkin
+    sampling: {}
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
   metadata:
-      creationTimestamp: "2020-07-03T02:19:06Z"
-      name: "tracingsvc-client-sampling"
-      namespace: "default"
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-client-sampling
+    namespace: default
   spec:
-      driver: "zipkin"
-      sampling:
-          client: 10
-      service: "zipkin-65:9411"
-      config: {}
-- apiVersion: "getambassador.io/v3alpha1"
-  kind: "TracingService"
+    config: {}
+    driver: zipkin
+    sampling:
+      client: 10
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
   metadata:
-      creationTimestamp: "2020-07-03T02:19:06Z"
-      name: "tracingsvc-random-sampling"
-      namespace: "default"
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-random-sampling
+    namespace: default
   spec:
-      driver: "zipkin"
-      sampling:
-          random: 10
-      service: "zipkin-65:9411"
-      config:
-          trace_id_128bit: true
-          shared_span_context: true
-- apiVersion: "getambassador.io/v3alpha1"
-  kind: "TracingService"
+    config:
+      sharedSpanContext: true
+      traceID128bit: true
+    driver: zipkin
+    sampling:
+      random: 10
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
   metadata:
-      creationTimestamp: "2020-07-03T02:19:06Z"
-      name: "tracingsvc-overall-sampling"
-      namespace: "default"
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-overall-sampling
+    namespace: default
   spec:
-      driver: "zipkin"
-      sampling:
-          overall: 10
-      service: "zipkin-65:9411"
-- apiVersion: "getambassador.io/v3alpha1"
-  kind: "TracingService"
+    driver: zipkin
+    sampling:
+      overall: 10
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
   metadata:
-      creationTimestamp: "2020-07-03T02:19:06Z"
-      name: "tracingsvc-sampling"
-      namespace: "default"
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-sampling
+    namespace: default
   spec:
-      driver: "zipkin"
-      sampling:
-          client: 10
-          overall: 10
-          random: 10
-      service: "zipkin-65:9411"
-- apiVersion: "getambassador.io/v3alpha1"
-  kind: "TracingService"
+    driver: zipkin
+    sampling:
+      client: 10
+      overall: 10
+      random: 10
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
   metadata:
-      creationTimestamp: "2020-07-03T02:19:06Z"
-      name: "tracingsvc-zero-sampling"
-      namespace: "default"
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-zero-sampling
+    namespace: default
   spec:
-      driver: "zipkin"
-      sampling:
-          client: 0
-          overall: 0
-          random: 0
-      service: "zipkin-65:9411"
-      custom_tags:
-      - request_header:
-          name: hola
-        tag: hola
+    customTags:
+    - requestHeader:
+        name: hola
+      tag: hola
+    driver: zipkin
+    sampling:
+      client: 0
+      overall: 0
+      random: 0
+    service: zipkin-65:9411
