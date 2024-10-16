@@ -19,8 +19,8 @@ package yaml_test
 import (
 	"bytes"
 
+	yaml "github.com/emissary-ingress/emissary/v3/pkg/yaml/goyaml.v3"
 	. "gopkg.in/check.v1"
-	yaml "sigs.k8s.io/yaml/goyaml.v3"
 )
 
 func (s *S) TestCompactSeqIndentDefault(c *C) {

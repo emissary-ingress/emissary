@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"sigs.k8s.io/yaml/goyaml.v2"
+	yaml "github.com/emissary-ingress/emissary/v3/pkg/yaml/goyaml.v2"
 )
 
 // An example showing how to unmarshal embedded

@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
+	yaml "github.com/emissary-ingress/emissary/v3/pkg/yaml/goyaml.v3"
 	. "gopkg.in/check.v1"
-	"sigs.k8s.io/yaml/goyaml.v3"
 )
 
 var unmarshalIntTest = 123
@@ -1381,7 +1381,7 @@ longTag:
   label: center/big
 
 inlineMap:
-  # Inlined map 
+  # Inlined map
   << : {"x": 1, "y": 2, "r": 10}
   label: center/big
 

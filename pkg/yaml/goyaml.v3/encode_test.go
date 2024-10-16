@@ -26,8 +26,8 @@ import (
 	"net"
 	"os"
 
+	yaml "github.com/emissary-ingress/emissary/v3/pkg/yaml/goyaml.v3"
 	. "gopkg.in/check.v1"
-	"sigs.k8s.io/yaml/goyaml.v3"
 )
 
 var marshalIntTest = 123

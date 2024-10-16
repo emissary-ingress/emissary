@@ -18,7 +18,6 @@ package yaml
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"math"
 	"reflect"
@@ -26,9 +25,11 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/emissary-ingress/emissary/v3/pkg/json"
+
+	yamlv2 "github.com/emissary-ingress/emissary/v3/pkg/yaml/goyaml.v2"
+	yamlv3 "github.com/emissary-ingress/emissary/v3/pkg/yaml/goyaml.v3"
 	"github.com/google/go-cmp/cmp"
-	yamlv2 "sigs.k8s.io/yaml/goyaml.v2"
-	yamlv3 "sigs.k8s.io/yaml/goyaml.v3"
 )
 
 /* Test helper functions */

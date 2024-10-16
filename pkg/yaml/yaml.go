@@ -18,13 +18,14 @@ package yaml
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"reflect"
 	"strconv"
 
-	"sigs.k8s.io/yaml/goyaml.v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/json"
+
+	yaml "github.com/emissary-ingress/emissary/v3/pkg/yaml/goyaml.v2"
 )
 
 // Marshal marshals obj into JSON using stdlib json.Marshal, and then converts JSON to YAML using JSONToYAML (see that method for more reference)

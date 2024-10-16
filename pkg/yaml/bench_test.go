@@ -17,11 +17,11 @@ limitations under the License.
 package yaml
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
-	"sigs.k8s.io/yaml/goyaml.v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/json"
+	yaml "github.com/emissary-ingress/emissary/v3/pkg/yaml/goyaml.v2"
 )
 
 func newBenchmarkObject() interface{} {

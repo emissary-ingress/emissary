@@ -7,13 +7,14 @@ package yaml
 import (
 	"bytes"
 	"encoding"
-	"encoding/json"
 	"reflect"
 	"sort"
 	"strings"
 	"sync"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/emissary-ingress/emissary/v3/pkg/json"
 )
 
 // indirect walks down 'value' allocating pointers as needed,
@@ -159,7 +160,12 @@ func typeFields(t reflect.Type) []field {
 				if sf.PkgPath != "" { // unexported
 					continue
 				}
-				tag := sf.Tag.Get("json")
+				tag := sf.Tag.Get("v3")
+
+				if tag == "" {
+					tag = sf.Tag.Get("json")
+				}
+
 				if tag == "-" {
 					continue
 				}
