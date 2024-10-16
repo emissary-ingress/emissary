@@ -14,7 +14,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	"internal/testenv"
+
+	// "internal/testenv"
 	"io"
 	"os"
 	"reflect"
@@ -462,9 +463,11 @@ func BenchmarkUnmapped(b *testing.B) {
 func BenchmarkTypeFieldsCache(b *testing.B) {
 	b.ReportAllocs()
 	var maxTypes int = 1e6
-	if testenv.Builder() != "" {
-		maxTypes = 1e3 // restrict cache sizes on builders
-	}
+	// XXX This is commented out because we can't use internal/testenv outside of
+	// XXX the golang repo.
+	// if testenv.Builder() != "" {
+	// 	maxTypes = 1e3 // restrict cache sizes on builders
+	// }
 
 	// Dynamically generate many new types.
 	types := make([]reflect.Type, maxTypes)

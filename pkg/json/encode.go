@@ -1131,7 +1131,13 @@ func typeFields(t reflect.Type) structFields {
 					// Ignore unexported non-embedded fields.
 					continue
 				}
-				tag := sf.Tag.Get("json")
+
+				tag := sf.Tag.Get("v3")
+
+				if tag == "" {
+					tag = sf.Tag.Get("json")
+				}
+
 				if tag == "-" {
 					continue
 				}
