@@ -234,33 +234,33 @@ func canonGVK(rawString string) (canonKind string, canonGroupVersion string, err
 		return "ClusterIngress", "networking.internal.knative.dev/v1alpha1", nil
 	// Native Emissary types
 	case "authservice", "authservices":
-		return "AuthService", "getambassador.io/v3alpha1", nil
+		return "AuthService", "emissary-ingress.dev/v4alpha1", nil
 	case "consulresolver", "consulresolvers":
-		return "ConsulResolver", "getambassador.io/v3alpha1", nil
+		return "ConsulResolver", "emissary-ingress.dev/v4alpha1", nil
 	case "devportal", "devportals":
-		return "DevPortal", "getambassador.io/v3alpha1", nil
+		return "DevPortal", "emissary-ingress.dev/v4alpha1", nil
 	case "host", "hosts":
-		return "Host", "getambassador.io/v3alpha1", nil
+		return "Host", "emissary-ingress.dev/v4alpha1", nil
 	case "kubernetesendpointresolver", "kubernetesendpointresolvers":
-		return "KubernetesEndpointResolver", "getambassador.io/v3alpha1", nil
+		return "KubernetesEndpointResolver", "emissary-ingress.dev/v4alpha1", nil
 	case "kubernetesserviceresolver", "kubernetesserviceresolvers":
-		return "KubernetesServiceResolver", "getambassador.io/v3alpha1", nil
+		return "KubernetesServiceResolver", "emissary-ingress.dev/v4alpha1", nil
 	case "listener", "listeners":
-		return "Listener", "getambassador.io/v3alpha1", nil
+		return "Listener", "emissary-ingress.dev/v4alpha1", nil
 	case "logservice", "logservices":
-		return "LogService", "getambassador.io/v3alpha1", nil
+		return "LogService", "emissary-ingress.dev/v4alpha1", nil
 	case "mapping", "mappings":
-		return "Mapping", "getambassador.io/v3alpha1", nil
+		return "Mapping", "emissary-ingress.dev/v4alpha1", nil
 	case "module", "modules":
-		return "Module", "getambassador.io/v3alpha1", nil
+		return "Module", "emissary-ingress.dev/v4alpha1", nil
 	case "ratelimitservice", "ratelimitservices":
-		return "RateLimitService", "getambassador.io/v3alpha1", nil
+		return "RateLimitService", "emissary-ingress.dev/v4alpha1", nil
 	case "tcpmapping", "tcpmappings":
-		return "TCPMapping", "getambassador.io/v3alpha1", nil
+		return "TCPMapping", "emissary-ingress.dev/v4alpha1", nil
 	case "tlscontext", "tlscontexts":
-		return "TLSContext", "getambassador.io/v3alpha1", nil
+		return "TLSContext", "emissary-ingress.dev/v4alpha1", nil
 	case "tracingservice", "tracingservices":
-		return "TracingService", "getambassador.io/v3alpha1", nil
+		return "TracingService", "emissary-ingress.dev/v4alpha1", nil
 	default:
 		return "", "", fmt.Errorf("I don't know how to canonicalize kind: %q", rawString)
 	}
