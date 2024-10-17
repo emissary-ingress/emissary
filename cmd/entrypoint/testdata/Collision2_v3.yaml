@@ -1,14 +1,14 @@
 ---
-apiVersion: emissary-ingress.dev/v4alpha1
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: subway-staging-stable-mapping
   namespace: staging
 spec:
   host: staging.upchieve.org
-  loadBalancer:
+  load_balancer:
     policy: least_request
   prefix: /
   resolver: endpoint
   service: subway-staging-stable.staging:3000
-  timeoutMS: 500000
+  timeout_ms: 500000

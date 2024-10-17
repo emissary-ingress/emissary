@@ -1,14 +1,15 @@
+# @TEMPLATE@
 ---
-apiVersion: emissary-ingress.dev/v4alpha1
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: staging.upchieve.org
   namespace: default
 spec:
+  hostname: staging.upchieve.org
   acmeProvider:
     authority: none
     email: rhs@datawire.io
-  hostname: staging.upchieve.org
   requestPolicy:
     insecure:
       action: Route
@@ -18,7 +19,7 @@ spec:
 # metadata:
 #   name: staging
 ---
-apiVersion: emissary-ingress.dev/v4alpha1
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
   labels:
@@ -26,58 +27,58 @@ metadata:
   name: endpoint
   namespace: ambassador
 ---
-apiVersion: emissary-ingress.dev/v4alpha1
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: subway-staging-socket-stable-mapping
   namespace: staging
 spec:
-  allowUpgrade:
+  allow_upgrade:
   - websocket
   host: staging.upchieve.org
-  loadBalancer:
+  load_balancer:
     policy: ring_hash
-    sourceIP: true
+    source_ip: true
   prefix: /
-  queryParameters:
+  query_parameters:
     transport: "true"
   resolver: endpoint
   service: subway-staging-stable.staging:3001
-  timeoutMS: 500000
+  timeout_ms: 500000
 ---
-apiVersion: emissary-ingress.dev/v4alpha1
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: subway-staging-whiteboard-reset-stable-mapping
   namespace: staging
 spec:
   host: staging.upchieve.org
-  loadBalancer:
+  load_balancer:
     policy: ring_hash
-    sourceIP: true
+    source_ip: true
   prefix: /whiteboard/reset/
   resolver: endpoint
   rewrite: /whiteboard/reset/
   service: subway-staging-stable.staging:3000
-  timeoutMS: 500000
+  timeout_ms: 500000
 ---
-apiVersion: emissary-ingress.dev/v4alpha1
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: subway-staging-whiteboard-stable-mapping
   namespace: staging
 spec:
-  allowUpgrade:
+  allow_upgrade:
   - websocket
   host: staging.upchieve.org
-  loadBalancer:
+  load_balancer:
     policy: ring_hash
-    sourceIP: true
+    source_ip: true
   prefix: /whiteboard/
   resolver: endpoint
   rewrite: /whiteboard/
   service: subway-staging-stable.staging:3000
-  timeoutMS: 500000
+  timeout_ms: 500000
 ---
 apiVersion: v1
 kind: Service

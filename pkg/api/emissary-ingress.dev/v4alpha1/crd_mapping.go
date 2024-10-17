@@ -300,7 +300,7 @@ type LoadBalancer struct {
 	Policy   string              `json:"policy,omitempty"`
 	Cookie   *LoadBalancerCookie `json:"cookie,omitempty"`
 	Header   string              `json:"header,omitempty"`
-	SourceIp *bool               `json:"sourceIp,omitempty" v3:"source_ip,omitempty"`
+	SourceIp *bool               `json:"sourceIP,omitempty" v3:"source_ip,omitempty"`
 }
 
 type LoadBalancerCookie struct {
