@@ -21,6 +21,8 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 	ecp_v3_cache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+
+	v3json "github.com/emissary-ingress/emissary/v3/pkg/json"
 )
 
 func WatchAllTheThings(
@@ -617,7 +619,7 @@ func (sh *SnapshotHolder) Notify(
 		}
 
 		var err error
-		snapshotJSON, err = json.MarshalIndent(sn, "", "  ")
+		snapshotJSON, err = v3json.MarshalIndent(sn, "", "  ")
 		if err != nil {
 			return err
 		}
