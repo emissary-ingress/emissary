@@ -12,7 +12,7 @@ import (
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
-	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/emissary-ingress.dev/v4alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 	v3bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"

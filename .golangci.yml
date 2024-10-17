@@ -45,6 +45,9 @@ issues:
       text: "^tests: .* should return nothing$"
 run:
   timeout: 9m # CircleCI is slow?
+  skip-dirs:
+    - pkg/json
+    - pkg/yaml
 
 # I don't know of a linter that lets you blacklist specific functions
 # and variables within a package, but if one exists, I would like to

@@ -1,0 +1,102 @@
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-no-sampling
+    namespace: default
+  spec:
+    config:
+      traceID128bit: false
+    driver: zipkin
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-with-stats-name
+    namespace: default
+  spec:
+    config:
+      traceID128bit: false
+    driver: zipkin
+    service: zipkin-65:9411
+    statsName: alt-stats-name
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-empty-sampling
+    namespace: default
+  spec:
+    config:
+      sharedSpanContext: false
+    driver: zipkin
+    sampling: {}
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-client-sampling
+    namespace: default
+  spec:
+    config: {}
+    driver: zipkin
+    sampling:
+      client: 10
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-random-sampling
+    namespace: default
+  spec:
+    config:
+      sharedSpanContext: true
+      traceID128bit: true
+    driver: zipkin
+    sampling:
+      random: 10
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-overall-sampling
+    namespace: default
+  spec:
+    driver: zipkin
+    sampling:
+      overall: 10
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-sampling
+    namespace: default
+  spec:
+    driver: zipkin
+    sampling:
+      client: 10
+      overall: 10
+      random: 10
+    service: zipkin-65:9411
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TracingService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tracingsvc-zero-sampling
+    namespace: default
+  spec:
+    customTags:
+    - requestHeader:
+        name: hola
+      tag: hola
+    driver: zipkin
+    sampling:
+      client: 0
+      overall: 0
+      random: 0
+    service: zipkin-65:9411
