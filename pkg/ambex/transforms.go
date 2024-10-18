@@ -3,12 +3,12 @@ package ambex
 import (
 	// standard library
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	// third-party libraries
+	"github.com/cespare/xxhash/v2"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -146,9 +146,10 @@ func V3ListenerToRdsListener(lnr *v3listener.Listener) (*v3listener.Listener, []
 						// associated with a given listener.
 						filterChainMatch, _ := json.Marshal(fc.GetFilterChainMatch())
 
-						// Use MD5 because it's decently fast and cryptographic security isn't needed.
-						matchHash := md5.Sum(filterChainMatch)
-						matchKey := hex.EncodeToString(matchHash[:])
+						// Use xxhash64 because it's decently fast and cryptographic security isn't needed.
+						h := xxhash.New()
+						h.Write(filterChainMatch)
+						matchKey := strconv.FormatUint(h.Sum64(), 16)
 
 						rc.Name = fmt.Sprintf("%s-routeconfig-%s-%d", l.Name, matchKey, matchKeyIndex[matchKey])
 

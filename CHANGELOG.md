@@ -107,6 +107,8 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   instead of the Mapping name, which could reduce the cache's effectiveness. This has been fixed so
   that the correct key is used. ([Incorrect Cache Key for Mapping])
 
+- Change: Changed Ambex suffix hashing algorithm to use xxhash64 instead of md5.
+
 [Incorrect Cache Key for Mapping]: https://github.com/emissary-ingress/emissary/issues/5714
 
 ## [3.9.0] November 13, 2023
