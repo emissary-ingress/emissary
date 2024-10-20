@@ -68,6 +68,14 @@ items:
           - title: "Incorrect Cache Key for Mapping"
             link: https://github.com/emissary-ingress/emissary/issues/5714
 
+      - title: Changed Ambex suffix hashing algorithm
+        type: change
+        body: >-
+          Ambex now uses xxhash64 instead of md5 for hashing.
+        github:
+          - title: "ambex: Remove usage of md5"
+            link: https://github.com/emissary-ingress/emissary/pull/5794
+
   - version: 3.9.0
     prevVersion: 3.8.0
     date: '2023-11-13'

@@ -78,7 +78,7 @@ func TestV3ListenerToRdsListener(t *testing.T) {
 
 	for i, rc := range routes {
 		// Confirm that the route name was transformed to the hashed version
-		assert.Equal(t, fmt.Sprintf("emissary-ingress-listener-8080-routeconfig-8c82e45fa3f94ab4e879543e0a1a30ac-%d", i), rc.GetName())
+		assert.Equal(t, fmt.Sprintf("emissary-ingress-listener-8080-routeconfig-29865f40cbcf32dc-%d", i), rc.GetName())
 
 		// Make sure the virtual hosts are unmodified
 		virtualHosts := rc.GetVirtualHosts()
