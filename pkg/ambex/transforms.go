@@ -148,7 +148,9 @@ func V3ListenerToRdsListener(lnr *v3listener.Listener) (*v3listener.Listener, []
 
 						// Use xxhash64 because it's decently fast and cryptographic security isn't needed.
 						h := xxhash.New()
-						h.Write(filterChainMatch)
+						if _, err := h.Write(filterChainMatch); err != nil {
+							return nil, nil, fmt.Errorf("xxhash write error: %w", err)
+						}
 						matchKey := strconv.FormatUint(h.Sum64(), 16)
 
 						rc.Name = fmt.Sprintf("%s-routeconfig-%s-%d", l.Name, matchKey, matchKeyIndex[matchKey])
