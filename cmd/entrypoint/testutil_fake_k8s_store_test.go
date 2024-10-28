@@ -211,6 +211,8 @@ func canonGVK(rawString string) (canonKind string, canonGroupVersion string, err
 		return "Service", "v1", nil
 	case "endpoints":
 		return "Endpoints", "v1", nil
+	case "endpointslices":
+		return "EndpointSlices", "v1.discovery.k8s.io", nil
 	case "secret", "secrets":
 		return "Secret", "v1", nil
 	case "configmap", "configmaps":

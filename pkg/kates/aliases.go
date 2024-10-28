@@ -3,6 +3,7 @@ package kates
 import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	xv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -67,6 +68,9 @@ type Endpoints = corev1.Endpoints
 type EndpointSubset = corev1.EndpointSubset
 type EndpointAddress = corev1.EndpointAddress
 type EndpointPort = corev1.EndpointPort
+type EndpointSlice = discoveryv1.EndpointSlice
+type Endpoint = discoveryv1.Endpoint
+type EndpointSlicePort = discoveryv1.EndpointPort
 
 type Protocol = corev1.Protocol
 

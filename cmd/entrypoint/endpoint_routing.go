@@ -20,13 +20,22 @@ func makeEndpoints(ctx context.Context, ksnap *snapshot.KubernetesSnapshot, cons
 
 	result := map[string][]*ambex.Endpoint{}
 
-	for _, k8sEp := range ksnap.Endpoints {
-		svc, ok := k8sServices[key(k8sEp)]
-		if !ok {
-			continue
-		}
-		for _, ep := range k8sEndpointsToAmbex(k8sEp, svc) {
-			result[ep.ClusterName] = append(result[ep.ClusterName], ep)
+	svcEndpointSlices := map[string][]*kates.EndpointSlice{}
+
+	// Collect all the EndpointSlices for each service
+	for _, k8sEndpointSlice := range ksnap.EndpointSlices {
+		svcKey := fmt.Sprintf("%s:%s", k8sEndpointSlice.Namespace, k8sEndpointSlice.Labels["kubernetes.io/service-name"])
+		svcEndpointSlices[svcKey] = append(svcEndpointSlices[svcKey], k8sEndpointSlice)
+		break
+	}
+	//Map each service to its corresponding endpoints from all its EndpointSlices
+	for svcKey, svc := range k8sServices {
+		if slices, ok := svcEndpointSlices[svcKey]; ok {
+			for _, slice := range slices {
+				for _, ep := range k8sEndpointsToAmbex(slice, svc) {
+					result[ep.ClusterName] = append(result[ep.ClusterName], ep)
+				}
+			}
 		}
 	}
 
@@ -43,7 +52,7 @@ func key(resource kates.Object) string {
 	return fmt.Sprintf("%s:%s", resource.GetNamespace(), resource.GetName())
 }
 
-func k8sEndpointsToAmbex(ep *kates.Endpoints, svc *kates.Service) (result []*ambex.Endpoint) {
+func k8sEndpointsToAmbex(endpointSlice *kates.EndpointSlice, svc *kates.Service) (result []*ambex.Endpoint) {
 	portmap := map[string][]string{}
 	for _, p := range svc.Spec.Ports {
 		port := fmt.Sprintf("%d", p.Port)
@@ -64,11 +73,11 @@ func k8sEndpointsToAmbex(ep *kates.Endpoints, svc *kates.Service) (result []*amb
 		}
 	}
 
-	for _, subset := range ep.Subsets {
-		for _, port := range subset.Ports {
-			if port.Protocol == kates.ProtocolTCP || port.Protocol == kates.ProtocolUDP {
+	for _, endpoint := range endpointSlice.Endpoints {
+		for _, port := range endpointSlice.Ports {
+			if *port.Protocol == kates.ProtocolTCP || *port.Protocol == kates.ProtocolUDP {
 				portNames := map[string]bool{}
-				candidates := []string{fmt.Sprintf("%d", port.Port), port.Name, ""}
+				candidates := []string{fmt.Sprintf("%d", *port.Port), *port.Name, ""}
 				for _, c := range candidates {
 					if pns, ok := portmap[c]; ok {
 						for _, pn := range pns {
@@ -76,17 +85,17 @@ func k8sEndpointsToAmbex(ep *kates.Endpoints, svc *kates.Service) (result []*amb
 						}
 					}
 				}
-				for _, addr := range subset.Addresses {
+				for _, address := range endpoint.Addresses {
 					for pn := range portNames {
 						sep := "/"
 						if pn == "" {
 							sep = ""
 						}
 						result = append(result, &ambex.Endpoint{
-							ClusterName: fmt.Sprintf("k8s/%s/%s%s%s", ep.Namespace, ep.Name, sep, pn),
-							Ip:          addr.IP,
-							Port:        uint32(port.Port),
-							Protocol:    string(port.Protocol),
+							ClusterName: fmt.Sprintf("k8s/%s/%s%s%s", svc.Namespace, svc.Name, sep, pn),
+							Ip:          address,
+							Port:        uint32(*port.Port),
+							Protocol:    string(*port.Protocol),
 						})
 					}
 				}
