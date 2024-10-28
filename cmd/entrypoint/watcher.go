@@ -361,12 +361,13 @@ func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) (*SnapshotHo
 	if err != nil {
 		return nil, err
 	}
+	k8sSnapshot := NewKubernetesSnapshot()
 	return &SnapshotHolder{
 		validator:           validator,
 		ambassadorMeta:      ambassadorMeta,
-		k8sSnapshot:         NewKubernetesSnapshot(),
+		k8sSnapshot:         k8sSnapshot,
 		consulSnapshot:      &snapshot.ConsulSnapshot{},
-		endpointRoutingInfo: newEndpointRoutingInfo(),
+		endpointRoutingInfo: newEndpointRoutingInfo(k8sSnapshot.EndpointSlices),
 		dispatcher:          disp,
 		firstReconfig:       true,
 	}, nil
@@ -491,7 +492,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		for _, delta := range deltas {
 			sh.unsentDeltas = append(sh.unsentDeltas, delta)
 
-			if delta.Kind == "Endpoints" {
+			if delta.Kind == "EndpointSlice" {
 				key := fmt.Sprintf("%s:%s", delta.Namespace, delta.Name)
 				if sh.endpointRoutingInfo.endpointWatches[key] || sh.dispatcher.IsWatched(delta.Namespace, delta.Name) {
 					endpointsChanged = true
