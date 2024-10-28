@@ -56,10 +56,11 @@ type ConsulSnapshot struct {
 
 type KubernetesSnapshot struct {
 	// k8s resources
-	IngressClasses []*IngressClass    `json:"ingressclasses"`
-	Ingresses      []*Ingress         `json:"ingresses"`
-	Services       []*kates.Service   `json:"service"`
-	Endpoints      []*kates.Endpoints `json:"Endpoints"`
+	IngressClasses []*IngressClass        `json:"ingressclasses"`
+	Ingresses      []*Ingress             `json:"ingresses"`
+	Services       []*kates.Service       `json:"service"`
+	Endpoints      []*kates.Endpoints     `json:"Endpoints"`
+	EndpointSlices []*kates.EndpointSlice `json:"EndpointSlice"`
 
 	// ambassador resources
 	Listeners   []*amb.Listener   `json:"Listener"`

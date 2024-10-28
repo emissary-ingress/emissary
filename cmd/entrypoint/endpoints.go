@@ -22,6 +22,7 @@ type endpointRoutingInfo struct {
 	module          moduleResolver
 	endpointWatches map[string]bool // A set to track the subset of kubernetes endpoints we care about.
 	previousWatches map[string]bool
+	endpointSlices  []*kates.EndpointSlice
 }
 
 type ResolverType int
@@ -47,7 +48,7 @@ func (rt ResolverType) String() string {
 
 // newEndpointRoutingInfo creates a shiny new struct to hold information about
 // resolvers in use and such.
-func newEndpointRoutingInfo() endpointRoutingInfo {
+func newEndpointRoutingInfo(endpointSlices []*kates.EndpointSlice) endpointRoutingInfo {
 	return endpointRoutingInfo{
 		// resolverTypes keeps track of the type of every resolver in the system.
 		// It starts out empty.
@@ -59,6 +60,7 @@ func newEndpointRoutingInfo() endpointRoutingInfo {
 		resolverTypes: make(map[string]ResolverType),
 		// Track which endpoints we actually want to watch.
 		endpointWatches: make(map[string]bool),
+		endpointSlices:  endpointSlices,
 	}
 }
 
@@ -71,6 +73,7 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 	eri.module = moduleResolver{}
 	eri.previousWatches = eri.endpointWatches
 	eri.endpointWatches = map[string]bool{}
+	eri.endpointSlices = s.EndpointSlices
 
 	// Phase one processes all the configuration stuff that Mappings depend on. Right now this
 	// includes Modules and Resolvers. When we are done with Phase one we have processed enough
@@ -228,7 +231,13 @@ func (eri *endpointRoutingInfo) checkMapping(ctx context.Context, mapping *amb.M
 
 	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
 		svc, ns, _ := eri.module.parseService(ctx, mapping, service, mapping.GetNamespace())
-		eri.endpointWatches[fmt.Sprintf("%s:%s", ns, svc)] = true
+		for _, endpointSlice := range eri.endpointSlices {
+			// Check if this EndpointSlice matches the target service and namespace
+			if endpointSlice.Namespace == ns && endpointSlice.Labels["kubernetes.io/service-name"] == svc {
+				eri.endpointWatches[fmt.Sprintf("%s:%s", ns, endpointSlice.Name)] = true
+
+			}
+		}
 	}
 }
 
@@ -247,7 +256,13 @@ func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping 
 
 	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
 		svc, ns, _ := eri.module.parseService(ctx, tcpmapping, service, tcpmapping.GetNamespace())
-		eri.endpointWatches[fmt.Sprintf("%s:%s", ns, svc)] = true
+		for _, endpointSlice := range eri.endpointSlices {
+			// Check if this EndpointSlice matches the target service and namespace
+			if endpointSlice.Namespace == ns && endpointSlice.Labels["kubernetes.io/service-name"] == svc {
+				eri.endpointWatches[fmt.Sprintf("%s:%s", ns, endpointSlice.Name)] = true
+
+			}
+		}
 	}
 }
 
