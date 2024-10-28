@@ -24,12 +24,12 @@ endpoints:
   targetRef:
     kind: Pod
     name: hello-6db467b4d7-n45n7
-- addresses: 
+- addresses:
   - "10.42.0.16"
   nodeName: flynn-2b
   targetRef:
     kind: Pod
     name: hello-6db467b4d7-n45n7
-  ports:
-  - port: 5000
-    protocol: TCP
+ports:
+- port: 5000
+  protocol: TCP
