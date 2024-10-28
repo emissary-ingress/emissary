@@ -19,9 +19,9 @@ endpoints:
   targetRef:
     kind: Pod
     name: random-6db467b4d7-zzzz1
-  ports:
-  - port: 5000
-    protocol: TCP
+ports:
+- port: 5000
+  protocol: TCP
 ---
 # All the IP addresses, pod names, etc., are basically made up. These
 # aren't meant to be functional, just to exercise the machinery of
@@ -43,6 +43,6 @@ endpoints:
   targetRef:
     kind: Pod
     name: rande-6db467b4d7-zzzz2
-  ports:
-  - port: 5000
-    protocol: TCP
+ports:
+- port: 5000
+  protocol: TCP
