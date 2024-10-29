@@ -26,7 +26,6 @@ func makeEndpoints(ctx context.Context, ksnap *snapshot.KubernetesSnapshot, cons
 	for _, k8sEndpointSlice := range ksnap.EndpointSlices {
 		svcKey := fmt.Sprintf("%s:%s", k8sEndpointSlice.Namespace, k8sEndpointSlice.Labels["kubernetes.io/service-name"])
 		svcEndpointSlices[svcKey] = append(svcEndpointSlices[svcKey], k8sEndpointSlice)
-		break
 	}
 	//Map each service to its corresponding endpoints from all its EndpointSlices
 	for svcKey, svc := range k8sServices {
