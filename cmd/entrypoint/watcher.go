@@ -492,7 +492,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		for _, delta := range deltas {
 			sh.unsentDeltas = append(sh.unsentDeltas, delta)
 
-			if delta.Kind == "EndpointSlice" {
+			if delta.Kind == "EndpointSlice" || delta.Kind == "Endpoints" {
 				key := fmt.Sprintf("%s:%s", delta.Namespace, delta.Name)
 				if sh.endpointRoutingInfo.endpointWatches[key] || sh.dispatcher.IsWatched(delta.Namespace, delta.Name) {
 					endpointsChanged = true

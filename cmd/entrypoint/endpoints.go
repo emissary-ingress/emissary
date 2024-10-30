@@ -231,13 +231,7 @@ func (eri *endpointRoutingInfo) checkMapping(ctx context.Context, mapping *amb.M
 
 	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
 		svc, ns, _ := eri.module.parseService(ctx, mapping, service, mapping.GetNamespace())
-		for _, endpointSlice := range eri.endpointSlices {
-			// Check if this EndpointSlice matches the target service and namespace
-			if endpointSlice.Namespace == ns && endpointSlice.Labels["kubernetes.io/service-name"] == svc {
-				eri.endpointWatches[fmt.Sprintf("%s:%s", ns, endpointSlice.Name)] = true
-
-			}
-		}
+		eri.mapEndpointWatches(ns, svc)
 	}
 }
 
@@ -256,13 +250,25 @@ func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping 
 
 	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
 		svc, ns, _ := eri.module.parseService(ctx, tcpmapping, service, tcpmapping.GetNamespace())
-		for _, endpointSlice := range eri.endpointSlices {
-			// Check if this EndpointSlice matches the target service and namespace
-			if endpointSlice.Namespace == ns && endpointSlice.Labels["kubernetes.io/service-name"] == svc {
-				eri.endpointWatches[fmt.Sprintf("%s:%s", ns, endpointSlice.Name)] = true
+		eri.mapEndpointWatches(ns, svc)
+	}
+}
 
+// mapEndpointWatches figures out what service discovery object available for a given service.
+func (eri *endpointRoutingInfo) mapEndpointWatches(namespace string, serviceName string) {
+	foundEndpointSlice := false
+	for _, endpointSlice := range eri.endpointSlices {
+		// Check if this EndpointSlice matches the target service and namespace, and has the required label
+		if endpointSlice.Namespace == namespace {
+			if service, ok := endpointSlice.Labels["kubernetes.io/service-name"]; ok && service == serviceName {
+				eri.endpointWatches[fmt.Sprintf("%s:%s", namespace, endpointSlice.Name)] = true
+				foundEndpointSlice = true
 			}
 		}
+	}
+	if !foundEndpointSlice {
+		//Use Endpoint if EndpointSlice doesn't exist
+		eri.endpointWatches[fmt.Sprintf("%s:%s", namespace, serviceName)] = true
 	}
 }
 
