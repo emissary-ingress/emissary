@@ -42,6 +42,29 @@ func TestEndpointRouting(t *testing.T) {
 	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo/80"][0].Port)
 }
 
+func TestEndpointRoutingWithNoEndpointSlices(t *testing.T) {
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+	// Create Mapping, Service, and Endpoints resources to start.
+	assert.NoError(t, f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint")))
+	assert.NoError(t, f.Upsert(makeService("default", "foo")))
+	subset, err := makeSubset(8080, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
+	f.Flush()
+	snap, err := f.GetSnapshot(HasMapping("default", "foo"))
+	require.NoError(t, err)
+	assert.NotNil(t, snap)
+
+	// Check that the endpoints resource we created at the start was properly propagated.
+	endpoints, err := f.GetEndpoints(HasEndpoints("k8s/default/foo"))
+	require.NoError(t, err)
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo"][0].Ip)
+	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo"][0].Port)
+	assert.Contains(t, endpoints.Entries, "k8s/default/foo/80")
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo/80"][0].Ip)
+	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo/80"][0].Port)
+}
+
 func TestEndpointRoutingMappingAnnotations(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create Mapping, Service, and Endpoints resources to start.
@@ -240,6 +263,40 @@ func makeService(namespace, name string) *kates.Service {
 			},
 		},
 	}
+}
+
+func makeEndpoints(namespace, name string, subsets ...kates.EndpointSubset) *kates.Endpoints {
+	return &kates.Endpoints{
+		TypeMeta:   kates.TypeMeta{Kind: "Endpoints"},
+		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
+		Subsets:    subsets,
+	}
+}
+
+// makeSubset provides a convenient way to kubernetes EndpointSubset resources. Any int args are
+// ports, any ip address strings are addresses, and no ip address strings are used as the port name
+// for any ports that follow them in the arg list.
+func makeSubset(args ...interface{}) (kates.EndpointSubset, error) {
+	portName := ""
+	var ports []kates.EndpointPort
+	var addrs []kates.EndpointAddress
+	for _, arg := range args {
+		switch v := arg.(type) {
+		case int:
+			ports = append(ports, kates.EndpointPort{Name: portName, Port: int32(v), Protocol: kates.ProtocolTCP})
+		case string:
+			IP := net.ParseIP(v)
+			if IP == nil {
+				portName = v
+			} else {
+				addrs = append(addrs, kates.EndpointAddress{IP: v})
+			}
+		default:
+			return kates.EndpointSubset{}, fmt.Errorf("unrecognized type: %T", v)
+		}
+	}
+
+	return kates.EndpointSubset{Addresses: addrs, Ports: ports}, nil
 }
 
 func makeEndpointSlice(namespace, name, serviceName string, endpoint []kates.Endpoint, port []kates.EndpointSlicePort) *kates.EndpointSlice {
