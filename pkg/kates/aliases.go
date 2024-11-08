@@ -71,6 +71,7 @@ type EndpointPort = corev1.EndpointPort
 type EndpointSlice = discoveryv1.EndpointSlice
 type Endpoint = discoveryv1.Endpoint
 type EndpointSlicePort = discoveryv1.EndpointPort
+type EndpointConditions = discoveryv1.EndpointConditions
 
 type Protocol = corev1.Protocol
 
