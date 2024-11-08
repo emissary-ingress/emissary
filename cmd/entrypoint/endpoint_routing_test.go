@@ -120,7 +120,7 @@ func TestEndpointRoutingMultiplePorts(t *testing.T) {
 			},
 		},
 	}))
-	endpoint, port, err := makeSliceEndpoint(8080, "1.2.3.4")
+	endpoint, port, err := makeSliceEndpoint("cleartext", 8080, "encrypted", 8443, "1.2.3.4")
 	require.NoError(t, err)
 	assert.NoError(t, f.Upsert(makeEndpointSlice("default", "foo", "foo", endpoint, port)))
 	f.Flush()
@@ -328,6 +328,11 @@ func makeSliceEndpoint(args ...interface{}) ([]kates.Endpoint, []kates.EndpointS
 			if IP != nil {
 				endpoints = append(endpoints, kates.Endpoint{
 					Addresses: []string{v},
+					Conditions: kates.EndpointConditions{
+						Ready:       &[]bool{true}[0],
+						Serving:     &[]bool{true}[0],
+						Terminating: &[]bool{false}[0],
+					},
 				})
 			} else {
 				portName = v // Assume it's a port name if not an IP address

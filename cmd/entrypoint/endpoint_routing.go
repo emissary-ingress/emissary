@@ -150,18 +150,20 @@ func k8sEndpointSlicesToAmbex(endpointSlice *kates.EndpointSlice, svc *kates.Ser
 						}
 					}
 				}
-				for _, address := range endpoint.Addresses {
-					for pn := range portNames {
-						sep := "/"
-						if pn == "" {
-							sep = ""
+				if *endpoint.Conditions.Ready {
+					for _, address := range endpoint.Addresses {
+						for pn := range portNames {
+							sep := "/"
+							if pn == "" {
+								sep = ""
+							}
+							result = append(result, &ambex.Endpoint{
+								ClusterName: fmt.Sprintf("k8s/%s/%s%s%s", svc.Namespace, svc.Name, sep, pn),
+								Ip:          address,
+								Port:        uint32(*port.Port),
+								Protocol:    string(*port.Protocol),
+							})
 						}
-						result = append(result, &ambex.Endpoint{
-							ClusterName: fmt.Sprintf("k8s/%s/%s%s%s", svc.Namespace, svc.Name, sep, pn),
-							Ip:          address,
-							Port:        uint32(*port.Port),
-							Protocol:    string(*port.Protocol),
-						})
 					}
 				}
 			}
