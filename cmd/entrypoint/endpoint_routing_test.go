@@ -317,11 +317,12 @@ func makeEndpointSlice(namespace, name, serviceName string, endpoint []kates.End
 func makeSliceEndpoint(args ...interface{}) ([]kates.Endpoint, []kates.EndpointSlicePort, error) {
 	var endpoints []kates.Endpoint
 	var ports []kates.EndpointSlicePort
-	portName := ""
+	var currentPortName string
 
 	for _, arg := range args {
 		switch v := arg.(type) {
 		case int:
+			portName := currentPortName
 			ports = append(ports, kates.EndpointSlicePort{Name: &portName, Port: int32Ptr(int32(v)), Protocol: protocolPtr(kates.ProtocolTCP)})
 		case string:
 			IP := net.ParseIP(v)
@@ -335,7 +336,7 @@ func makeSliceEndpoint(args ...interface{}) ([]kates.Endpoint, []kates.EndpointS
 					},
 				})
 			} else {
-				portName = v // Assume it's a port name if not an IP address
+				currentPortName = v // Assume it's a port name if not an IP address
 			}
 		default:
 			return nil, nil, fmt.Errorf("unrecognized type: %T", v)
