@@ -8,6 +8,7 @@ package oauth2v3
 
 import (
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
+	durationpb "github.com/planetscale/vtprotobuf/types/known/durationpb"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -115,6 +116,16 @@ func (m *OAuth2) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if m.TokenFetchRetryInterval != nil {
+		size, err := (*durationpb.Duration)(m.TokenFetchRetryInterval).MarshalToSizedBufferVTStrict(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
 	}
 	if msg, ok := m.FlowType.(*OAuth2_ClientCredentials_); ok {
 		size, err := msg.MarshalToSizedBufferVTStrict(dAtA[:i])
@@ -231,6 +242,10 @@ func (m *OAuth2) SizeVT() (n int) {
 	}
 	if vtmsg, ok := m.FlowType.(interface{ SizeVT() int }); ok {
 		n += vtmsg.SizeVT()
+	}
+	if m.TokenFetchRetryInterval != nil {
+		l = (*durationpb.Duration)(m.TokenFetchRetryInterval).SizeVT()
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)
 	return n

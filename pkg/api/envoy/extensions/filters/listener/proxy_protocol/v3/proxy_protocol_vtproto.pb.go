@@ -144,6 +144,13 @@ func (m *ProxyProtocol) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if len(m.StatPrefix) > 0 {
+		i -= len(m.StatPrefix)
+		copy(dAtA[i:], m.StatPrefix)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.StatPrefix)))
+		i--
+		dAtA[i] = 0x2a
+	}
 	if len(m.DisallowedVersions) > 0 {
 		var pksize2 int
 		for _, num := range m.DisallowedVersions {
@@ -278,6 +285,10 @@ func (m *ProxyProtocol) SizeVT() (n int) {
 			l += protohelpers.SizeOfVarint(uint64(e))
 		}
 		n += 1 + protohelpers.SizeOfVarint(uint64(l)) + l
+	}
+	l = len(m.StatPrefix)
+	if l > 0 {
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)
 	return n

@@ -1139,6 +1139,16 @@ func (m *JwtAuthentication) MarshalToSizedBufferVTStrict(dAtA []byte) (int, erro
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.StripFailureResponse {
+		i--
+		if m.StripFailureResponse {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x30
+	}
 	if len(m.RequirementMap) > 0 {
 		for k := range m.RequirementMap {
 			v := m.RequirementMap[k]
@@ -1842,6 +1852,9 @@ func (m *JwtAuthentication) SizeVT() (n int) {
 			mapEntrySize := 1 + len(k) + protohelpers.SizeOfVarint(uint64(len(k))) + l
 			n += mapEntrySize + 1 + protohelpers.SizeOfVarint(uint64(mapEntrySize))
 		}
+	}
+	if m.StripFailureResponse {
+		n += 2
 	}
 	n += len(m.unknownFields)
 	return n
