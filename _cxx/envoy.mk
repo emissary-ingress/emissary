@@ -24,7 +24,8 @@ BASE_ENVOY_RELVER ?= 0
 FIPS_MODE ?=
 export FIPS_MODE
 
-ENVOY_DOCKER_REPO ?= docker.io/emissaryingress/base-envoy
+# ENVOY_DOCKER_REPO ?= docker.io/emissaryingress/base-envoy
+ENVOY_DOCKER_REPO ?= gcr.io/datawire/ambassador-base
 ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)$(if $(FIPS_MODE),.FIPS)
 ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
