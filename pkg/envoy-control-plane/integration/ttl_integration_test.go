@@ -49,7 +49,7 @@ func TestTTLResponse(t *testing.T) {
 	}()
 	defer grpcServer.Stop()
 
-	conn, err := grpc.Dial(":9999", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(":9999", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 
 	client := endpointservice.NewEndpointDiscoveryServiceClient(conn)
