@@ -68,6 +68,13 @@ items:
           - title: "Incorrect Cache Key for Mapping"
             link: https://github.com/emissary-ingress/emissary/issues/5714
 
+      - title: Add support for EndpointSlices to the Endpoints resolver
+        type: feature
+        body: >-
+          $productName$ now supports resolving Endpoints from EndpointSlices
+          in addition to the existing support for Endpoints, supporting Services
+          with more than 1000 endpoints.
+
   - version: 3.9.0
     prevVersion: 3.8.0
     date: '2023-11-13'
@@ -489,7 +496,7 @@ items:
         body: >-
           Prior releases of $productName$ had the arbitrary limitation that a
           <code>TCPMapping</code> cannot be used on the same port that HTTP is served on, even if
-          TLS+SNI would make this possible.  $productName$ now allows <code>TCPMappings</code> to be
+          TLS+SNI would make this possible. $productName$ now allows <code>TCPMappings</code> to be
           used on the same <code>Listener</code> port as HTTP <code>Hosts</code>, as long as that
           <code>Listener</code> terminates TLS.
       - title: Update Golang to 1.19.1
@@ -714,7 +721,7 @@ items:
         body: >-
           Prior releases of $productName$ had the arbitrary limitation that a
           <code>TCPMapping</code> cannot be used on the same port that HTTP is served on, even if
-          TLS+SNI would make this possible.  $productName$ now allows <code>TCPMappings</code> to be
+          TLS+SNI would make this possible. $productName$ now allows <code>TCPMappings</code> to be
           used on the same <code>Listener</code> port as HTTP <code>Hosts</code>, as long as that
           <code>Listener</code> terminates TLS.
 

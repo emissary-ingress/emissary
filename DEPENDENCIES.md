@@ -180,34 +180,34 @@ following Free and Open Source software:
 The Emissary-ingress Python code makes use of the following Free and Open Source
 libraries:
 
-    Name                Version   License(s)
-    ----                -------   ----------
-    Cython              0.29.37   Apache License 2.0
-    Flask               3.0.3     3-clause BSD license
-    Jinja2              3.1.4     3-clause BSD license
-    MarkupSafe          2.1.5     3-clause BSD license
-    PyYAML              6.0.1     MIT license
-    Werkzeug            3.0.3     3-clause BSD license
-    blinker             1.8.2     MIT license
-    build               1.2.1     MIT license
-    certifi             2024.2.2  Mozilla Public License 2.0
-    charset-normalizer  3.3.2     MIT license
-    click               8.1.7     3-clause BSD license
-    durationpy          0.6       MIT license
-    expiringdict        1.2.2     Apache License 2.0
-    gunicorn            22.0.0    MIT license
-    idna                3.7       3-clause BSD license
-    itsdangerous        2.2.0     3-clause BSD license
-    jsonpatch           1.33      3-clause BSD license
-    jsonpointer         2.4       3-clause BSD license
-    orjson              3.10.3    Apache License 2.0, MIT license
-    packaging           23.1      2-clause BSD license, Apache License 2.0
-    pip-tools           7.3.0     3-clause BSD license
-    prometheus_client   0.20.0    Apache License 2.0
-    pyparsing           3.0.9     MIT license
-    pyproject_hooks     1.1.0     MIT license
-    python-json-logger  2.0.7     2-clause BSD license
-    requests            2.31.0    Apache License 2.0
-    semantic-version    2.10.0    2-clause BSD license
-    typing_extensions   4.11.0    Python Software Foundation license
-    urllib3             2.2.1     MIT license
+    Name                Version      License(s)
+    ----                -------      ----------
+    Cython              0.29.37      Apache License 2.0
+    Flask               3.0.3        3-clause BSD license
+    Jinja2              3.1.4        3-clause BSD license
+    MarkupSafe          2.1.5        3-clause BSD license
+    PyYAML              6.0.1        MIT license
+    Werkzeug            3.0.3        3-clause BSD license
+    blinker             1.8.2        MIT license
+    build               1.2.2.post1  MIT license
+    certifi             2024.2.2     Mozilla Public License 2.0
+    charset-normalizer  3.3.2        MIT license
+    click               8.1.7        3-clause BSD license
+    durationpy          0.6          MIT license
+    expiringdict        1.2.2        Apache License 2.0
+    gunicorn            22.0.0       MIT license
+    idna                3.7          3-clause BSD license
+    itsdangerous        2.2.0        3-clause BSD license
+    jsonpatch           1.33         3-clause BSD license
+    jsonpointer         2.4          3-clause BSD license
+    orjson              3.10.3       Apache License 2.0, MIT license
+    packaging           23.1         2-clause BSD license, Apache License 2.0
+    pip-tools           7.3.0        3-clause BSD license
+    prometheus_client   0.20.0       Apache License 2.0
+    pyparsing           3.0.9        MIT license
+    pyproject_hooks     1.2.0        MIT license
+    python-json-logger  2.0.7        2-clause BSD license
+    requests            2.31.0       Apache License 2.0
+    semantic-version    2.10.0       2-clause BSD license
+    typing_extensions   4.11.0       Python Software Foundation license
+    urllib3             2.2.1        MIT license
