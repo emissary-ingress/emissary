@@ -107,7 +107,8 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   instead of the Mapping name, which could reduce the cache's effectiveness. This has been fixed so
   that the correct key is used. ([Incorrect Cache Key for Mapping])
 
-- Change: Updated Emissary-Ingress to use EndpointSlices instead of Endpoints to support more than 1000 Backends
+- Feature: Emissary-ingress now supports resolving Endpoints from EndpointSlices in addition to the
+  existing support for Endpoints, supporting Services with more than 1000 endpoints.
 
 [Incorrect Cache Key for Mapping]: https://github.com/emissary-ingress/emissary/issues/5714
 
