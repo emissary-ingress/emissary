@@ -404,18 +404,18 @@ class V3Listener:
                 access_log_obj["additional_request_headers_to_log"] = req_headers
                 access_log_obj["additional_response_headers_to_log"] = resp_headers
                 access_log_obj["additional_response_trailers_to_log"] = trailer_headers
-                access_log_obj[
-                    "@type"
-                ] = "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig"
+                access_log_obj["@type"] = (
+                    "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig"
+                )
                 access_log.append(
                     {"name": "envoy.access_loggers.http_grpc", "typed_config": access_log_obj}
                 )
             else:
                 # inherently TCP right now
                 # tcp loggers do not support additional headers
-                access_log_obj[
-                    "@type"
-                ] = "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig"
+                access_log_obj["@type"] = (
+                    "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig"
+                )
                 access_log.append(
                     {"name": "envoy.access_loggers.tcp_grpc", "typed_config": access_log_obj}
                 )
@@ -500,9 +500,9 @@ class V3Listener:
                 base_http_config["http_filters"].append(v3hf)
 
         if "use_remote_address" in self.config.ir.ambassador_module:
-            base_http_config[
-                "use_remote_address"
-            ] = self.config.ir.ambassador_module.use_remote_address
+            base_http_config["use_remote_address"] = (
+                self.config.ir.ambassador_module.use_remote_address
+            )
 
         if self._l7_depth > 0:
             base_http_config["xff_num_trusted_hops"] = self._l7_depth
@@ -546,24 +546,24 @@ class V3Listener:
         if "allow_chunked_length" in self.config.ir.ambassador_module:
             if self.config.ir.ambassador_module.allow_chunked_length != None:
                 http_options = base_http_config.setdefault("http_protocol_options", {})
-                http_options[
-                    "allow_chunked_length"
-                ] = self.config.ir.ambassador_module.allow_chunked_length
+                http_options["allow_chunked_length"] = (
+                    self.config.ir.ambassador_module.allow_chunked_length
+                )
 
         if "preserve_external_request_id" in self.config.ir.ambassador_module:
-            base_http_config[
-                "preserve_external_request_id"
-            ] = self.config.ir.ambassador_module.preserve_external_request_id
+            base_http_config["preserve_external_request_id"] = (
+                self.config.ir.ambassador_module.preserve_external_request_id
+            )
 
         if "forward_client_cert_details" in self.config.ir.ambassador_module:
-            base_http_config[
-                "forward_client_cert_details"
-            ] = self.config.ir.ambassador_module.forward_client_cert_details
+            base_http_config["forward_client_cert_details"] = (
+                self.config.ir.ambassador_module.forward_client_cert_details
+            )
 
         if "set_current_client_cert_details" in self.config.ir.ambassador_module:
-            base_http_config[
-                "set_current_client_cert_details"
-            ] = self.config.ir.ambassador_module.set_current_client_cert_details
+            base_http_config["set_current_client_cert_details"] = (
+                self.config.ir.ambassador_module.set_current_client_cert_details
+            )
 
         if self.config.ir.tracing:
             base_http_config["generate_request_id"] = True

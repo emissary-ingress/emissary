@@ -216,9 +216,9 @@ class IRHTTPMapping(IRBaseMapping):
                         if "*" in hdr_value:
                             # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
                             # and defer the error for later.
-                            new_args[
-                                "_deferred_error"
-                            ] = f":authority exact-match '{hdr_value}' contains *, which cannot match anything."
+                            new_args["_deferred_error"] = (
+                                f":authority exact-match '{hdr_value}' contains *, which cannot match anything."
+                            )
                             ir.logger.debug(
                                 "IRHTTPMapping %s: self.host contains * (%s, :authority)",
                                 name,
@@ -255,9 +255,9 @@ class IRHTTPMapping(IRBaseMapping):
                 if "*" in host:
                     # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
                     # and defer the error for later.
-                    new_args[
-                        "_deferred_error"
-                    ] = f"host exact-match {host} contains *, which cannot match anything."
+                    new_args["_deferred_error"] = (
+                        f"host exact-match {host} contains *, which cannot match anything."
+                    )
                     ir.logger.debug("IRHTTPMapping %s: self.host contains * (%s, host)", name, host)
                 else:
                     ir.logger.debug("IRHTTPMapping %s: self.host == %s (host)", name, self.host)

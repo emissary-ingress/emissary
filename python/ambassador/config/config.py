@@ -132,9 +132,9 @@ class Config:
         self.schema_dir_path = schema_dir_path
 
         self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
-        self.k8s_status_updates: Dict[
-            str, Tuple[str, str, Optional[Dict[str, Any]]]
-        ] = {}  # Tuple is (name, namespace, status_json)
+        self.k8s_status_updates: Dict[str, Tuple[str, str, Optional[Dict[str, Any]]]] = (
+            {}
+        )  # Tuple is (name, namespace, status_json)
         self.pod_labels: Dict[str, str] = {}
         self._reset()
 

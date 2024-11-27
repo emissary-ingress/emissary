@@ -313,9 +313,9 @@ class V3Route(Cacheable):
                 )
                 self["_failed"] = True
             else:
-                runtime_fraction[
-                    "runtime_key"
-                ] = f"routing.traffic_shift.{mapping.cluster.envoy_name}"
+                runtime_fraction["runtime_key"] = (
+                    f"routing.traffic_shift.{mapping.cluster.envoy_name}"
+                )
 
         match = {"case_sensitive": case_sensitive, "runtime_fraction": runtime_fraction}
 

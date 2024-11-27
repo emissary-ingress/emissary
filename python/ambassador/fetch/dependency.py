@@ -26,8 +26,7 @@ class Dependency(Protocol):
     without direct knowledge of where data is coming from.
     """
 
-    def watt_key(self) -> str:
-        ...
+    def watt_key(self) -> str: ...
 
 
 class ServiceDependency(Dependency):
@@ -76,11 +75,9 @@ D = TypeVar("D", bound=Dependency)
 
 
 class DependencyMapping(Protocol):
-    def __contains__(self, key: Type[D]) -> bool:
-        ...
+    def __contains__(self, key: Type[D]) -> bool: ...
 
-    def __getitem__(self, key: Type[D]) -> D:
-        ...
+    def __getitem__(self, key: Type[D]) -> D: ...
 
 
 class DependencyInjector:
