@@ -256,9 +256,9 @@ class IngressProcessor(ManagedKubernetesProcessor):
                     "ambassador_id": obj.ambassador_id,
                     "prefix": path_location,
                     "prefix_exact": is_exact_prefix,
-                    "precedence": 1
-                    if is_exact_prefix
-                    else 0,  # Make sure exact paths are evaluated before prefix
+                    "precedence": (
+                        1 if is_exact_prefix else 0
+                    ),  # Make sure exact paths are evaluated before prefix
                     "service": f"{service_name}.{obj.namespace}:{service_port}",
                 }
 

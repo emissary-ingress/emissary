@@ -144,6 +144,28 @@ func (m *ExecuteFilterAction) MarshalToSizedBufferVTStrict(dAtA []byte) (int, er
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.SamplePercent != nil {
+		if vtmsg, ok := interface{}(m.SamplePercent).(interface {
+			MarshalToSizedBufferVTStrict([]byte) (int, error)
+		}); ok {
+			size, err := vtmsg.MarshalToSizedBufferVTStrict(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
+		} else {
+			encoded, err := proto.Marshal(m.SamplePercent)
+			if err != nil {
+				return 0, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = protohelpers.EncodeVarint(dAtA, i, uint64(len(encoded)))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
 	if m.DynamicConfig != nil {
 		size, err := m.DynamicConfig.MarshalToSizedBufferVTStrict(dAtA[:i])
 		if err != nil {
@@ -231,6 +253,16 @@ func (m *ExecuteFilterAction) SizeVT() (n int) {
 	}
 	if m.DynamicConfig != nil {
 		l = m.DynamicConfig.SizeVT()
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.SamplePercent != nil {
+		if size, ok := interface{}(m.SamplePercent).(interface {
+			SizeVT() int
+		}); ok {
+			l = size.SizeVT()
+		} else {
+			l = proto.Size(m.SamplePercent)
+		}
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)

@@ -45,7 +45,7 @@ feedback, we might decide to revisit this aspect at a later point in time.
 
 ## Requirements
 
-1. Go 1.17+
+1. Go 1.21+
 
 ## Quick start
 

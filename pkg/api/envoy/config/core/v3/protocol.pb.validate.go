@@ -2265,6 +2265,8 @@ func (m *SchemeHeaderTransformation) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for MatchUpstream
+
 	switch v := m.Transformation.(type) {
 	case *SchemeHeaderTransformation_SchemeToOverwrite:
 		if v == nil {

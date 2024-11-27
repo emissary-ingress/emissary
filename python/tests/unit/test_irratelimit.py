@@ -228,9 +228,9 @@ spec:
     )
 
     config = _get_ratelimit_default_conf()
-    config["rate_limit_service"]["grpc_service"]["envoy_grpc"][
-        "cluster_name"
-    ] = "cluster_{}_someotherns".format(SERVICE_NAME)
+    config["rate_limit_service"]["grpc_service"]["envoy_grpc"]["cluster_name"] = (
+        "cluster_{}_someotherns".format(SERVICE_NAME)
+    )
     config["timeout"] = "0.500s"
     config["domain"] = "otherdomain"
     config["failure_mode_deny"] = True

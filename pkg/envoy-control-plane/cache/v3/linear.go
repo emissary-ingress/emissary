@@ -184,7 +184,9 @@ func (cache *LinearCache) respondDelta(request *DeltaRequest, value chan DeltaRe
 	})
 
 	// Only send a response if there were changes
-	if len(resp.Resources) > 0 || len(resp.RemovedResources) > 0 {
+	// We want to respond immediately for the first wildcard request in a stream, even if the response is empty
+	// otherwise, envoy won't complete initialization
+	if len(resp.Resources) > 0 || len(resp.RemovedResources) > 0 || (state.IsWildcard() && state.IsFirst()) {
 		if cache.log != nil {
 			cache.log.Debugf("[linear cache] node: %s, sending delta response for typeURL %s with resources: %v removed resources: %v with wildcard: %t",
 				request.GetNode().GetId(), request.GetTypeUrl(), GetResourceNames(resp.Resources), resp.RemovedResources, state.IsWildcard())

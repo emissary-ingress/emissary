@@ -152,6 +152,16 @@ func (m *CacheConfig) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.IgnoreRequestCacheControlHeader {
+		i--
+		if m.IgnoreRequestCacheControlHeader {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x30
+	}
 	if m.Disabled != nil {
 		size, err := (*wrapperspb.BoolValue)(m.Disabled).MarshalToSizedBufferVTStrict(dAtA[:i])
 		if err != nil {
@@ -286,6 +296,9 @@ func (m *CacheConfig) SizeVT() (n int) {
 	if m.Disabled != nil {
 		l = (*wrapperspb.BoolValue)(m.Disabled).SizeVT()
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.IgnoreRequestCacheControlHeader {
+		n += 2
 	}
 	n += len(m.unknownFields)
 	return n

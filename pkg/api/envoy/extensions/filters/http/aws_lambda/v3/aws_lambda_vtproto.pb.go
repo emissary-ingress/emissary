@@ -48,6 +48,16 @@ func (m *Config) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.Credentials != nil {
+		size, err := m.Credentials.MarshalToSizedBufferVTStrict(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x32
+	}
 	if len(m.CredentialsProfile) > 0 {
 		i -= len(m.CredentialsProfile)
 		copy(dAtA[i:], m.CredentialsProfile)
@@ -81,6 +91,60 @@ func (m *Config) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 		i -= len(m.Arn)
 		copy(dAtA[i:], m.Arn)
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.Arn)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Credentials) MarshalVTStrict() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVTStrict(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Credentials) MarshalToVTStrict(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVTStrict(dAtA[:size])
+}
+
+func (m *Credentials) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i -= len(m.unknownFields)
+		copy(dAtA[i:], m.unknownFields)
+	}
+	if len(m.SessionToken) > 0 {
+		i -= len(m.SessionToken)
+		copy(dAtA[i:], m.SessionToken)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.SessionToken)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.SecretAccessKey) > 0 {
+		i -= len(m.SecretAccessKey)
+		copy(dAtA[i:], m.SecretAccessKey)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.SecretAccessKey)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.AccessKeyId) > 0 {
+		i -= len(m.AccessKeyId)
+		copy(dAtA[i:], m.AccessKeyId)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.AccessKeyId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -151,6 +215,32 @@ func (m *Config) SizeVT() (n int) {
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	l = len(m.CredentialsProfile)
+	if l > 0 {
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.Credentials != nil {
+		l = m.Credentials.SizeVT()
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Credentials) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.AccessKeyId)
+	if l > 0 {
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.SecretAccessKey)
+	if l > 0 {
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.SessionToken)
 	if l > 0 {
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}

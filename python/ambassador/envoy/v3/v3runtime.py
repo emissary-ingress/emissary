@@ -51,9 +51,9 @@ class V3Runtime(dict):
                     isinstance(rapid_reset_min_stream_lifetime, int)
                     and rapid_reset_min_stream_lifetime > 0
                 ):
-                    static_runtime_layer[
-                        "overload.premature_reset_min_stream_lifetime_seconds"
-                    ] = rapid_reset_min_stream_lifetime
+                    static_runtime_layer["overload.premature_reset_min_stream_lifetime_seconds"] = (
+                        rapid_reset_min_stream_lifetime
+                    )
                 else:
                     config.ir.logger.error(
                         f"value: {rapid_reset_min_stream_lifetime} is invalid for Module field overload.premature_reset_min_stream_lifetime_seconds. must be an integer greater than zero"
@@ -64,9 +64,9 @@ class V3Runtime(dict):
             )
             if rapid_reset_total_streams:
                 if isinstance(rapid_reset_total_streams, int) and rapid_reset_total_streams > 0:
-                    static_runtime_layer[
-                        "overload.premature_reset_total_stream_count"
-                    ] = rapid_reset_total_streams
+                    static_runtime_layer["overload.premature_reset_total_stream_count"] = (
+                        rapid_reset_total_streams
+                    )
                 else:
                     config.ir.logger.error(
                         f"value: {rapid_reset_total_streams} invalid for Module field overload.premature_reset_total_stream_count. must be an integer greater than zero"

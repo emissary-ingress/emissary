@@ -15,13 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM ubuntu:23.10
+FROM ubuntu:24.04
 
-LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
-    PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
-    DESCRIPTION              = "Ambassador REST Service" \
-    VENDOR                   = "Datawire" \
-    VENDOR_URL               = "https://datawire.io/"
+LABEL PROJECT_REPO_URL="git@github.com:datawire/ambassador.git" \
+    PROJECT_REPO_BROWSER_URL="https://github.com/datawire/ambassador" \
+    DESCRIPTION="Ambassador REST Service" \
+    VENDOR="Datawire" \
+    VENDOR_URL="https://datawire.io/"
 
 # This Dockerfile is set up to install all the application-specific stuff into
 # /application.
@@ -58,4 +58,5 @@ ARG VERSION="0.0.2"
 ENV VERSION=${VERSION}
 ARG TLS=""
 ENV TLS=${TLS}
+SHELL [ "/bin/bash", "-c" ]
 ENTRYPOINT ./entrypoint.sh ${VERSION} ${TLS}

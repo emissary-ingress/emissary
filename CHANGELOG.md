@@ -107,6 +107,9 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   instead of the Mapping name, which could reduce the cache's effectiveness. This has been fixed so
   that the correct key is used. ([Incorrect Cache Key for Mapping])
 
+- Feature: Emissary-ingress now supports resolving Endpoints from EndpointSlices in addition to the
+  existing support for Endpoints, supporting Services with more than 1000 endpoints.
+
 [Incorrect Cache Key for Mapping]: https://github.com/emissary-ingress/emissary/issues/5714
 
 ## [3.9.0] November 13, 2023
@@ -401,7 +404,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
 
 - Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
-  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible.
   Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
   as long as that `Listener` terminates TLS.
 
@@ -567,7 +570,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
 
 - Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
-  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible.
   Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
   as long as that `Listener` terminates TLS.
 

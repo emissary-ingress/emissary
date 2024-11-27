@@ -132,9 +132,9 @@ class DiagResult:
         self.clusters: Dict[str, DiagCluster] = {}  # Envoy clusters
         self.routes: List[dict] = []  # Envoy routes
         self.element_keys: Dict[str, bool] = {}  # Active element keys
-        self.ambassador_resources: Dict[
-            str, str
-        ] = {}  # Actually serializations of Ambassador config resources
+        self.ambassador_resources: Dict[str, str] = (
+            {}
+        )  # Actually serializations of Ambassador config resources
         self.envoy_resources: Dict[str, dict] = {}  # Envoy config resources
 
     def as_dict(self) -> Dict[str, Any]:

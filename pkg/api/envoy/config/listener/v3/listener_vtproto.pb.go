@@ -399,6 +399,18 @@ func (m *Listener) MarshalToSizedBufferVTStrict(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.BypassOverloadManager {
+		i--
+		if m.BypassOverloadManager {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x98
+	}
 	if m.MaxConnectionsToAcceptPerSocketEvent != nil {
 		size, err := (*wrapperspb.UInt32Value)(m.MaxConnectionsToAcceptPerSocketEvent).MarshalToSizedBufferVTStrict(dAtA[:i])
 		if err != nil {
@@ -1232,6 +1244,9 @@ func (m *Listener) SizeVT() (n int) {
 	if m.MaxConnectionsToAcceptPerSocketEvent != nil {
 		l = (*wrapperspb.UInt32Value)(m.MaxConnectionsToAcceptPerSocketEvent).SizeVT()
 		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.BypassOverloadManager {
+		n += 3
 	}
 	n += len(m.unknownFields)
 	return n

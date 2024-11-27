@@ -362,6 +362,16 @@ func (m *HealthCheck_TcpHealthCheck) MarshalToSizedBufferVTStrict(dAtA []byte) (
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.ProxyProtocolConfig != nil {
+		size, err := m.ProxyProtocolConfig.MarshalToSizedBufferVTStrict(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.Receive) > 0 {
 		for iNdEx := len(m.Receive) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Receive[iNdEx].MarshalToSizedBufferVTStrict(dAtA[:i])
@@ -1126,6 +1136,10 @@ func (m *HealthCheck_TcpHealthCheck) SizeVT() (n int) {
 			l = e.SizeVT()
 			n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 		}
+	}
+	if m.ProxyProtocolConfig != nil {
+		l = m.ProxyProtocolConfig.SizeVT()
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)
 	return n

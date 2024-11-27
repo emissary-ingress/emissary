@@ -81,7 +81,6 @@ DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
 
 @abstract_test
 class AmbassadorTest(Test):
-
     """
     AmbassadorTest is a top level ambassador test.
     """

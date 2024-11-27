@@ -98,6 +98,36 @@ func (m *OAuth2) validate(all bool) error {
 		}
 	}
 
+	if d := m.GetTokenFetchRetryInterval(); d != nil {
+		dur, err := d.AsDuration(), d.CheckValid()
+		if err != nil {
+			err = OAuth2ValidationError{
+				field:  "TokenFetchRetryInterval",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+
+			gte := time.Duration(1*time.Second + 0*time.Nanosecond)
+
+			if dur < gte {
+				err := OAuth2ValidationError{
+					field:  "TokenFetchRetryInterval",
+					reason: "value must be greater than or equal to 1s",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+		}
+	}
+
 	oneofFlowTypePresent := false
 	switch v := m.FlowType.(type) {
 	case *OAuth2_ClientCredentials_:

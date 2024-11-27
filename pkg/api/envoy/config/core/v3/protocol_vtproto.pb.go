@@ -1307,6 +1307,16 @@ func (m *SchemeHeaderTransformation) MarshalToSizedBufferVTStrict(dAtA []byte) (
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.MatchUpstream {
+		i--
+		if m.MatchUpstream {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
 	if msg, ok := m.Transformation.(*SchemeHeaderTransformation_SchemeToOverwrite); ok {
 		size, err := msg.MarshalToSizedBufferVTStrict(dAtA[:i])
 		if err != nil {
@@ -1802,6 +1812,9 @@ func (m *SchemeHeaderTransformation) SizeVT() (n int) {
 	_ = l
 	if vtmsg, ok := m.Transformation.(interface{ SizeVT() int }); ok {
 		n += vtmsg.SizeVT()
+	}
+	if m.MatchUpstream {
+		n += 2
 	}
 	n += len(m.unknownFields)
 	return n
