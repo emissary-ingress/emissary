@@ -18,8 +18,30 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
+      - name: "Install bsdtar (libarchive-tools)"
+        shell: bash
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libarchive-tools
+      # Go: Do this first because `Makefile` checks that the `go` version is correct.
+      - name: "Install Go v1.23.3"
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.23.3"
+      # Python
+      - name: "Get Python version from builder container"
+        id: step-detect-py
+        shell: bash
+        run: |
+          make "$PWD/build-aux/py-version.txt"
+          echo "py_version=$(cat "$PWD/build-aux/py-version.txt")" >> $GITHUB_OUTPUT
+      - name: "Install Py (${{ steps.step-detect-py.outputs.py_version }})"
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ steps.step-detect-py.outputs.py_version }}"
+      - name: "Install Python requirements with pip"
+        shell: bash
+        run: python -m pip install awscli packaging
       - shell: bash
         run: |
           make lint-deps
