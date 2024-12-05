@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import os
@@ -7,7 +8,9 @@ from base64 import b64encode
 from collections import namedtuple
 
 import pytest
-from OpenSSL import crypto
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 
 from ambassador import IR, Cache, Config, EnvoyConfig
 from ambassador.compile import Compile
@@ -342,24 +345,36 @@ def assert_valid_envoy_config(config_dict, extra_dirs=[]):
 
 
 def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
-    when = b"20220516010101Z"
-    crl = crypto.CRL()
-    crl.set_lastUpdate(when)
+    cert = x509.load_pem_x509_certificate(issuerCert.encode("utf-8"))
+    key = serialization.load_pem_private_key(issuerKey.encode("utf-8"), password=None)
+
+    assert isinstance(key, (rsa.RSAPrivateKey, dsa.DSAPrivateKey, ec.EllipticCurvePrivateKey))
+
+    when = datetime.datetime(
+        year=2022, month=5, day=16, hour=1, minute=1, second=1, tzinfo=datetime.timezone.utc
+    )
+
+    thirty_days_out = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)
+
+    crl_builder = (
+        x509.CertificateRevocationListBuilder()
+        .issuer_name(cert.subject)
+        .last_update(when)
+        .next_update(thirty_days_out)
+    )
 
     for revokedCert in revokedCerts:
-        clientCert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(revokedCert, "utf-8"))
-        r = crypto.Revoked()
-        r.set_serial(bytes("{:x}".format(clientCert.get_serial_number()), "ascii"))
-        r.set_rev_date(when)
-        r.set_reason(None)
-        crl.add_revoked(r)
+        clientCert = x509.load_pem_x509_certificate(revokedCert.encode("utf-8"))
+        revoked_cert = (
+            x509.RevokedCertificateBuilder()
+            .serial_number(clientCert.serial_number)
+            .revocation_date(when)
+            .build()
+        )
+        crl_builder = crl_builder.add_revoked_certificate(revoked_cert)
 
-    cert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(issuerCert, "utf-8"))
-    key = crypto.load_privatekey(crypto.FILETYPE_PEM, bytes(issuerKey, "utf-8"))
-    crl.sign(cert, key, b"sha256")
-    return b64encode(
-        (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode("utf-8")
-    ).decode("utf-8")
+    crl = crl_builder.sign(private_key=key, algorithm=hashes.SHA256())
+    return b64encode(crl.public_bytes(serialization.Encoding.PEM)).decode("utf-8")
 
 
 def skip_edgestack():
