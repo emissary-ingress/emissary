@@ -297,6 +297,27 @@ func makeListener(listenerName string, port uint32, filterChains []*listener.Fil
 	}
 }
 
+func makeListenerDefaultFilterChain(listenerName string, port uint32, defaultFilterChain *listener.FilterChain,
+	filterChains []*listener.FilterChain,
+) *listener.Listener {
+	return &listener.Listener{
+		Name: listenerName,
+		Address: &core.Address{
+			Address: &core.Address_SocketAddress{
+				SocketAddress: &core.SocketAddress{
+					Protocol: core.SocketAddress_TCP,
+					Address:  localhost,
+					PortSpecifier: &core.SocketAddress_PortValue{
+						PortValue: port,
+					},
+				},
+			},
+		},
+		DefaultFilterChain: defaultFilterChain,
+		FilterChains:       filterChains,
+	}
+}
+
 func MakeRouteHTTPListener(mode, listenerName string, port uint32, route string) *listener.Listener {
 	rdsSource := configSource(mode)
 	routeSpecifier := &hcm.HttpConnectionManager_Rds{
@@ -328,6 +349,38 @@ func MakeRouteHTTPListener(mode, listenerName string, port uint32, route string)
 	}
 
 	return makeListener(listenerName, port, filterChains)
+}
+
+func MakeRouteHTTPListenerDefaultFilterChain(mode, listenerName string, port uint32, route string) *listener.Listener {
+	rdsSource := configSource(mode)
+	routeSpecifier := &hcm.HttpConnectionManager_Rds{
+		Rds: &hcm.Rds{
+			ConfigSource:    rdsSource,
+			RouteConfigName: route,
+		},
+	}
+
+	manager := buildHTTPConnectionManager()
+	manager.RouteSpecifier = routeSpecifier
+
+	pbst, err := anypb.New(manager)
+	if err != nil {
+		panic(err)
+	}
+
+	filterChains := []*listener.FilterChain{}
+	defaultChain := &listener.FilterChain{
+		Filters: []*listener.Filter{
+			{
+				Name: "http_connection_manager", // should work for any name.
+				ConfigType: &listener.Filter_TypedConfig{
+					TypedConfig: pbst,
+				},
+			},
+		},
+	}
+
+	return makeListenerDefaultFilterChain(listenerName, port, defaultChain, filterChains)
 }
 
 // Creates a HTTP listener using Scoped Routes, which extracts the "Host" header field as the key.

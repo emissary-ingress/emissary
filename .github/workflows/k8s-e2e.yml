@@ -8,7 +8,7 @@ name: k8s-e2e
 
 jobs:
   acceptance_tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}

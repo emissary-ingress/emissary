@@ -7365,6 +7365,8 @@ func (m *RouteAction_RequestMirrorPolicy) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for DisableShadowHostSuffixAppend
+
 	if len(errors) > 0 {
 		return RouteAction_RequestMirrorPolicyMultiError(errors)
 	}

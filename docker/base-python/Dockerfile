@@ -76,7 +76,7 @@ RUN apk --no-cache add \
 # 'python3' versions above.
 RUN pip3 install "Cython<3.0" pip-tools==7.3
 
-RUN curl --fail -L https://dl.google.com/go/go1.22.4.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+RUN curl --fail -L https://dl.google.com/go/go1.23.3.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
 # The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
 # build it locally -- just using pip won't work.

@@ -8,6 +8,7 @@ package gcp_authnv3
 
 import (
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
+	durationpb "github.com/planetscale/vtprotobuf/types/known/durationpb"
 	wrapperspb "github.com/planetscale/vtprotobuf/types/known/wrapperspb"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -49,6 +50,23 @@ func (m *GcpAuthnFilterConfig) MarshalToSizedBufferVTStrict(dAtA []byte) (int, e
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if m.Timeout != nil {
+		size, err := (*durationpb.Duration)(m.Timeout).MarshalToSizedBufferVTStrict(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Cluster) > 0 {
+		i -= len(m.Cluster)
+		copy(dAtA[i:], m.Cluster)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.Cluster)))
+		i--
+		dAtA[i] = 0x2a
 	}
 	if m.TokenHeader != nil {
 		size, err := m.TokenHeader.MarshalToSizedBufferVTStrict(dAtA[:i])
@@ -279,6 +297,14 @@ func (m *GcpAuthnFilterConfig) SizeVT() (n int) {
 	}
 	if m.TokenHeader != nil {
 		l = m.TokenHeader.SizeVT()
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.Cluster)
+	if l > 0 {
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.Timeout != nil {
+		l = (*durationpb.Duration)(m.Timeout).SizeVT()
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)

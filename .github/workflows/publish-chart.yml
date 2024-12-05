@@ -5,7 +5,7 @@ name: chart-publish
       - 'chart/v*'
 jobs:
   chart-publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: chart-publish
     env:
       AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
@@ -45,7 +45,7 @@ jobs:
         if: always()
   chart-create-gh-release:
     if: ${{ ! contains(github.ref, '-') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [chart-publish]
     name: "Create GitHub release"
     steps:

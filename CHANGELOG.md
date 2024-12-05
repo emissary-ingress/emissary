@@ -401,7 +401,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
 
 - Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
-  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible.
   Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
   as long as that `Listener` terminates TLS.
 
@@ -567,7 +567,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
 
 - Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
-  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible.
   Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
   as long as that `Listener` terminates TLS.
 

@@ -35,7 +35,7 @@ func TestFetch(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	conn, err := grpc.Dial(":18001", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	conn, err := grpc.NewClient(":18001", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	defer conn.Close()
 
