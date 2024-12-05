@@ -483,6 +483,8 @@ func (m *OAuth2Config) validate(all bool) error {
 
 	// no validation rules for ForwardBearerToken
 
+	// no validation rules for PreserveAuthorizationHeader
+
 	for idx, item := range m.GetPassThroughMatcher() {
 		_, _ = idx, item
 
@@ -648,6 +650,8 @@ func (m *OAuth2Config) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for DisableIdTokenSetCookie
 
 	if len(errors) > 0 {
 		return OAuth2ConfigMultiError(errors)
