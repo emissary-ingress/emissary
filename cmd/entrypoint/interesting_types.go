@@ -80,10 +80,11 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		//
 		// Note that we pull `secrets.v1.` in to "K8sSecrets".  ReconcileSecrets will pull
 		// over the ones we need into "Secrets" and "Endpoints" respectively.
-		"Services":   {{typename: "services.v1."}},                             // New in Kubernetes 0.16.0 (2015-04-28) (v1beta{1..3} before that)
-		"Endpoints":  {{typename: "endpoints.v1.", fieldselector: endpointFs}}, // New in Kubernetes 0.16.0 (2015-04-28) (v1beta{1..3} before that)
-		"K8sSecrets": {{typename: "secrets.v1."}},                              // New in Kubernetes 0.16.0 (2015-04-28) (v1beta{1..3} before that)
-		"ConfigMaps": {{typename: "configmaps.v1.", fieldselector: configMapFs}},
+		"Services":       {{typename: "services.v1."}},                             // New in Kubernetes 0.16.0 (2015-04-28) (v1beta{1..3} before that)
+		"Endpoints":      {{typename: "endpoints.v1.", fieldselector: endpointFs}}, // New in Kubernetes 0.16.0 (2015-04-28) (v1beta{1..3} before that)
+		"EndpointSlices": {{typename: "endpointslices.v1.discovery.k8s.io", fieldselector: endpointFs}},
+		"K8sSecrets":     {{typename: "secrets.v1."}}, // New in Kubernetes 0.16.0 (2015-04-28) (v1beta{1..3} before that)
+		"ConfigMaps":     {{typename: "configmaps.v1.", fieldselector: configMapFs}},
 		"Ingresses": {
 			{typename: "ingresses.v1beta1.extensions"},        // New in Kubernetes 1.2.0 (2016-03-16), gone in Kubernetes 1.22.0 (2021-08-04)
 			{typename: "ingresses.v1beta1.networking.k8s.io"}, // New in Kubernetes 1.14.0 (2019-03-25), gone in Kubernetes 1.22.0 (2021-08-04)

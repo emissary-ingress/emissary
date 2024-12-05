@@ -11,24 +11,25 @@ spec:
       targetPort: http-api
 ---
 # All the IP addresses, pod names, etc., are basically made up. These
-# aren't meant to be functional, just to exercise the machinery of 
+# aren't meant to be functional, just to exercise the machinery of
 # filting things in the watcher.
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: hello
-subsets:
+endpoints:
 - addresses:
-  - ip: 10.42.0.15
-    nodeName: flynn-2a
-    targetRef:
-      kind: Pod
-      name: hello-6db467b4d7-n45n7
-  - ip: 10.42.0.16
-    nodeName: flynn-2b
-    targetRef:
-      kind: Pod
-      name: hello-6db467b4d7-n45n7
-  ports:
-  - port: 5000
-    protocol: TCP
+  - "10.42.0.15"
+  nodeName: flynn-2a
+  targetRef:
+    kind: Pod
+    name: hello-6db467b4d7-n45n7
+- addresses:
+  - "10.42.0.16"
+  nodeName: flynn-2b
+  targetRef:
+    kind: Pod
+    name: hello-6db467b4d7-n45n7
+ports:
+- port: 5000
+  protocol: TCP
