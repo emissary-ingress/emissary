@@ -10,7 +10,7 @@ name: job-promote-to-passed
 
 jobs:
   lint: ########################################################################
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -30,7 +30,7 @@ jobs:
         if: always()
 
   generate: ####################################################################
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -78,7 +78,7 @@ jobs:
         if: always()
 
   check-envoy-protos: ####################################################################
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -110,7 +110,7 @@ jobs:
         if: always()
 
   check-envoy-version: #########################################################
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -139,7 +139,7 @@ jobs:
 
   # Tests ######################################################################
   apiext-e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -170,7 +170,7 @@ jobs:
         run: |
           go test -p 1 -parallel 1 -v -tags=apiext ./test/apiext/... -timeout 15m
   check-gotest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -193,7 +193,7 @@ jobs:
       - uses: ./.github/actions/after-job
         if: always()
   check-pytest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -249,7 +249,7 @@ jobs:
         with:
           jobname: check-pytest-${{ matrix.test }}
   check-pytest-unit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -277,7 +277,7 @@ jobs:
       - uses: ./.github/actions/after-job
         if: always()
   check-chart:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       # See docker/base-python.docker.gen
@@ -308,7 +308,7 @@ jobs:
         if: always()
 
   build: #######################################################################
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       # See docker/base-python.docker.gen
@@ -347,7 +347,7 @@ jobs:
   ######################################################################
   ######################### CVE Scanning ###############################
   trivy-container-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build]
     steps:
       # upload of results to github uses git so checkout of code is needed
@@ -388,7 +388,7 @@ jobs:
       - check-pytest-unit
       - check-chart
       - trivy-container-scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: No-Op
         if: ${{ false }}
