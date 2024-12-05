@@ -138,6 +138,8 @@ func (m *ExtAuthz) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for ValidateMutations
+
 	if all {
 		switch v := interface{}(m.GetFilterEnabled()).(type) {
 		case interface{ ValidateAll() error }:
@@ -260,6 +262,35 @@ func (m *ExtAuthz) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetDisallowedHeaders()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ExtAuthzValidationError{
+					field:  "DisallowedHeaders",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ExtAuthzValidationError{
+					field:  "DisallowedHeaders",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDisallowedHeaders()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ExtAuthzValidationError{
+				field:  "DisallowedHeaders",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	// no validation rules for IncludeTlsSession
 
 	if all {
@@ -292,6 +323,64 @@ func (m *ExtAuthz) validate(all bool) error {
 	}
 
 	// no validation rules for EncodeRawHeaders
+
+	if all {
+		switch v := interface{}(m.GetDecoderHeaderMutationRules()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ExtAuthzValidationError{
+					field:  "DecoderHeaderMutationRules",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ExtAuthzValidationError{
+					field:  "DecoderHeaderMutationRules",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDecoderHeaderMutationRules()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ExtAuthzValidationError{
+				field:  "DecoderHeaderMutationRules",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetEnableDynamicMetadataIngestion()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ExtAuthzValidationError{
+					field:  "EnableDynamicMetadataIngestion",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ExtAuthzValidationError{
+					field:  "EnableDynamicMetadataIngestion",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEnableDynamicMetadataIngestion()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ExtAuthzValidationError{
+				field:  "EnableDynamicMetadataIngestion",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	switch v := m.Services.(type) {
 	case *ExtAuthz_GrpcService:
