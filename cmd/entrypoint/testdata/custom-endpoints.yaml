@@ -1,46 +1,48 @@
 ---
 # All the IP addresses, pod names, etc., are basically made up. These
-# aren't meant to be functional, just to exercise the machinery of 
+# aren't meant to be functional, just to exercise the machinery of
 # filting things in the watcher.
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: random-1
-subsets:
+endpoints:
 - addresses:
-  - ip: 10.42.0.55
-    nodeName: flynn-2a
-    targetRef:
-      kind: Pod
-      name: random-6db467b4d7-zzzz1
-  - ip: 10.42.0.56
-    nodeName: flynn-2b
-    targetRef:
-      kind: Pod
-      name: random-6db467b4d7-zzzz1
-  ports:
-  - port: 5000
-    protocol: TCP
+  - "10.42.0.55"
+  nodeName: flynn-2a
+  targetRef:
+    kind: Pod
+    name: random-6db467b4d7-zzzz1
+- addresses:
+  - "10.42.0.56"
+  nodeName: flynn-2b
+  targetRef:
+    kind: Pod
+    name: random-6db467b4d7-zzzz1
+ports:
+- port: 5000
+  protocol: TCP
 ---
 # All the IP addresses, pod names, etc., are basically made up. These
-# aren't meant to be functional, just to exercise the machinery of 
+# aren't meant to be functional, just to exercise the machinery of
 # filting things in the watcher.
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: random-2
-subsets:
+endpoints:
 - addresses:
-  - ip: 10.42.0.65
-    nodeName: flynn-2a
-    targetRef:
-      kind: Pod
-      name: rande-6db467b4d7-zzzz2
-  - ip: 10.42.0.66
-    nodeName: flynn-2b
-    targetRef:
-      kind: Pod
-      name: rande-6db467b4d7-zzzz2
-  ports:
-  - port: 5000
-    protocol: TCP
+  - "10.42.0.65"
+  nodeName: flynn-2a
+  targetRef:
+    kind: Pod
+    name: rande-6db467b4d7-zzzz2
+- addresses:
+  - "10.42.0.66"
+  nodeName: flynn-2b
+  targetRef:
+    kind: Pod
+    name: rande-6db467b4d7-zzzz2
+ports:
+- port: 5000
+  protocol: TCP
