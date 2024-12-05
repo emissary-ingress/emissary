@@ -34,7 +34,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
 		{"blinker", "1.8.2", ""}:                       {MIT},
-		{"build", "1.2.1", ""}:                         {MIT},
+		{"build", "1.2.2.post1", ""}:                   {MIT},
 		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
 		{"CacheControl", "0.12.10", "UNKNOWN"}:         {Apache2},
 		{"Click", "7.0", "BSD"}:                        {BSD3},
@@ -62,7 +62,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pyasn1-modules", "0.3.0", "BSD"}:             {BSD2},
 		{"pycparser", "2.20", "BSD"}:                   {BSD3},
 		{"pyparsing", "3.0.9", ""}:                     {MIT},
-		{"pyproject_hooks", "1.1.0", ""}:               {MIT},
+		{"pyproject_hooks", "1.2.0", ""}:               {MIT},
 		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
 		{"python-dateutil", "2.8.2", "Dual License"}:   {BSD3, Apache2},
 		{"python-json-logger", "2.0.7", "BSD"}:         {BSD2},

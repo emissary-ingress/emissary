@@ -489,7 +489,7 @@ items:
         body: >-
           Prior releases of $productName$ had the arbitrary limitation that a
           <code>TCPMapping</code> cannot be used on the same port that HTTP is served on, even if
-          TLS+SNI would make this possible.  $productName$ now allows <code>TCPMappings</code> to be
+          TLS+SNI would make this possible. $productName$ now allows <code>TCPMappings</code> to be
           used on the same <code>Listener</code> port as HTTP <code>Hosts</code>, as long as that
           <code>Listener</code> terminates TLS.
       - title: Update Golang to 1.19.1
@@ -714,7 +714,7 @@ items:
         body: >-
           Prior releases of $productName$ had the arbitrary limitation that a
           <code>TCPMapping</code> cannot be used on the same port that HTTP is served on, even if
-          TLS+SNI would make this possible.  $productName$ now allows <code>TCPMappings</code> to be
+          TLS+SNI would make this possible. $productName$ now allows <code>TCPMappings</code> to be
           used on the same <code>Listener</code> port as HTTP <code>Hosts</code>, as long as that
           <code>Listener</code> terminates TLS.
 
