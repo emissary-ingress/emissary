@@ -238,7 +238,11 @@ class V3RouteVariants:
     def action_redirect(self, variant) -> None:
         variant.pop("route", None)
         variant["redirect"] = {"https_redirect": True}
-        for filter in self.route._group.ir.filters:
+
+        # Sometimes mypy has trouble with inferring this type?
+        group: IRHTTPMappingGroup = self.route._group
+
+        for filter in group.ir.filters:
             if filter.kind == "IRAuth":
                 # Required to ensure that the redirect occurs prior to calling ext_authz
                 # when an AuthService is applied
@@ -281,7 +285,12 @@ class V3Route(Cacheable):
         envoy_route = EnvoyRoute(group).envoy_route
 
         mapping_prefix = mapping.get("prefix", None)
-        route_prefix = mapping_prefix if mapping_prefix is not None else group.get("prefix")
+        # We'll go ahead and cast this to a str because the prefix is a required field
+        # in the Mapping CRD, so we should definitely have a string in the Mapping or
+        # in the group.
+        route_prefix = typecast(
+            str, mapping_prefix if mapping_prefix is not None else group.get("prefix")
+        )
 
         mapping_case_sensitive = mapping.get("case_sensitive", None)
         case_sensitive = (
