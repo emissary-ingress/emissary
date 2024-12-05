@@ -83,7 +83,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
@@ -103,7 +103,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
@@ -123,7 +123,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
