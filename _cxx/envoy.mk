@@ -12,8 +12,8 @@ export ENVOY_TEST_LABEL
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
 ENVOY_REPO ?= https://github.com/datawire/envoy.git
 
-# https://github.com/datawire/envoy/tree/rebase/release/v1.30.3
-ENVOY_COMMIT ?= 99c27c6cf5753adb0390d05992d6e5f248f85ab2
+# https://github.com/datawire/envoy/tree/rebase/release/v1.31.3
+ENVOY_COMMIT ?= 628f5afc75a894a08504fa0f416269ec50c07bf9
 
 ENVOY_COMPILATION_MODE ?= opt
 # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
@@ -37,7 +37,7 @@ ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = 57c85e1829e6fe6e73fb69b8a9d9f2d3780572a5
+ENVOY_GO_CONTROL_PLANE_COMMIT = f888b4f71207d0d268dee7cb824de92848da9ede
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors to check
 ENVOY_DOCKER_REPOS  = docker.io/emissaryingress/base-envoy
@@ -136,17 +136,17 @@ verify-base-envoy:
 							exit 1; \
 	        fi; \
 					echo "Nothing to build at this time"; \
-					exit 1; \
+					exit 0; \
 	    fi; \
 	}
 
 # builds envoy using release settings, see https://github.com/envoyproxy/envoy/blob/main/ci/README.md for additional
 # details on configuring builds
-.PHONY: build-envoy 
+.PHONY: build-envoy
 build-envoy: $(OSS_HOME)/_cxx/envoy-build-image.txt
 	$(OSS_HOME)/_cxx/tools/build-envoy.sh
 
-# build the base-envoy containers and tags them locally, this requires running `build-envoy` first. 
+# build the base-envoy containers and tags them locally, this requires running `build-envoy` first.
 .PHONY: build-base-envoy-image
 build-base-envoy-image: $(OSS_HOME)/_cxx/envoy-build-image.txt
 	docker build --platform="$(BUILD_ARCH)" -f $(OSS_HOME)/docker/base-envoy/Dockerfile.stripped -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
@@ -154,13 +154,13 @@ build-base-envoy-image: $(OSS_HOME)/_cxx/envoy-build-image.txt
 # Allows pushing the docker image independent of building envoy and docker containers
 # Note, bump the BASE_ENVOY_RELVER and re-build before pushing when making non-commit changes to have a unique image tag.
 .PHONY: push-base-envoy-image
-push-base-envoy-image: 
+push-base-envoy-image:
 	docker push $(ENVOY_DOCKER_TAG)
 
 
 # `make update-base`: Recompile Envoy and do all of the related things.
 .PHONY: update-base
-update-base: $(OSS_HOME)/_cxx/envoy-build-image.txt 
+update-base: $(OSS_HOME)/_cxx/envoy-build-image.txt
 	$(MAKE) verify-base-envoy
 	$(MAKE) build-envoy
 	$(MAKE) build-base-envoy-image
