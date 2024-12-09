@@ -68,6 +68,13 @@ items:
           - title: "Incorrect Cache Key for Mapping"
             link: https://github.com/emissary-ingress/emissary/issues/5714
 
+      - title: Add support for EndpointSlices to the Endpoints resolver
+        type: feature
+        body: >-
+          $productName$ now supports resolving Endpoints from EndpointSlices
+          in addition to the existing support for Endpoints, supporting Services
+          with more than 1000 endpoints.
+
   - version: 3.9.0
     prevVersion: 3.8.0
     date: '2023-11-13'

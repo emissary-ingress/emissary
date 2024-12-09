@@ -24,6 +24,29 @@ func TestEndpointRouting(t *testing.T) {
 	// Create Mapping, Service, and Endpoints resources to start.
 	assert.NoError(t, f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint")))
 	assert.NoError(t, f.Upsert(makeService("default", "foo")))
+	endpoint, port, err := makeSliceEndpoint(8080, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpointSlice("default", "foo", "foo", endpoint, port)))
+	f.Flush()
+	snap, err := f.GetSnapshot(HasMapping("default", "foo"))
+	require.NoError(t, err)
+	assert.NotNil(t, snap)
+
+	// Check that the endpoints resource we created at the start was properly propagated.
+	endpoints, err := f.GetEndpoints(HasEndpoints("k8s/default/foo"))
+	require.NoError(t, err)
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo"][0].Ip)
+	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo"][0].Port)
+	assert.Contains(t, endpoints.Entries, "k8s/default/foo/80")
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo/80"][0].Ip)
+	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo/80"][0].Port)
+}
+
+func TestEndpointRoutingWithNoEndpointSlices(t *testing.T) {
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+	// Create Mapping, Service, and Endpoints resources to start.
+	assert.NoError(t, f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint")))
+	assert.NoError(t, f.Upsert(makeService("default", "foo")))
 	subset, err := makeSubset(8080, "1.2.3.4")
 	require.NoError(t, err)
 	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
@@ -57,9 +80,9 @@ service: foo
 resolver: endpoint`,
 	}
 	assert.NoError(t, f.Upsert(svc))
-	subset, err := makeSubset(8080, "1.2.3.4")
+	endpoint, port, err := makeSliceEndpoint(8080, "1.2.3.4")
 	require.NoError(t, err)
-	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
+	assert.NoError(t, f.Upsert(makeEndpointSlice("default", "foo", "foo", endpoint, port)))
 	f.Flush()
 	snap, err := f.GetSnapshot(HasService("default", "foo"))
 	require.NoError(t, err)
@@ -97,9 +120,9 @@ func TestEndpointRoutingMultiplePorts(t *testing.T) {
 			},
 		},
 	}))
-	subset, err := makeSubset("cleartext", 8080, "encrypted", 8443, "1.2.3.4")
+	endpoint, port, err := makeSliceEndpoint("cleartext", 8080, "encrypted", 8443, "1.2.3.4")
 	require.NoError(t, err)
-	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
+	assert.NoError(t, f.Upsert(makeEndpointSlice("default", "foo", "foo", endpoint, port)))
 	f.Flush()
 	snap, err := f.GetSnapshot(HasMapping("default", "foo"))
 	require.NoError(t, err)
@@ -155,9 +178,9 @@ func TestEndpointRoutingIP(t *testing.T) {
 func TestEndpointRoutingMappingCreation(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
 	assert.NoError(t, f.Upsert(makeService("default", "foo")))
-	subset, err := makeSubset(8080, "1.2.3.4")
+	endpoint, port, err := makeSliceEndpoint(8080, "1.2.3.4")
 	require.NoError(t, err)
-	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
+	assert.NoError(t, f.Upsert(makeEndpointSlice("default", "foo", "foo", endpoint, port)))
 	f.Flush()
 	f.AssertEndpointsEmpty(timeout)
 	assert.NoError(t, f.UpsertYAML(`
@@ -274,4 +297,59 @@ func makeSubset(args ...interface{}) (kates.EndpointSubset, error) {
 	}
 
 	return kates.EndpointSubset{Addresses: addrs, Ports: ports}, nil
+}
+
+func makeEndpointSlice(namespace, name, serviceName string, endpoint []kates.Endpoint, port []kates.EndpointSlicePort) *kates.EndpointSlice {
+	return &kates.EndpointSlice{
+		TypeMeta: kates.TypeMeta{Kind: "EndpointSlices", APIVersion: "v1.discovery.k8s.io"},
+		ObjectMeta: kates.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+			Labels: map[string]string{
+				"kubernetes.io/service-name": serviceName,
+			},
+		},
+		Endpoints: endpoint,
+		Ports:     port,
+	}
+}
+
+func makeSliceEndpoint(args ...interface{}) ([]kates.Endpoint, []kates.EndpointSlicePort, error) {
+	var endpoints []kates.Endpoint
+	var ports []kates.EndpointSlicePort
+	var currentPortName string
+
+	for _, arg := range args {
+		switch v := arg.(type) {
+		case int:
+			portName := currentPortName
+			ports = append(ports, kates.EndpointSlicePort{Name: &portName, Port: int32Ptr(int32(v)), Protocol: protocolPtr(kates.ProtocolTCP)})
+		case string:
+			IP := net.ParseIP(v)
+			if IP != nil {
+				endpoints = append(endpoints, kates.Endpoint{
+					Addresses: []string{v},
+					Conditions: kates.EndpointConditions{
+						Ready:       &[]bool{true}[0],
+						Serving:     &[]bool{true}[0],
+						Terminating: &[]bool{false}[0],
+					},
+				})
+			} else {
+				currentPortName = v // Assume it's a port name if not an IP address
+			}
+		default:
+			return nil, nil, fmt.Errorf("unrecognized type: %T", v)
+		}
+	}
+
+	return endpoints, ports, nil
+}
+
+func int32Ptr(i int32) *int32 {
+	return &i
+}
+
+func protocolPtr(p kates.Protocol) *kates.Protocol {
+	return &p
 }
