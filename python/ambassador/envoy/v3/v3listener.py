@@ -169,9 +169,9 @@ class V3Chain:
 
 
 def tlscontext_for_tcpmapping(
-    irgroup: IRTCPMappingGroup, config: "V3Config"
+    tcp_mapping_group: IRTCPMappingGroup, config: "V3Config"
 ) -> Optional["IRTLSContext"]:
-    group_host = irgroup.get("host")
+    group_host = tcp_mapping_group.get("host")
     if not group_host:
         return None
 
@@ -685,14 +685,14 @@ class V3Listener:
             if self._log_debug:
                 self.config.ir.logger.debug(f"    build chain[{repr(chain_key)}]={chain}")
 
-            for irgroup in chain.hosts.values():
-                if not isinstance(irgroup, IRTCPMappingGroup):
+            for tcp_mapping_group in chain.hosts.values():
+                if not isinstance(tcp_mapping_group, IRTCPMappingGroup):
                     continue
 
                 # First up, which clusters do we need to talk to?
                 clusters = [
                     {"name": mapping.cluster.envoy_name, "weight": mapping._weight}
-                    for mapping in irgroup.mappings
+                    for mapping in tcp_mapping_group.mappings
                 ]
 
                 # From that, we can sort out a basic tcp_proxy filter config.
@@ -707,7 +707,7 @@ class V3Listener:
 
                 # OK. Basic filter chain entry next.
                 filter_chain: Dict[str, Any] = {
-                    "name": f"tcphost-{irgroup.name}",
+                    "name": f"tcphost-{tcp_mapping_group.name}",
                     "filters": [tcp_filter],
                 }
 
@@ -743,14 +743,11 @@ class V3Listener:
     def compute_tcpchains(self) -> None:
         self.config.ir.logger.debug("  compute_tcpchains")
 
-        for irgroup in self.config.ir.ordered_groups():
-            if not isinstance(irgroup, IRTCPMappingGroup):
-                continue
-
+        for tcp_mapping_group in self.config.ir.ordered_tcp_mapping_groups():
             if self._log_debug:
-                self.config.ir.logger.debug(f"    consider {irgroup}")
+                self.config.ir.logger.debug(f"    consider {tcp_mapping_group}")
 
-            if irgroup.bind_to() != self.bind_to:
+            if tcp_mapping_group.bind_to() != self.bind_to:
                 self.config.ir.logger.debug("      reject")
                 continue
 
@@ -760,21 +757,21 @@ class V3Listener:
             # than for a 'Host'.  Same deal applies with TLS: you can't do host-based matching
             # without it.
 
-            group_host = irgroup.get("host", None)
+            group_host = tcp_mapping_group.get("host", None)
             if not group_host:  # cleartext
                 # Special case. No host (aka hostname) in a TCPMapping means an unconditional forward,
                 # so just add this immediately as a "*" chain.
-                self.add_chain("tcp", None, "*", "*").add_tcphost(irgroup)
+                self.add_chain("tcp", None, "*", "*").add_tcphost(tcp_mapping_group)
             else:  # TLS/SNI
-                context = tlscontext_for_tcpmapping(irgroup, self.config)
+                context = tlscontext_for_tcpmapping(tcp_mapping_group, self.config)
                 if not context:
-                    irgroup.post_error("No matching TLSContext found, disabling!")
+                    tcp_mapping_group.post_error("No matching TLSContext found, disabling!")
                     continue
 
                 # group_host comes from `TCPMapping.host` which is expected to be a valid dns hostname
                 # without a port so no need to parse out a port
                 sni = group_host
-                self.add_chain("tcp", context, group_host, sni).add_tcphost(irgroup)
+                self.add_chain("tcp", context, group_host, sni).add_tcphost(tcp_mapping_group)
 
     def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching

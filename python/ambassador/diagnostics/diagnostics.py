@@ -414,40 +414,6 @@ class Diagnostics:
                 f'A future Ambassador version will change the GRPC protocol version for {" and ".join(things_to_warn)}. See the CHANGELOG for details.'
             )
 
-        # # Warn people about the default port change.
-        # if self.ir.ambassador_module.service_port < 1024:
-        #     # Does it look like they explicitly asked for this?
-        #     amod = self.ir.aconf.get_module('ambassador')
-        #
-        #     if not (amod and amod.get('service_port')):
-        #         # They did not explictly set the port. Warn them about the
-        #         # port change.
-        #         new_defaults = [ "port 8080 for HTTP" ]
-        #
-        #         if self.ir.tls_contexts:
-        #             new_defaults.append("port 8443 for HTTPS")
-        #
-        #         default_ports = " and ".join(new_defaults)
-        #
-        #         listen_ports = [ str(l.service_port) for l in self.ir.listeners ]
-        #         self.ir.logger.info("listen_ports %s" % listen_ports)
-        #
-        #         port_or_ports = "port" if (len(listen_ports) == 1) else "ports"
-        #
-        #         last_port = listen_ports.pop()
-        #
-        #         els = [ last_port ]
-        #
-        #         if len(listen_ports) > 0:
-        #             els.insert(0, ", ".join(listen_ports))
-        #
-        #         port_nums = " and ".join(els)
-        #
-        #         m1 = f'Ambassador 0.60 will default to listening on {default_ports}.'
-        #         m2 = f'You will need to change your configuration to continue using {port_or_ports} {port_nums}.'
-        #
-        #         self.ir.aconf.post_notice(f'{m1} {m2}')
-
         # Copy in the toplevel 'error' and 'notice' sets.
         self.errors = self.ir.aconf.errors
         self.notices = self.ir.aconf.notices
@@ -499,7 +465,7 @@ class Diagnostics:
         # Always generate the full group set so that we can look up groups.
         self.groups = {
             "grp-%s" % group.group_id: group
-            for group in self.ir.groups.values()
+            for group in self.ir.get_base_mapping_groups()
             if group.location != "--diagnostics--"
         }
 
@@ -608,12 +574,14 @@ class Diagnostics:
             "envoy_elements": self.envoy_elements,
             "errors": self.errors,
             "notices": self.notices,
-            "groups": {key: self.flattened(value) for key, value in self.groups.items()},
+            "groups": {
+                key: self.flatten_mapping_group(value) for key, value in self.groups.items()
+            },
             # 'clusters': { key: value.as_dict() for key, value in self.clusters.items() },
             "tlscontexts": [x.as_dict() for x in self.ir.tls_contexts.values()],
         }
 
-    def flattened(self, group: IRBaseMappingGroup) -> dict:
+    def flatten_mapping_group(self, group: IRBaseMappingGroup) -> dict:
         flattened = {k: v for k, v in group.as_dict().items() if k != "mappings"}
         flattened_mappings = []
 
@@ -632,12 +600,10 @@ class Diagnostics:
                 fm["prefix"] = m.get("prefix")
 
             rewrite = m.get("rewrite", None)
-
             if rewrite:
                 fm["rewrite"] = rewrite
 
             host = m.get("host", None)
-
             if host:
                 fm["host"] = host
 
@@ -696,10 +662,9 @@ class Diagnostics:
 
         result = DiagResult(self, estat, request)
 
-        for group in self.ir.ordered_groups():
-            # TCPMappings are currently handled elsewhere.
-            if isinstance(group, IRHTTPMappingGroup):
-                result.include_httpgroup(group)
+        # TCPMappings are currently handled elsewhere.
+        for mapping_group in self.ir.ordered_http_mapping_groups():
+            result.include_httpgroup(mapping_group)
 
         return result.as_dict()
 

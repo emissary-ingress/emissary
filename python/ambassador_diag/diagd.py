@@ -1831,7 +1831,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
                 app.kubestatus.post(kind, resource_name, namespace, text)
 
-        group_count = len(app.ir.groups)
+        group_count = len(app.ir.http_mapping_groups) + len(app.ir.tcp_mapping_groups)
         cluster_count = len(app.ir.clusters)
         listener_count = len(app.ir.listeners)
         service_count = len(app.ir.services)
@@ -1944,14 +1944,17 @@ class AmbassadorEventWatcher(threading.Thread):
                     tls_count += 1
                     break
 
-            for group in ir.groups.values():
-                for mapping in group.mappings:
+            for http_group in ir.http_mapping_groups.values():
+                for mapping in http_group.mappings:
                     pfx = mapping.get("prefix", None)
                     name = mapping.get("name", None)
-
                     if pfx:
                         if not pfx.startswith("/ambassador/v0") or not name.startswith("internal_"):
                             mapping_count += 1
+
+            for group in ir.tcp_mapping_groups.values():
+                for mapping in group.mappings:
+                    mapping_count += 1
 
         if error_count:
             env_status.failure(
