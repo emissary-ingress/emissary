@@ -46,7 +46,7 @@ python-json-logger==2.0.7
     # via -r requirements.in
 pyyaml==6.0.1
     # via -r requirements.in
-requests==2.31.0
+requests==2.32.3
     # via -r requirements.in
 semantic-version==2.10.0
     # via -r requirements.in
