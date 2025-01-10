@@ -15,7 +15,7 @@ jobs:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: "Docker Login"
@@ -58,7 +58,7 @@ jobs:
     env:
       AMBASSADOR_RELENG_NO_GUI: "1"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: "Install Deps"

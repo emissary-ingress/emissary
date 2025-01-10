@@ -16,7 +16,7 @@ jobs:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: "Install Deps"
@@ -49,7 +49,7 @@ jobs:
     needs: [chart-publish]
     name: "Create GitHub release"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: "Install Deps"
