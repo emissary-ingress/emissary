@@ -75,7 +75,7 @@ exclude (
 //
 // We've got some bug-fixes that we need for conversion-gen and
 // controller-gen.
-replace k8s.io/code-generator v0.30.1 => github.com/emissary-ingress/code-generator v0.28.0-alpha.0.0.20231105041308-a20b0cd90dea
+replace k8s.io/code-generator v0.30.1 => github.com/emissary-ingress/code-generator v0.30.2-0.20250205230848-daa3b0f955a4
 
 ////////////////////////////////////////////////////////////////////////////////
 // Everything from here on out should be managed by `go get` and `go          //
@@ -251,7 +251,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiserver v0.30.1 // indirect
 	k8s.io/component-base v0.30.1 // indirect
-	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
+	k8s.io/gengo/v2 v2.0.0-20240228010128-51d4e06bde70 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
