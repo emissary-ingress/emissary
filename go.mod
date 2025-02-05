@@ -81,6 +81,22 @@ exclude (
 // controller-gen.
 replace k8s.io/code-generator v0.30.1 => github.com/emissary-ingress/code-generator v0.30.2-0.20250205230848-daa3b0f955a4
 
+// "Anti-rename" `replace` directives (should not have a version
+// number to the left of `=>`)
+//
+// These are the 1 exception to the "must have a version number on the
+// left" rule above.  This is for when a package has been renamed, we
+// have the old name as an indirect dependency; use the last version
+// before the rename.  This prevents `go get -u ./...` from causing
+// out errors.
+//
+//  - go-metrics v0.4.1 was the last version before it renamed to github.com/hashicorp/go-metrics
+//  - mergo v0.3.16 was the last version before it renamed to dario.cat/mergo
+replace (
+	github.com/armon/go-metrics => github.com/armon/go-metrics v0.4.1
+	github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
+)
+
 ////////////////////////////////////////////////////////////////////////////////
 // Everything from here on out should be managed by `go get` and `go          //
 // mod tidy` and friends; a human should generally not be editing             //
