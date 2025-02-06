@@ -1,4 +1,4 @@
-name: 'Collect Logs'
+name: "Collect Logs"
 description: >-
   Store any log files as artifacts.
 inputs:
@@ -49,7 +49,7 @@ runs:
         cp /tmp/*.yaml /tmp/test-logs || true
         cp /tmp/kat-client-*.log /tmp/test-logs || true
     - name: "Upload Logs"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: logs-${{ inputs.jobname }}
         path: /tmp/test-logs
