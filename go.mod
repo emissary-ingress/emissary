@@ -36,6 +36,9 @@ exclude (
 	k8s.io/sample-apiserver v0.0.0
 )
 
+// TEMPORARY HACK, DO NOT MERGE THIS
+replace github.com/datawire/go-mkopensource => github.com/LukeShu/go-mkopensource v0.0.0-20250206080114-4ff6b660d8d4
+
 // "Normal" `replace` directives (MUST have a version number to the
 // left of `=>`!!!)
 //

@@ -64,6 +64,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
+github.com/LukeShu/go-mkopensource v0.0.0-20250206080114-4ff6b660d8d4 h1:/C5sScufG3kyxPtaN1kuI8AehoeHIVQOcjHwhPUPi3s=
+github.com/LukeShu/go-mkopensource v0.0.0-20250206080114-4ff6b660d8d4/go.mod h1:Gz65lrm4uYY1aBhxWqjwg6DUKFdBCHfpbGC9D2DDuhQ=
 github.com/MakeNowJust/heredoc v1.0.0 h1:cXCdzVdstXyiTqTvfqk9SDHpKNjxuom+DOlyEeQ4pzQ=
 github.com/MakeNowJust/heredoc v1.0.0/go.mod h1:mG5amYoWBHf8vpLOuehzbGGw0EHxpZZ6lCpQ4fNJ8LE=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
@@ -175,8 +177,6 @@ github.com/datawire/dlib v1.3.1 h1:igD//7PiHYOdGEk4z6f1X4iDBHucnV9byssykTnpYQc=
 github.com/datawire/dlib v1.3.1/go.mod h1:TqC6RI+yPsW3Am6RmfSz+eUUDyJCB4RuK3q9QajswiM=
 github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f h1:Yz+xVYWkSARvfJ0e3LWwF1N5F+zJI9pCZ9R41OtkrKE=
 github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f/go.mod h1:D/jb71PHlfUjfNSUVpXQAscXsXy3x+CY+c52lPnW2qU=
-github.com/datawire/go-mkopensource v0.0.12-0.20230821212923-d1d8451579a1 h1:NwMbfNkG3D5oVLTmylRrxlGlP0ND6pgwJX6LEWMR+YA=
-github.com/datawire/go-mkopensource v0.0.12-0.20230821212923-d1d8451579a1/go.mod h1:0h2OSxylsqdGGc/RFQ2cp9eX6vBRbUekj+I3mxv86Ho=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
