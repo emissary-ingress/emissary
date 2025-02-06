@@ -3,4 +3,4 @@
 
 package ignore
 
-import "github.com/helm/chart-testing/v3/ct"
+import _ "github.com/helm/chart-testing/v3/ct"

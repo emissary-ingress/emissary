@@ -3,4 +3,4 @@
 
 package ignore
 
-import "k8s.io/code-generator/cmd/conversion-gen"
+import _ "k8s.io/code-generator/cmd/conversion-gen"
