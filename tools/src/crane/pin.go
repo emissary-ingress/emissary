@@ -3,4 +3,4 @@
 
 package ignore
 
-import "github.com/google/go-containerregistry/cmd/crane"
+import _ "github.com/google/go-containerregistry/cmd/crane"

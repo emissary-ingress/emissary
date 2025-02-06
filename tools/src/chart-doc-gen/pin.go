@@ -3,4 +3,4 @@
 
 package ignore
 
-import "kubepack.dev/chart-doc-gen"
+import _ "kubepack.dev/chart-doc-gen"

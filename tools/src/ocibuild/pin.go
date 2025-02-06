@@ -3,4 +3,4 @@
 
 package ignore
 
-import "github.com/datawire/ocibuild"
+import _ "github.com/datawire/ocibuild"
