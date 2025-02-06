@@ -30,6 +30,8 @@ jobs:
         run: |
           make release/promote-oss/to-ga
       - uses: ./.github/actions/after-job
+        with:
+          jobname: promote-to-ga-1
         if: always()
       - id: check-slack-webhook
         name: Assign slack webhook variable
@@ -50,6 +52,8 @@ jobs:
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
       - uses: ./.github/actions/after-job
+        with:
+          jobname: promote-to-ga-2
         if: always()
   create-gh-release:
     runs-on: ubuntu-24.04
@@ -89,4 +93,6 @@ jobs:
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
       - uses: ./.github/actions/after-job
+        with:
+          jobname: create-gh-release
         if: always()

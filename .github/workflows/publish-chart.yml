@@ -42,6 +42,8 @@ jobs:
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
       - uses: ./.github/actions/after-job
+        with:
+          jobname: chart-publish
         if: always()
   chart-create-gh-release:
     if: ${{ ! contains(github.ref, '-') }}
@@ -80,4 +82,6 @@ jobs:
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
       - uses: ./.github/actions/after-job
+        with:
+          jobname: chart-create-gh-release
         if: always()
