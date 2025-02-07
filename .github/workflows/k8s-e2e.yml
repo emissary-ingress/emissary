@@ -71,4 +71,4 @@ jobs:
       - uses: ./.github/actions/after-job
         if: always()
         with:
-          jobname: check-pytest-${{ matrix.test }}
+          jobname: check-pytest-${{matrix.k8s.kubectl}}-${{ matrix.test }}

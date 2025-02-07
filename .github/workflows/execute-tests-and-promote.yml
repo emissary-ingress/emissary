@@ -27,6 +27,8 @@ jobs:
         run: |
           make lint
       - uses: ./.github/actions/after-job
+        with:
+          jobname: lint
         if: always()
 
   generate: ####################################################################
@@ -75,6 +77,8 @@ jobs:
       - uses: ./.github/actions/git-dirty-check
         name: "Check Git not dirty from 'make generate' (again!)"
       - uses: ./.github/actions/after-job
+        with:
+          jobname: generate
         if: always()
 
   check-envoy-protos: ####################################################################
@@ -107,6 +111,8 @@ jobs:
       - name: "Check Git not dirty from 'make compile-envoy-protos'"
         uses: ./.github/actions/git-dirty-check
       - uses: ./.github/actions/after-job
+        with:
+          jobname: check-envoy-protos
         if: always()
 
   check-envoy-version: #########################################################
@@ -135,6 +141,8 @@ jobs:
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - run: make check-envoy-version
       - uses: ./.github/actions/after-job
+        with:
+          jobname: check-envoy-version
         if: always()
 
   # Tests ######################################################################
@@ -191,6 +199,8 @@ jobs:
         run: |
           make gotest
       - uses: ./.github/actions/after-job
+        with:
+          jobname: check-gotest
         if: always()
   check-pytest:
     runs-on: ubuntu-24.04
@@ -275,6 +285,8 @@ jobs:
           export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
           make pytest-unit-tests
       - uses: ./.github/actions/after-job
+        with:
+          jobname: check-pytest-unit
         if: always()
   check-chart:
     runs-on: ubuntu-24.04
@@ -305,6 +317,8 @@ jobs:
 
           make test-chart
       - uses: ./.github/actions/after-job
+        with:
+          jobname: check-chart
         if: always()
 
   build: #######################################################################
@@ -342,6 +356,8 @@ jobs:
         run: |
           make push-dev
       - uses: ./.github/actions/after-job
+        with:
+          jobname: build
         if: always()
 
   ######################################################################

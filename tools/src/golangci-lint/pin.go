@@ -3,4 +3,4 @@
 
 package ignore
 
-import "github.com/golangci/golangci-lint/cmd/golangci-lint"
+import _ "github.com/golangci/golangci-lint/cmd/golangci-lint"
