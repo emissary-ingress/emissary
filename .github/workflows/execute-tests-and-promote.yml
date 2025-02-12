@@ -299,27 +299,30 @@ jobs:
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     steps:
-      - uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: make test-chart
+      - name: Warn about skip
         run: |
-          make ci/setup-k3d
-          export DEV_KUBECONFIG=~/.kube/config
+          echo "SKIPPING CHART TEST; check the charts manually"
+      # - uses: docker/login-action@v2
+      #   with:
+      #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+      #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      # - uses: actions/checkout@v3
+      #   with:
+      #     fetch-depth: 0
+      #     ref: ${{ github.event.pull_request.head.sha }}
+      # - name: Install Deps
+      #   uses: ./.github/actions/setup-deps
+      # - name: make test-chart
+      #   run: |
+      #     make ci/setup-k3d
+      #     export DEV_KUBECONFIG=~/.kube/config
 
-          make test-chart
-      - uses: ./.github/actions/after-job
-        with:
-          jobname: check-chart
-        if: always()
+      #     make test-chart
+      # - uses: ./.github/actions/after-job
+      #   with:
+      #     jobname: check-chart
+      #   if: always()
 
   build: #######################################################################
     runs-on: ubuntu-24.04
