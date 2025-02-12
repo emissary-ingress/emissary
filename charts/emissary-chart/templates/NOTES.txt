@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
-  Congratulations! You've successfully installed Emissary Ingress!
+  Congratulations! You've successfully installed Emissary-ingress!
 
 -------------------------------------------------------------------------------
 To get the IP address of Emissary, run the following commands:
