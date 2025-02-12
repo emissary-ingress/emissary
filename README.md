@@ -21,6 +21,16 @@ Emissary-ingress
 
 <!-- Links are (mostly) at the end of this document, for legibility. -->
 
+---
+
+## Want to try an Emissary 3.10.0 RC?
+
+We have a release candidate for Emissary 3.10.0 available for testing. If you're interested in giving it a shot, wonderful! Check out [trying 3.10].
+
+[trying 3.10]: https://github.com/emissary-ingress/emissary/tree/rel/v3.10.0/TRY-3.10.md
+
+---
+
 [Emissary-Ingress](https://www.getambassador.io/docs/open-source) is an open-source Kubernetes-native API Gateway +
 Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io).
 Emissary-ingress is a CNCF incubation project (and was formerly known as Ambassador API Gateway).
