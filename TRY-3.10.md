@@ -11,6 +11,9 @@ Emissary 3.10 encompasses:
 **Emissary 3.10 and Edge Stack 3.10 are not equivalent**. Their codebases have
 diverged and will continue to do so.
 
+[Ajay Choudhary]: https://github.com/ajaychoudhary-hotstar
+[Luke Shumaker]: https://github.com/lukeshu
+
 ## Trying 3.10
 
 The most current Emissary 3.10 is Emissary 3.10.0-rc.1. This is a **release
