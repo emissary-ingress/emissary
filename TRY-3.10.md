@@ -2,7 +2,7 @@
 
 Emissary 3.10 encompasses:
 
-- all the changes made by Ambassador Labs after Emissary 3.9.1;
+- all the changes made in this repo by Ambassador Labs after Emissary 3.9.1;
 - updates to Go dependencies;
 - updates to the included Envoy Proxy; and
 - community updates (with huge thanks to [Ajay Choudhary] and [Luke Shumaker]!)
