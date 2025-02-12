@@ -16,10 +16,8 @@ keywords:
 - emissary
 - emissary ingress
 maintainers:
-- name: flydiverny
-  email: markus@maga.se
 - name: kflynn
-  email: flynn@datawire.io
-- name: nbkrause
-  email: nkrause@datawire.io
+  email: flynn@buoyant.io
+- name: aliceproxy
+  email:
 engine: gotpl

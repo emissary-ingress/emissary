@@ -1,0 +1,21 @@
+{{- define "partials.conversion" -}}
+{{- if .Values.enableLegacyVersions }}
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: emissary-apiext
+          namespace: {{ .Release.Namespace }}
+      conversionReviewVersions:
+      - v1
+{{- end -}}
+{{- end -}}
+
+{{- define "partials.v3alpha1storage" -}}
+{{- if .Values.enableLegacyVersions -}}
+  false
+{{- else -}}
+  true
+{{- end -}}
+{{- end -}}
