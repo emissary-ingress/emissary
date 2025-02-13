@@ -27,7 +27,7 @@ Emissary-ingress
 
 We have a release candidate for Emissary 3.10.0 available for testing. If you're interested in giving it a shot, wonderful! Check out [trying 3.10].
 
-[trying 3.10]: https://github.com/emissary-ingress/emissary/tree/rel/v3.10.0/TRY-3.10.md
+[trying 3.10]: https://github.com/emissary-ingress/emissary/tree/master/TRY-3.10.md
 
 ---
 
