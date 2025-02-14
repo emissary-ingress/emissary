@@ -318,10 +318,7 @@ class ListenerFactory:
     def finalize(cls, ir: "IR", aconf: Config) -> None:
         # Finally, cycle over our TCPMappingGroups and make sure we have
         # Listeners for all of them, too.
-        for group in ir.ordered_groups():
-            if not isinstance(group, IRTCPMappingGroup):
-                continue
-
+        for group in ir.ordered_tcp_mapping_groups():
             # OK. If we have a Listener binding here already, use it -- that lets the user override
             # any choices we might make if they want to. If there's no Listener here, though, we'll
             # need to create one.

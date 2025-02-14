@@ -684,7 +684,7 @@ class MadnessOp:
         ir, econf = b
         match = False
 
-        group = ir.groups.get("3644d75eb336f323bec43e48d4cfd8a950157607", None)
+        group = ir.http_mapping_groups.get("3644d75eb336f323bec43e48d4cfd8a950157607", None)
 
         if current_mappings:
             # There are some active mappings. Make sure that the group exists, that it has the
