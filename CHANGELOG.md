@@ -110,6 +110,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Feature: Emissary-ingress now supports resolving Endpoints from EndpointSlices in addition to the
   existing support for Endpoints, supporting Services with more than 1000 endpoints.
 
+- Feature: Emissary-ingress now passes the client TLS certificate and SNI, if any, to the external
+  auth service. These are available in the `source.certificate` and `tls_session.sni` fields, as
+  described in the <a
+  href="https://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/attribute_context.proto">
+  Envoy extauth documentation</a>.
+
 [Incorrect Cache Key for Mapping]: https://github.com/emissary-ingress/emissary/issues/5714
 
 ## [3.9.0] November 13, 2023

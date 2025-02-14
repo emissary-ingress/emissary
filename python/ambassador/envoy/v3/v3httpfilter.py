@@ -316,6 +316,8 @@ end
 
     if auth_info["name"] == "envoy.filters.http.ext_authz":
         auth_info["typed_config"]["clear_route_cache"] = True
+        auth_info["typed_config"]["include_peer_certificate"] = True
+        auth_info["typed_config"]["include_tls_session"] = True
 
         if body_info:
             auth_info["typed_config"]["with_request_body"] = body_info
