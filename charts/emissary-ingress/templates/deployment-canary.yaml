@@ -154,7 +154,7 @@ spec:
             done
       {{- end }}
       {{- if .Values.initContainers }}
-      {{- toYaml .Values.initContainers | nindent 10 }}
+      {{- toYaml .Values.initContainers | nindent 6 }}
       {{- end }}
       {{- end }}
       containers:
