@@ -14,7 +14,7 @@ click==8.1.7
     # via
     #   -r requirements.in
     #   flask
-durationpy==0.6
+durationpy==0.7
     # via -r requirements.in
 expiringdict==1.2.2
     # via -r requirements.in
