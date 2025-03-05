@@ -85,6 +85,16 @@ items:
           href="https://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/attribute_context.proto">
           Envoy extauth documentation</a>.
 
+      - title: Update `ambex` to use `xxhash64` instead of `md5`
+        type: change
+        body: >-
+          The `ambex` component of $productName$ now uses `xxhash64` instead
+          of `md5`, since `md5` can cause problems in crypto-restricted
+          environments (e.g. FIPS)
+        github:
+          - title: "Remove usage of md5"
+            link: https://github.com/emissary-ingress/emissary/pull/5794
+
   - version: 3.9.0
     prevVersion: 3.8.0
     date: "2023-11-13"
