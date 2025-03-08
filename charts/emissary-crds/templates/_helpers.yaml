@@ -7,6 +7,8 @@
         service:
           name: emissary-apiext
           namespace: {{ .Release.Namespace }}
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
 {{- end -}}
