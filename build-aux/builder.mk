@@ -255,9 +255,9 @@ pytest-kat-envoy3-tests-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
 	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
 pytest-kat-envoy3-%: python-integration-test-environment pytest-kat-envoy3-tests-%
 
-$(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
+$(OSS_HOME)/venv: $(OSS_HOME)/build-aux/py-version.txt python/requirements.txt python/requirements-dev.txt
 	rm -rf $@
-	python3 -m venv $@
+	python$$(sed -e 's/\~//' <$(OSS_HOME)/build-aux/py-version.txt) -m venv $@
 	$@/bin/pip3 install -r python/requirements.txt
 	$@/bin/pip3 install -r python/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python

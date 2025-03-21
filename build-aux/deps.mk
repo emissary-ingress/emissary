@@ -14,8 +14,10 @@ vendor: FORCE
 	go mod vendor
 clean: vendor.rm-r
 
+# The egrep below is because the MarkupSafe has a broken, unreadable,
+# multiline license value.
 $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
-	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+	docker run --rm "$$(cat docker/base-pip.docker)" sh -c "pip freeze --exclude-editable | cut -d= -f1 | xargs pip show | egrep '^([A-Za-z-]+: |---)'" > $@
 clean: build-aux/pip-show.txt.rm
 
 $(OSS_HOME)/build-aux/go-version.txt: $(_go-version/deps)
