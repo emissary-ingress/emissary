@@ -116,7 +116,11 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   href="https://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/attribute_context.proto">
   Envoy extauth documentation</a>.
 
+- Change: The `ambex` component of Emissary-ingress now uses `xxhash64` instead of `md5`, since
+  `md5` can cause problems in crypto-restricted environments (e.g. FIPS) ([Remove usage of md5])
+
 [Incorrect Cache Key for Mapping]: https://github.com/emissary-ingress/emissary/issues/5714
+[Remove usage of md5]: https://github.com/emissary-ingress/emissary/pull/5794
 
 ## [3.9.0] November 13, 2023
 [3.9.0]: https://github.com/emissary-ingress/emissary/compare/v3.8.0...v3.9.0
