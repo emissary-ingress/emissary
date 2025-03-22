@@ -1,0 +1,16 @@
+# Set to true to include the v2 versions and the conversion webhook.
+enableLegacyVersions: true
+# Set to true to also include v1 versions; requires enableLegacyVersions to be true.
+enableV1: true
+
+emissary:
+  # Namespace for the main Emissary installation
+  namespace: emissary
+
+apiext:
+  # Repository and image name for apiext images
+  repository: @imageRepo@
+  # Version tag for apiext images
+  tag: @version@
+  # imagePullPolicy for apiext images
+  pullPolicy: IfNotPresent

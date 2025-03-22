@@ -136,7 +136,9 @@ build-output/chart-%.tgz: build-output/chart-%.d
 # Convenience aliases for the Helm chart
 chart_dir = build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d
 chart_tgz = $(patsubst %.d,%.tgz,$(chart_dir))
-chart: $(chart_tgz)
+# chart: $(chart_tgz)
+chart:
+	@echo "Don't use make chart -- instead, cd charts && make"
 PHONY: chart
 
 _major_version = $(firstword $(subst ., ,$(patsubst v%,%,$(VERSION))))
