@@ -83,8 +83,12 @@ class MappingFactory:
         ir.logger.debug("IR: MappingFactory adding live mappings")
 
         for mapping in live_mappings:
-            ir.logger.debug("IR: MappingFactory adding %s" % mapping.name)
-            ir.add_mapping(aconf, mapping)
+            if isinstance(mapping, IRHTTPMapping):
+                ir.logger.debug("IR: MappingFactory adding http Mapping %s" % mapping.name)
+                ir.add_http_mapping(aconf, mapping)
+            if isinstance(mapping, IRTCPMapping):
+                ir.logger.debug("IR: MappingFactory adding tcp Mapping %s" % mapping.name)
+                ir.add_tcp_mapping(aconf, mapping)
 
         ir.cache.dump("MappingFactory")
 
@@ -95,9 +99,20 @@ class MappingFactory:
 
         ir.logger.debug("IR: MappingFactory finalizing")
 
-        for group in ir.groups.values():
-            ir.logger.debug("IR: MappingFactory finalizing group %s", group.group_id)
-            group.finalize(ir, aconf)
-            ir.logger.debug("IR: MappingFactory finalized group %s", group.group_id)
+        for http_group in ir.http_mapping_groups.values():
+            ir.logger.debug(
+                "IR: MappingFactory finalizing http mapping group %s", http_group.group_id
+            )
+            http_group.finalize(ir, aconf)
+            ir.logger.debug(
+                "IR: MappingFactory finalized http mapping group %s", http_group.group_id
+            )
+
+        for tcp_group in ir.tcp_mapping_groups.values():
+            ir.logger.debug(
+                "IR: MappingFactory finalizing tcp mapping group %s", tcp_group.group_id
+            )
+            tcp_group.finalize(ir, aconf)
+            ir.logger.debug("IR: MappingFactory finalized tcp mapping group %s", tcp_group.group_id)
 
         ir.logger.debug("IR: MappingFactory finalized")

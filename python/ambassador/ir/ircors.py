@@ -52,10 +52,10 @@ class IRCORS(IRResource):
 
         return True
 
-    def set_id(self, group_id: str):
+    def set_id(self, mapping_key: str):
         self["filter_enabled"] = {
             "default_value": {"denominator": "HUNDRED", "numerator": 100},
-            "runtime_key": f"routing.cors_enabled.{group_id}",
+            "runtime_key": f"routing.cors_enabled.{mapping_key}",
         }
 
     def dup(self) -> "IRCORS":
