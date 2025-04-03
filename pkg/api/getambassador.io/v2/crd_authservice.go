@@ -29,7 +29,7 @@ type AuthServiceIncludeBody struct {
 	MaxBytes int `json:"max_bytes,omitempty"`
 
 	// +kubebuilder:validation:Required
-	AllowPartial bool `json:"allow_partial,omitempty"`
+	AllowPartial bool `json:"allow_partial"`
 }
 
 // Why isn't this just an int??
