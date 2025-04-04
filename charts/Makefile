@@ -1,4 +1,4 @@
-IMAGE_REPO ?= docker.io/emissaryingress/emissary
+IMAGE_REPO ?= ghcr.io/emissary-ingress/emissary
 
 all: charts
 
