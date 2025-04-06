@@ -23,64 +23,88 @@ Emissary-ingress
 
 ---
 
-## Want to try an Emissary 3.10.0 RC?
+## QUICKSTART
 
-We have a release candidate for Emissary 3.10.0 available for testing. If you're interested in giving it a shot, wonderful! Check out [trying 3.10].
+Looking to get started as quickly as possible? Check out [the
+QUICKSTART](QUICKSTART.md) for more!
 
-[trying 3.10]: https://github.com/emissary-ingress/emissary/tree/master/TRY-3.10.md
+### Latest Release
+
+The latest production version of Emissary is **3.10.0**.
+
+**Note well** that there is also an Ambassador Edge Stack 3.10.0, but
+**Emissary 3.10 and Edge Stack 3.10 are not equivalent**. Their codebases have
+diverged and will continue to do so.
 
 ---
 
-[Emissary-Ingress](https://www.getambassador.io/docs/open-source) is an open-source Kubernetes-native API Gateway +
-Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io).
-Emissary-ingress is a CNCF incubation project (and was formerly known as Ambassador API Gateway).
+Emissary-ingress
+================
 
-Emissary-ingress enables its users to:
-* Manage ingress traffic with [load balancing], support for multiple protocols ([gRPC and HTTP/2], [TCP], and [web sockets]), and Kubernetes integration
-* Manage changes to routing with an easy to use declarative policy engine and [self-service configuration], via Kubernetes [CRDs] or annotations
-* Secure microservices with [authentication], [rate limiting], and [TLS]
-* Ensure high availability with [sticky sessions], [rate limiting], and [circuit breaking]
-* Leverage observability with integrations with [Grafana], [Prometheus], and [Datadog], and comprehensive [metrics] support
-* Enable progressive delivery with [canary releases]
-* Connect service meshes including [Consul], [Linkerd], and [Istio]
+[Emissary-ingress](https://www.getambassador.io/docs/open-source) is an
+open-source, developer-centric, Kubernetes-native API gateway built on [Envoy
+Proxy]. Emissary-ingress is a CNCF incubating project (and was formerly known
+as Ambassador API Gateway).
+
+### Design Goals
+
+The first problem faced by any organization trying to develop cloud-native
+applications is the _ingress problem_: allowing users outside the cluster to
+access the application running inside the cluster. Emissary is built around
+the idea that the application developers should be able to solve the ingress
+problem themselves, without needing to become Kubernetes experts and without
+needing dedicated operations staff: a self-service, developer-centric workflow
+is necessary to develop at scale.
+
+Emissary is open-source, developer-centric, role-oriented, opinionated, and
+Kubernatives-native.
+
+- open-source: Emissary is licensed under the Apache 2 license, permitting use
+  or modification by anyone.
+- developer-centric: Emissary is designed taking the application developer
+  into account first.
+- role-oriented: Emissary's configuration deliberately tries to separate
+  elements to allow separation of concerns between developers and operations.
+- opinionated: Emissary deliberately tries to make easy things easy, even if
+  that comes of the cost of not allowing some uncommon features.
+
+### Features
+
+Emissary supports all the table-stakes features needed for a modern API
+gateway:
+
+* Per-request [load balancing]
+* Support for routing [gRPC], [HTTP/2], [TCP], and [web sockets]
+* Declarative configuration via Kubernetes [custom resources]
+* Fine-grained [authentication] and [authorization]
+* Advanced routing features like [canary releases], [A/B testing], [dynamic routing], and [sticky sessions]
+* Resilience features like [retries], [rate limiting], and [circuit breaking]
+* Observability features including comprehensive [metrics] support using the [Prometheus] stack
+* Easy service mesh integration with [Linkerd], [Istio], [Consul], etc.
 * [Knative serverless integration]
 
 See the full list of [features](https://www.getambassador.io/docs/emissary) here.
 
-Branches
-========
+### Branches
 
 (If you are looking at this list on a branch other than `master`, it
 may be out of date.)
 
-- [`master`](https://github.com/emissary-ingress/emissary/tree/master) - branch for Emissary-ingress dev work ( :heavy_check_mark: upcoming release)
-- [`release/v3.9`](https://github.com/emissary-ingress/emissary/tree/release/v3.9) - branch for Emissary-ingress 3.9.z work
-- [`release/v2.5`](https://github.com/emissary-ingress/emissary/tree/release/v2.5) - branch for Emissary-ingress 2.5.z work ( :heavy_check_mark: maintenance)
+- [`main`](https://github.com/emissary-ingress/emissary/tree/master): Emissary 4 development work
 
-Architecture
-============
+**No further development is planned on any branches listed below.**
 
-Emissary is configured via Kubernetes CRDs, or via annotations on Kubernetes `Service`s. Internally,
-it uses the [Envoy Proxy] to actually handle routing data; externally, it relies on Kubernetes for
-scaling and resiliency. For more on Emissary's architecture and motivation, read [this blog post](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844).
+- [`master`](https://github.com/emissary-ingress/emissary/tree/master) - **Frozen** at Emissary 3.10.0
+- [`release/v3.10`](https://github.com/emissary-ingress/emissary/tree/release/v3.10) - Emissary-ingress 3.10.0 release branch
+- [`release/v3.9`](https://github.com/emissary-ingress/emissary/tree/release/v3.9)
+  - Emissary-ingress 3.9.1 release branch
+- [`release/v2.5`](https://github.com/emissary-ingress/emissary/tree/release/v2.5) - Emissary-ingress 2.5.1 release branch
 
-Getting Started
-===============
+**Note well** that there is also an Ambassador Edge Stack 3.10.0, but
+**Emissary 3.10 and Edge Stack 3.10 are not equivalent**. Their codebases have
+diverged and will continue to do so.
 
-You can get Emissary up and running in just three steps. Follow the instructions here: https://www.getambassador.io/docs/emissary/latest/tutorials/getting-started/
-
-If you are looking for a Kubernetes ingress controller, Emissary provides a superset of the functionality of a typical ingress controller. (It does the traditional routing, and layers on a raft of configuration options.) This blog post covers [Kubernetes ingress](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
-
-For other common questions, view this [FAQ page](https://www.getambassador.io/docs/emissary/latest/about/faq/).
-
-You can also use Helm to install Emissary. For more information, see the instructions in the [Helm installation documentation](https://www.getambassador.io/docs/emissary/latest/topics/install/helm/)
-
-Check out the full [Emissary
-documentation](https://www.getambassador.io/docs/emissary/) at
-www.getambassador.io/docs/open-source.
-
-Community
-=========
+#### Community
 
 Emissary-ingress is a CNCF Incubating project and welcomes any and all
 contributors.
@@ -95,21 +119,21 @@ the way the community is run, including:
    regular trouble-shooting meetings and contributor meetings
  - how to get [`SUPPORT.md`](Community/SUPPORT.md).
 
-The best way to join the community is to join the [CNCF Slack](https://communityinviter.com/apps/cloud-native/cncf)
-#emissary-ingress channel.
-
-Check out the [`DevDocumentation/`](DevDocumentation/) directory for
-information on the technicals of Emissary, most notably the
-[`CONTRIBUTING.md`](DevDocumentation/CONTRIBUTING.md) contributor's guide.
+The best way to join the community is to join the `#emissary-ingress` channel
+in the [CNCF Slack]. This is also the best place for technical information
+about Emissary's architecture or development.
 
 If you're interested in contributing, here are some ways:
 * Write a blog post for [our blog](https://blog.getambassador.io)
 * Investigate an [open issue](https://github.com/emissary-ingress/emissary/issues)
-* Add [more tests](https://github.com/emissary-ingress/emissary/tree/master/ambassador/tests)
-
-The Ambassador Edge Stack is a superset of Emissary-ingress that provides additional functionality including OAuth/OpenID Connect, advanced rate limiting, Swagger/OpenAPI support, integrated ACME support for automatic TLS certificate management, and a cloud-based UI. For more information, visit https://www.getambassador.io/editions/.
+* Add [more tests](https://github.com/emissary-ingress/emissary/tree/main/ambassador/tests)
 
 <!-- Please keep this list sorted. -->
+[CNCF Slack]: https://communityinviter.com/apps/cloud-native/cncf
+[Envoy Proxy]: https://www.envoyproxy.io
+
+<!-- Legacy: clean up these links! -->
+
 [authentication]: https://www.getambassador.io/docs/emissary/latest/topics/running/services/auth-service/
 [canary releases]: https://www.getambassador.io/docs/emissary/latest/topics/using/canary/
 [circuit breaking]: https://www.getambassador.io/docs/emissary/latest/topics/using/circuit-breakers/
