@@ -164,6 +164,9 @@ hostNetwork: false
 
 service:
   type: LoadBalancer
+  
+  # Name of the load balancer class specified to be reconciled by this controller
+  # loadBalancerClass: service.k8s.aws/nlb 
 
   # Note that target http ports need to match your ambassador configurations service_port
   # https://www.getambassador.io/reference/modules/#the-ambassador-module
