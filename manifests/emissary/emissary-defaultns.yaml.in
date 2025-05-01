@@ -163,6 +163,7 @@ rules:
   - secrets
   - configmaps
   - endpoints
+  - endpointslices
   verbs:
   - get
   - list
