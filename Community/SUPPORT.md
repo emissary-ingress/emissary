@@ -1,16 +1,12 @@
-## Support for deploying and using Ambassador
+## Support for deploying and using Emissary
 
-Welcome to Ambassador! We use GitHub for tracking bugs and feature requests. If you need support, the following resources are available. Thanks for understanding.
+Welcome to Emissary! The Emissary community is the best current resource for
+Emissary support, with the best options being:
 
-### Documentation
+- Checking out the [documentation] at https://emissary-ingress.dev/
+- Joining the `#emissary-ingress` channel in the [CNCF Slack]
+- [Opening an issue][GitHub] in [GitHub]
 
-* [User Documentation](https://www.getambassador.io/docs)
-* [Troubleshooting Guide](https://www.getambassador.io/reference/debugging)
-
-### Real-time Chat
-
-* [Slack](https://d6e.co/slack): The `#ambassador` channel is a good place to start.
-
-### Commercial Support
-
-* Commercial Support is available as part of [Ambassador Pro](https://www.getambassador.io/pro/).
+[CNCF Slack]: https://communityinviter.com/apps/cloud-native/cncf)
+[documentation]: https://emissary-ingress.dev/
+[GitHub]: https://github.com/emissary-ingress/emissary/issues

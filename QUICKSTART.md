@@ -1,40 +1,48 @@
-# Emissary-ingress 3.10.0
+# Emissary-ingress 3.10 Quickstart
 
-Emissary 3.10 encompasses:
+**We recommend using Helm** to install Emissary.
 
-- all the changes made in this repo by Ambassador Labs after Emissary 3.9.1;
-- updates to Go dependencies;
-- updates to the included Envoy Proxy; and
-- community updates (with huge thanks to [Ajay Choudhary], [Billy Lynch], and
-  [Luke Shumaker]!)
+### Installing if you're starting fresh
 
-**Note well** that there is also an Ambassador Edge Stack 3.10.0, but
-**Emissary 3.10 and Edge Stack 3.10 are not equivalent**. Their codebases have
-diverged and will continue to do so.
+**If you are already running Emissary and just want to upgrade, DO NOT FOLLOW
+THESE DIRECTIONS.** Instead, check out "Upgrading from an earlier Emissary"
+below.
 
-[Ajay Choudhary]: https://github.com/ajaychoudhary-hotstar
-[Billy Lynch]: https://github.com/wlynch
-[Luke Shumaker]: https://github.com/lukeshu
+If you're starting from scratch and you don't need to worry about older CRD
+versions, install using `--set enableLegacyVersions=false` to avoid install
+the old versions of the CRDs and the conversion webhook:
 
-## Trying 3.10
+```bash
+helm install emissary-crds \
+ --namespace emissary --create-namespace \
+ oci://ghcr.io/emissary-ingress/emissary-crds-chart --version=3.10.0 \
+ --set enableLegacyVersions=false \
+ --wait
+```
 
-The most current Emissary 3.10 is Emissary 3.10.0-rc.3. This is a **release
-candidate**: it passes CI and is believed to be stable, but we'd like more
-people to try it out before we call it a final release.
+This will install only v3alpha1 CRDs and skip the conversion webhook entirely.
+It will create the `emissary` namespace for you, but there won't be anything
+in it at this point.
 
-**3.10.0-rc.3 is the final RC planned for Emissary 3.10.0.**
+Next up, install Emissary itself, with `--set waitForApiext.enabled=false` to
+tell Emissary not to wait for the conversion webhook to be ready:
 
-By far the easiest way to try things is with Helm -- and note that Emissary
-3.10 includes a Helm chart for CRDs.
+```bash
+helm install emissary \
+ --namespace emissary \
+ oci://ghcr.io/emissary-ingress/emissary-ingress --version=3.10.0 \
+ --set waitForApiext.enabled=false \
+ --wait
+```
 
-### Installing if you're already running an earlier Emissary
+### Upgrading from an earlier Emissary
 
 First, install the CRDs and the conversion webhook:
 
 ```bash
 helm install emissary-crds \
  --namespace emissary-system --create-namespace \
- oci://docker.io/dwflynn/emissary-crds-chart --version=3.10.0-rc.3 \
+ oci://ghcr.io/emissary-ingress/emissary-crds-chart --version=3.10.0 \
  --wait
 ```
 
@@ -44,32 +52,7 @@ conversion webhook into the `emissary-system` namespace. Once that's done, you'l
 ```bash
 helm install emissary \
  --namespace emissary --create-namespace \
- oci://docker.io/dwflynn/emissary-ingress --version=3.10.0-rc.3 \
- --wait
-```
-
-### Installing if you're starting fresh
-
-If you're starting from scratch and you don't need to worry about older CRD
-versions, you can do things differently:
-
-```bash
-helm install emissary-crds \
- --namespace emissary --create-namespace \
- oci://docker.io/dwflynn/emissary-crds-chart --version=3.10.0-rc.3 \
- --set enableLegacyVersions=false \
- --wait
-```
-
-This will install only v3alpha1 CRDs and skip the conversion webhook entirely.
-It will create the `emissary` namespace for you, but there won't be anything
-in it until you install Emissary itself:
-
-```bash
-helm install emissary \
- --namespace emissary \
- oci://docker.io/dwflynn/emissary-ingress --version=3.10.0-rc.3 \
- --set waitForApiext.enabled=false \
+ oci://ghcr.io/emissary-ingress/emissary-ingress --version=3.10.0 \
  --wait
 ```
 
