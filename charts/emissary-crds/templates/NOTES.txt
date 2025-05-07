@@ -1,0 +1,14 @@
+The emissary-crds chart was successfully installed! 🎉
+
+To complete the Emissary-ingress installation, please now proceed to install
+the emissary-ingress chart in the {{ .Release.Namespace }} namespace.
+
+{{- if .Values.enableLegacyVersions }}
+The V2 CRDs and apiext are installed and available for use.
+{{- if .Values.enableV1 }}
+The V1 CRDs are available, too.
+{{- end -}}
+{{- end }}
+
+Looking for more? Visit https://emissary-ingress.dev/ !
+
