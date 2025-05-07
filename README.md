@@ -26,7 +26,7 @@ Emissary-ingress
 ## QUICKSTART
 
 Looking to get started as quickly as possible? Check out [the
-QUICKSTART](QUICKSTART.md) for more!
+QUICKSTART](QUICKSTART.md)!
 
 ### Latest Release
 
@@ -90,7 +90,7 @@ See the full list of [features](https://www.getambassador.io/docs/emissary) here
 (If you are looking at this list on a branch other than `master`, it
 may be out of date.)
 
-- [`main`](https://github.com/emissary-ingress/emissary/tree/master): Emissary 4 development work
+- [`main`](https://github.com/emissary-ingress/emissary/tree/main): Emissary 4 development work
 
 **No further development is planned on any branches listed below.**
 
