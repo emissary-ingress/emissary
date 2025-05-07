@@ -1160,6 +1160,9 @@ class IR:
         od["listener_idle_timeout_ms"] = self.ambassador_module.get(
             "listener_idle_timeout_ms", None
         )
+        od["listener_max_connection_lifetime_ms"] = self.ambassador_module.get(
+            "listener_max_connection_lifetime_ms", None
+        )
         od["headers_with_underscores_action"] = self.ambassador_module.get(
             "headers_with_underscores_action", None
         )
