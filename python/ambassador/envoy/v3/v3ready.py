@@ -60,6 +60,11 @@ class V3Ready(dict):
         if ambassador_ready_log:
             typed_config["access_log"] = cls.access_log(config)
 
+        # required for test_max_concurrent_streams.py
+        max_concurrent_streams = config.ir.ambassador_module.get("max_concurrent_streams", None)
+        if max_concurrent_streams:
+            typed_config["max_concurrent_streams"] = max_concurrent_streams
+
         # required for test_max_request_header.py
         max_request_headers_kb = config.ir.ambassador_module.get("max_request_headers_kb", None)
         if max_request_headers_kb:

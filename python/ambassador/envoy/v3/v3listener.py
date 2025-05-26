@@ -533,6 +533,12 @@ class V3Listener:
                     "headers_with_underscores_action": self.config.ir.ambassador_module.headers_with_underscores_action
                 }
 
+        max_concurrent_streams = self.config.ir.ambassador_module.get(
+            "max_concurrent_streams", None
+        )
+        if max_concurrent_streams:
+            base_http_config["max_concurrent_streams"] = max_concurrent_streams
+
         max_request_headers_kb = self.config.ir.ambassador_module.get(
             "max_request_headers_kb", None
         )

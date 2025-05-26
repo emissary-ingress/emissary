@@ -51,6 +51,7 @@ class IRAmbassador(IRResource):
         "listener_idle_timeout_ms",
         "liveness_probe",
         "load_balancer",
+        "max_concurrent_streams",
         "max_request_headers_kb",
         "merge_slashes",
         "reject_requests_with_escaped_slashes",
@@ -150,6 +151,7 @@ class IRAmbassador(IRResource):
             server_name="envoy",
             debug_mode=False,
             preserve_external_request_id=False,
+            max_concurrent_streams=None,
             max_request_headers_kb=None,
             **kwargs,
         )

@@ -110,3 +110,13 @@ def test_both_one_module_one_mapping():
     _test_common_http_protocol_options(
         yaml, expectations={"max_connection_duration": "2.005s", "idle_timeout": "4.005s"}
     )
+
+
+@pytest.mark.compilertest
+def test_max_concurrent_streams():
+    yaml = module_and_mapping_manifests(
+        None, ["max_concurrent_streams: 100"]
+    )
+    _test_common_http_protocol_options(
+        yaml, expectations={"max_concurrent_streams": "100"}
+    )
