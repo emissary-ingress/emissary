@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from ..config import Config
 from .irbasemapping import IRBaseMapping
@@ -55,15 +55,17 @@ class IRBaseMappingGroup(IRResource):
 
         return self._cache_key
 
-    def normalize_weights_in_mappings(self) -> bool:
+    def normalize_weights_in_mappings(
+        self, mappings: List[IRBaseMapping]
+    ) -> Tuple[List[IRBaseMapping], bool]:
         # If there's only one mapping in the group, it's automatically weighted
         # at 100%.
-        if len(self.mappings) == 1:
+        if len(mappings) == 1:
             self.logger.debug(
-                "Assigning weight 100 to single mapping %s in group", self.mappings[0].name
+                "Assigning weight 100 to single mapping %s in group", mappings[0].name
             )
-            self.mappings[0]._weight = 100
-            return True
+            mappings[0]._weight = 100
+            return mappings, True
 
         # For multiple mappings, we need to normalize the weights.
         weightless_mappings = []
@@ -72,11 +74,11 @@ class IRBaseMappingGroup(IRResource):
         normalized_mappings = []
 
         current_weight = 0
-        for mapping in self.mappings:
+        for mapping in mappings:
             if "weight" in mapping:
                 if mapping.weight > 100:
                     self.post_error(f"Mapping {mapping.name} has invalid weight {mapping.weight}")
-                    return False
+                    return mappings, False
 
                 # increment current weight by mapping's weight
                 current_weight += round(mapping.weight)
@@ -98,7 +100,7 @@ class IRBaseMappingGroup(IRResource):
             self.post_error(
                 f"Total weight of mappings exceeds 100, please reconfigure for correct behavior..."
             )
-            return False
+            return mappings, False
 
         if num_weightless_mappings > 0:
             # You might expect that we'd want to generate errors for the case where we hit 100%
@@ -137,5 +139,4 @@ class IRBaseMappingGroup(IRResource):
                 weightless_mapping._weight = current_weight
                 normalized_mappings.append(weightless_mapping)
 
-        self.mappings = normalized_mappings
-        return True
+        return normalized_mappings, True

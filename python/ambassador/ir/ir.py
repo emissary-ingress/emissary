@@ -34,12 +34,15 @@ from .irfilter import IRFilter
 from .irgofilter import IRGOFilter
 from .irhost import HostFactory, IRHost
 from .irhttpmapping import IRHTTPMapping
+from .irhttpmappinggroup import IRHTTPMappingGroup
 from .irlistener import IRListener, ListenerFactory
 from .irlogservice import IRLogService, IRLogServiceFactory
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
 from .irresource import IRResource
 from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpointSet
+from .irtcpmapping import IRTCPMapping
+from .irtcpmappinggroup import IRTCPMappingGroup
 from .irtls import IRAmbassadorTLS, TLSModuleFactory
 from .irtlscontext import IRTLSContext, TLSContextFactory
 from .irtracing import IRTracing
@@ -83,7 +86,8 @@ class IR:
     edge_stack_allowed: bool
     file_checker: IRFileChecker
     filters: List[IRFilter]
-    groups: Dict[str, IRBaseMappingGroup]
+    http_mapping_groups: Dict[str, IRHTTPMappingGroup]
+    tcp_mapping_groups: Dict[str, IRTCPMappingGroup]
     grpc_services: Dict[str, IRCluster]
     hosts: Dict[str, IRHost]
     invalid: List[Dict]
@@ -272,7 +276,8 @@ class IR:
         self.breakers = {}
         self.clusters = {}
         self.filters = []
-        self.groups = {}
+        self.tcp_mapping_groups = {}
+        self.http_mapping_groups = {}
         self.grpc_services = {}
         self.hosts = {}
         # self.invalidate_groups_for is handled above.
@@ -660,8 +665,6 @@ class IR:
             self.logger.debug(f"Intercept agent not active, skipping finalization")
             return
 
-        # self.logger.info(f"Intercept agent active for {self.agent_service}, finalizing")
-
         # We don't want to listen on the default AES ports (8080, 8443) as that is likely to
         # conflict with the user's application running in the same Pod.
         agent_listen_port_str = os.environ.get("AGENT_LISTEN_PORT", None)
@@ -694,8 +697,6 @@ class IR:
             self.agent_active = False
             return
 
-        # self.logger.info(f"Intercept agent active for {self.agent_service}:{agent_port}, adding fallback mapping")
-
         # XXX OMG this is a crock. Don't use precedence -1000000 for this, because otherwise Edge
         # Stack might decide it's the Edge Policy Console fallback mapping and force it to be
         # routed insecure. !*@&#*!@&#* We need per-mapping security settings.
@@ -726,7 +727,7 @@ class IR:
         )  # No, really. See comment above.
 
         mapping.referenced_by(self.ambassador_module)
-        self.add_mapping(aconf, mapping)
+        self.add_http_mapping(aconf, mapping)
 
     def cache_fetch(self, key: str) -> Optional[IRResource]:
         """
@@ -978,20 +979,21 @@ class IR:
         if is_valid:
             self.listeners[listener_key] = listener
 
-    def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
+    def add_http_mapping(self, aconf: Config, mapping: IRHTTPMapping) -> None:
         mapping.check_status()
-
         if mapping.is_active():
-            if mapping.group_id not in self.groups:
+            if mapping.group_id not in self.http_mapping_groups:
                 # Is this group in our external cache?
                 group_key = mapping.group_class().key_for_id(mapping.group_id)
                 group = self.cache_fetch(group_key)
 
                 if group is not None:
-                    self.logger.debug(f"IR: got group from cache for {mapping.name}")
+                    self.logger.debug(f"IR: got http mapping group from cache for {mapping.name}")
                 else:
-                    self.logger.debug(f"IR: synthesizing group for {mapping.name}")
-                    group_name = "GROUP: %s" % mapping.name
+                    self.logger.debug(
+                        f"IR: synthesizing new http mapping group for Mapping: {mapping.name}"
+                    )
+                    group_name = "HTTP_MAPPING_GROUP: %s" % mapping.name
                     group_class = mapping.group_class()
                     group = group_class(
                         ir=self,
@@ -1000,26 +1002,57 @@ class IR:
                         name=group_name,
                         mapping=mapping,
                     )
-
-                # There's no way group can be anything but a non-None IRBaseMappingGroup
-                # here. assert() that so that mypy understands it.
-                assert isinstance(group, IRBaseMappingGroup)  # for mypy
-                self.groups[group.group_id] = group
+                assert isinstance(group, IRHTTPMappingGroup)
+                self.http_mapping_groups[group.group_id] = group
             else:
-                self.logger.debug(f"IR: already have group for {mapping.name}")
-                group = self.groups[mapping.group_id]
+                self.logger.debug(f"IR: already have http mapping group for {mapping.name}")
+                group = self.http_mapping_groups[mapping.group_id]
                 group.add_mapping(aconf, mapping)
-
             self.cache_add(mapping)
             self.cache_add(group)
             self.cache_link(mapping, group)
 
-            return group
-        else:
-            return None
+    def add_tcp_mapping(self, aconf: Config, mapping: IRTCPMapping) -> None:
+        mapping.check_status()
+        if mapping.is_active():
+            if mapping.group_id not in self.tcp_mapping_groups:
+                # Is this group in our external cache?
+                group_key = mapping.group_class().key_for_id(mapping.group_id)
+                group = self.cache_fetch(group_key)
 
-    def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
-        return reversed(sorted(self.groups.values(), key=lambda x: x["group_weight"]))
+                if group is not None:
+                    self.logger.debug(f"IR: got tcp mapping group from cache for {mapping.name}")
+                else:
+                    self.logger.debug(
+                        f"IR: synthesizing new tcp mapping group for TCPMapping: {mapping.name}"
+                    )
+                    group_name = "TCP_MAPPING_GROUP: %s" % mapping.name
+                    group_class = mapping.group_class()
+                    group = group_class(
+                        ir=self,
+                        aconf=aconf,
+                        location=mapping.location,
+                        name=group_name,
+                        mapping=mapping,
+                    )
+                assert isinstance(group, IRTCPMappingGroup)
+                self.tcp_mapping_groups[group.group_id] = group
+            else:
+                self.logger.debug(f"IR: already have tcp mapping group for {mapping.name}")
+                group = self.tcp_mapping_groups[mapping.group_id]
+                group.add_mapping(aconf, mapping)
+            self.cache_add(mapping)
+            self.cache_add(group)
+            self.cache_link(mapping, group)
+
+    def get_base_mapping_groups(self) -> List[IRBaseMappingGroup]:
+        return list(self.http_mapping_groups.values()) + list(self.tcp_mapping_groups.values())
+
+    def ordered_http_mapping_groups(self) -> Iterable[IRHTTPMappingGroup]:
+        return reversed(sorted(self.http_mapping_groups.values(), key=lambda x: x["group_weight"]))
+
+    def ordered_tcp_mapping_groups(self) -> Iterable[IRTCPMappingGroup]:
+        return reversed(sorted(self.tcp_mapping_groups.values(), key=lambda x: x["group_weight"]))
 
     def has_cluster(self, name: str) -> bool:
         return name in self.clusters
@@ -1081,7 +1114,10 @@ class IR:
             "hosts": [host.as_dict() for host in self.hosts.values()],
             "listeners": [self.listeners[x].as_dict() for x in sorted(self.listeners.keys())],
             "filters": [filt.as_dict() for filt in self.filters],
-            "groups": [group.as_dict() for group in self.ordered_groups()],
+            "http_mapping_groups": [
+                group.as_dict() for group in self.ordered_http_mapping_groups()
+            ],
+            "tcp_mapping_groups": [group.as_dict() for group in self.ordered_tcp_mapping_groups()],
             "tls_contexts": [context.as_dict() for context in self.tls_contexts.values()],
             "services": self.services,
             "k8s_status_updates": self.k8s_status_updates,
@@ -1345,21 +1381,17 @@ class IR:
         group_resolver_consul = 0  # groups using the ConsulResolver
         mapping_count = 0  # total mappings
 
-        for group in self.ordered_groups():
+        for http_group in self.ordered_http_mapping_groups():
             group_count += 1
+            group_http_count += 1
 
-            if group.get("kind", "IRHTTPMappingGroup") == "IRTCPMappingGroup":
-                group_tcp_count += 1
-            else:
-                group_http_count += 1
-
-            if group.get("precedence", 0) != 0:
+            if http_group.get("precedence", 0) != 0:
                 group_precedence_count += 1
 
             using_headers = False
             using_regex_headers = False
 
-            for header in group.get("headers", []):
+            for header in http_group.get("headers", []):
                 using_headers = True
 
                 if header["regex"]:
@@ -1372,24 +1404,46 @@ class IR:
             if using_regex_headers:
                 group_regex_header_count += 1
 
-            if len(group.mappings) > 1:
+            if len(http_group.mappings) > 1:
                 group_canary_count += 1
 
-            mapping_count += len(group.mappings)
+            mapping_count += len(http_group.mappings)
 
-            if group.get("shadows", []):
+            if http_group.get("shadows", []):
                 group_shadow_count += 1
 
-                if group.get("weight", 100) != 100:
+                if http_group.get("weight", 100) != 100:
                     group_shadow_weighted_count += 1
 
-            if group.get("host_redirect", {}):
+            if http_group.get("host_redirect", {}):
                 group_host_redirect_count += 1
 
-            if group.get("host_rewrite", None):
+            if http_group.get("host_rewrite", None):
                 group_host_rewrite_count += 1
 
-            res_name = group.get(
+            res_name = http_group.get(
+                "resolver", self.ambassador_module.get("resolver", "kubernetes-service")
+            )
+            resolver = self.get_resolver(res_name)
+
+            if resolver:
+                if resolver.kind == "KubernetesServiceResolver":
+                    group_resolver_kube_service += 1
+                elif resolver.kind == "KubernetesEndpoinhResolver":
+                    group_resolver_kube_endpoint += 1
+                elif resolver.kind == "ConsulResolver":
+                    group_resolver_consul += 1
+
+        for tcp_group in self.ordered_tcp_mapping_groups():
+            group_count += 1
+            group_tcp_count += 1
+
+            if len(tcp_group.mappings) > 1:
+                group_canary_count += 1
+
+            mapping_count += len(tcp_group.mappings)
+
+            res_name = tcp_group.get(
                 "resolver", self.ambassador_module.get("resolver", "kubernetes-service")
             )
             resolver = self.get_resolver(res_name)
