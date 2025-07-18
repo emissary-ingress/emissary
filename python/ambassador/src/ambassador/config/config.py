@@ -83,6 +83,7 @@ class Config:
     SupportedVersions: ClassVar[Dict[str, str]] = {
         "v2": "is deprecated, consider upgrading",
         "v3alpha1": "ok",
+        "v4alpha1": "ok"
     }
 
     # INSTANCE VARIABLES
@@ -462,7 +463,7 @@ class Config:
 
         apiVersion = resource.apiVersion
 
-        if apiVersion.startswith("getambassador.io/"):
+        if apiVersion.startswith("emissary-ingress.dev/") or apiVersion.startswith("getambassador.io/"):
             version = apiVersion.split("/", 1)[1].lower()
             status = Config.SupportedVersions.get(version, "is not supported")
             if status != "ok":

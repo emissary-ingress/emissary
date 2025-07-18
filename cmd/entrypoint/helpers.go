@@ -2,11 +2,11 @@ package entrypoint
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"strings"
 
 	"github.com/datawire/dlib/dexec"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates_internal"
 )
 
 func envbool(name string) bool {
@@ -47,19 +47,5 @@ func subcommand(ctx context.Context, command string, args ...string) *dexec.Cmd 
 }
 
 func convert(in interface{}, out interface{}) error {
-	if out == nil {
-		return nil
-	}
-
-	jsonBytes, err := json.Marshal(in)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(jsonBytes, out)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return kates_internal.Convert(in, out)
 }

@@ -114,7 +114,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "getambassador.io", Version: "v4"}
+	GroupVersion = schema.GroupVersion{Group: "emissary-ingress.dev", Version: "v4alpha1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

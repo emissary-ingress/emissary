@@ -25,7 +25,15 @@ import (
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
+
+func BuildScheme() *runtime.Scheme {
+	scheme := runtime.NewScheme()
+	runtimeutil.Must(AddToScheme(scheme))
+	return scheme
+}
 
 // V2ExplicitTLS controls some vanity/stylistic elements when converting
 // from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any

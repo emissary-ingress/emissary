@@ -624,6 +624,26 @@ func (sh *SnapshotHolder) Notify(
 			return err
 		}
 
+		if len(sn.Kubernetes.Mappings) > 0 {
+			m0json, err := v3json.MarshalIndent(sn.Kubernetes.Mappings[0], "", "  ")
+
+			if err != nil {
+				fmt.Printf("could not marshal mapping 0: %v", err)
+			} else {
+				fmt.Printf("MAPPING 0 V3: %s", m0json)
+			}
+
+			m0json, err = json.MarshalIndent(sn.Kubernetes.Mappings[0], "", "  ")
+
+			if err != nil {
+				fmt.Printf("could not marshal mapping 0: %v", err)
+			} else {
+				fmt.Printf("MAPPING 0 V4: %s", m0json)
+			}
+		}
+
+		fmt.Printf("SNAPSHOT: %s\n", string(snapshotJSON))
+
 		bootstrapped = consulWatcher.isBootstrapped()
 		if bootstrapped {
 			sh.unsentDeltas = nil

@@ -383,7 +383,7 @@
   spec:
     hostRewrite: httpbin.org
     loadBalancer:
-      sourceIp: false
+      sourceIP: false
     prefix: /okta/httpbin/
     rewrite: /
     service: httpbin.default.svc.cluster.local
@@ -401,7 +401,7 @@
     hostRewrite: httpbin.org
     loadBalancer:
       policy: some_policy
-      sourceIp: true
+      sourceIP: true
     prefix: /uaa/httpbin/
     rewrite: /
     service: httpbin.default.svc.cluster.local

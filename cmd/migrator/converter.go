@@ -11,8 +11,6 @@ import (
 	"gopkg.in/yaml.v2"
 	k8syaml "sigs.k8s.io/yaml"
 
-	// v3yaml "github.com/emissary-ingress/emissary/v3/pkg/yaml"
-
 	// v3crds "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 
 	v4crds "github.com/emissary-ingress/emissary/v3/pkg/api/emissary-ingress.dev/v4alpha1"
@@ -270,7 +268,7 @@ func main() {
 			if err != nil {
 				fmt.Printf("error marshaling to YAML %#v: %s\n", v4obj, err)
 			} else {
-				fmt.Printf("%s", string(yamlBytes))
+				fmt.Printf("---\n%s", string(yamlBytes))
 			}
 		}
 	}
