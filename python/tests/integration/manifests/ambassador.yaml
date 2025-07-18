@@ -133,10 +133,6 @@ metadata:
 spec:
   containers:
   - env:
-    - name: HOST_IP
-      valueFrom:
-        fieldRef:
-          fieldPath: status.hostIP
     - name: AMBASSADOR_NAMESPACE
       valueFrom:
         fieldRef:
@@ -210,7 +206,7 @@ spec:
               echo "$deployment_name.$deployment_namespace is in the process of restarting. Have: $current_replicas, want $desired_replicas"
               sleep 3
             else
-              echo "$deployment_name.$deployment_namespace is fully ready and not currently restarting.  Have: $current_replicas, want $desired_replicas"
+              echo "$deployment_name.$deployment_namespace is fully ready and not currently restarting. Have: $current_replicas, want $desired_replicas"
               break
             fi
             done
