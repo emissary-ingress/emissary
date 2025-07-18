@@ -174,7 +174,6 @@ spec:
                 fi
               done
         {{- end }}
-        # This block adds user-provided initContainers as separate list items
         {{- if .Values.initContainers }}
         {{- toYaml .Values.initContainers | nindent 8 }} 
         {{- end }}
