@@ -26,7 +26,7 @@ Emissary-ingress
 ## QUICKSTART
 
 Looking to get started as quickly as possible? Check out [the
-QUICKSTART](QUICKSTART.md)!
+QUICKSTART](https://emissary-ingress.dev/docs/3.10/quick-start/)!
 
 ### Latest Release
 
