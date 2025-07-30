@@ -158,6 +158,7 @@ jobs:
     steps:
       - name: Would Release
         run: echo "Would release here..."
+
       # - name: Install Deps
       #   uses: ./.github/actions/setup-deps
       # - name: GoReleaser Build
