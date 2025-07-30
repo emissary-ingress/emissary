@@ -5,7 +5,7 @@
 ######## Envoy
 ARG ENVOY_IMAGE=you-must-set-build-var-ENVOY-IMAGE
 
-FROM ${ENVOY_IMAGE} as envoy-factory
+FROM ${ENVOY_IMAGE} AS envoy-factory
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH
@@ -19,17 +19,18 @@ ARG LIBARCH
 #
 # We don't use Google's distroless image directly because its Python
 # version is older than we want.
-FROM python:3.12.2-slim-bookworm as emissary-factory
+FROM docker.io/library/python:3.12.2-slim-bookworm AS emissary-factory
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH
 
 # Based on https://github.com/alexdmoss/distroless-python...
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip uv ruff
 WORKDIR /emissary
-COPY python python
-RUN pip install -r python/requirements.txt
-RUN cd /emissary/python && python setup.py install
+COPY python /emissary/python
+COPY pyproject.toml /emissary/pyproject.toml
+RUN uv venv /emissary/python/.venv
+# RUN cd /emissary/python && python setup.py install
 
 # Copy over ambassador.version
 WORKDIR /buildroot/ambassador/python
@@ -47,7 +48,13 @@ RUN for name in agent apiext entrypoint kubestatus; do ln -s busyambassador $nam
 # Set up for a non-root environment.
 # Always have an "ambassador" user as UID 8888. This is what we recommend
 # people run as. (Note that the "-D" actually leaves the password locked.)
-RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
+RUN adduser ambassador \
+    --uid 8888 \
+    --ingroup root \
+    --disabled-login \
+    --no-create-home \
+    --shell /bin/false \
+    --comment ambassador
 
 # Fix permissions to allow correctly running as a non root user
 # XXX: We could combine everything into one tree in the builder, fix permissions
@@ -61,7 +68,7 @@ RUN mkdir -p /ambassador/sidecars
 
 ######## Distroless final stage
 
-FROM gcr.io/distroless/cc-debian12 as final
+FROM gcr.io/distroless/cc-debian12 AS final
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH
