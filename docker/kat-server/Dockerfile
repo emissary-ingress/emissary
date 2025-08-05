@@ -17,7 +17,7 @@ ENV GRPC_VERBOSITY=debug
 ENV GRPC_TRACE=tcp,http,api
 
 WORKDIR /work
-COPY kat-client kat-client
+COPY kat-server kat-server
 COPY --from=step-cli /certs/server.crt /certs/server.key /work/
 
 ENTRYPOINT ["kat-server"]
