@@ -94,3 +94,40 @@ jobs:
           path: ${{ env.DOCKER_TARBALL_NAME }}
           retention-days: 7
           if-no-files-found: error
+
+  test-images:
+    name: Test ${{ matrix.arch }} Images
+    needs: build-images
+    runs-on: ${{ matrix.runner }} # Uses native runners!
+    strategy:
+      fail-fast: false # Don't cancel other jobs if one fails
+      matrix:
+        arch: [amd64, arm64] # Architectures to build
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
+        with:
+          # This name has to match the name used in the build-images job
+          name: images-${{ github.sha }}-${{ matrix.arch }}
+          path: ./artifacts
+
+      - name: Load Docker Images from Tarball
+        run: |
+          pwd
+          ls -lR
+          docker load -i ./artifacts/images-${{ matrix.arch }}.tar
+          docker images
