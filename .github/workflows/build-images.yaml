@@ -1,0 +1,96 @@
+# .github/workflows/multi-arch-native-build.yaml
+name: multiarch-ci
+
+on:
+  push:
+    tags:
+      - 'v4.**' # Triggers on any tag like v4.0.0, v4.1.2-rc.1, etc.
+
+  pull_request:
+    types: [opened, synchronize, reopened] # The pull request events to listen for
+    branches:
+      - 'dev/v4' # The base branch that the pull request is targeting
+
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+permissions:
+  contents: read # For checking out code and uploading artifacts
+  packages: write # Only if you decide to push to GHCR later, but not strictly needed for this 'archive' workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-images:
+    name: Build and Save ${{ matrix.arch }} Images
+    runs-on: ${{ matrix.runner }} # Uses native runners!
+    strategy:
+      fail-fast: false # Don't cancel other jobs if one fails
+      matrix:
+        arch: [amd64, arm64] # Architectures to build
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: ~> v2
+          install-only: true
+          distribution: goreleaser
+
+      - name: Generate GoReleaser Config
+        run: |
+          python make-gorel.py \
+              --header gorel.prologue \
+              --arch ${{ matrix.arch }} \
+            > .goreleaser.yaml
+
+      - name: GoReleaser Check(s)
+        shell: bash
+        run: |
+          goreleaser check
+          goreleaser healthcheck
+
+      - name: GoReleaser Build
+        run: |
+          goreleaser release --clean --snapshot
+
+      - name: Save Docker Image to Tarball and Upload
+        run: |
+          docker images
+
+          docker save \
+              ghcr.io/emissary-ingress/apiext:latest-${{ matrix.arch }} \
+              ghcr.io/emissary-ingress/emissary:latest-${{ matrix.arch }} \
+              ghcr.io/emissary-ingress/kat-client:latest-${{ matrix.arch }} \
+              ghcr.io/emissary-ingress/kat-server:latest-${{ matrix.arch }} \
+              ghcr.io/emissary-ingress/test-auth:latest-${{ matrix.arch }} \
+              ghcr.io/emissary-ingress/test-shadow:latest-${{ matrix.arch }} \
+              ghcr.io/emissary-ingress/test-stats:latest-${{ matrix.arch }} \
+            -o images-${{ matrix.arch }}.tar
+
+          echo "DOCKER_TARBALL_NAME=images-${{ matrix.arch }}.tar" >> $GITHUB_ENV
+
+      - name: Upload Docker Image Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: images-${{ github.sha }}-${{ matrix.arch }}
+          path: ${{ env.DOCKER_TARBALL_NAME }}
+          retention-days: 7
+          if-no-files-found: error
