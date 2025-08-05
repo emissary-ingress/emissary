@@ -1,14 +1,14 @@
 ---
 name: lint-test-build-release
 
-"on":
-  push:
-    branches:
-      # - master
-      # - release/v*
-      - dev/v*
-  pull_request: { }
-  workflow_dispatch:
+# "on":
+#   push:
+#     branches:
+#       # - master
+#       # - release/v*
+#       - dev/v*
+#   pull_request: { }
+#   workflow_dispatch:
 
 jobs:
   lint:  ########################################################################
