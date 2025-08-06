@@ -1,0 +1,37 @@
+# .github/workflows/build-images.yaml
+name: Build and Test Images
+
+on:
+  push:
+    tags:
+      - 'v4.**' # Triggers on any tag like v4.0.0, v4.1.2-rc.1, etc.
+
+  pull_request:
+    types: [opened, synchronize, reopened] # The pull request events to listen for
+    branches:
+      - 'dev/v4' # The base branch that the pull request is targeting
+
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+permissions:
+  contents: read # For checking out code and uploading artifacts
+  packages: write # Only if you decide to push to GHCR later, but not strictly needed for this 'archive' workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-images:
+    name: Build Images
+    uses: ./.github/workflows/build-images.yaml
+    with:
+      ref: ${{ github.ref }}
+
+  test-images:
+    name: Test Images
+    needs: build-images
+    uses: ./.github/workflows/test-images.yaml
+    with:
+      ref: ${{ github.ref }}
+      artifact-name-prefix: ${{ needs.build-images.outputs.artifact-name-prefix }}

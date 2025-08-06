@@ -1,0 +1,57 @@
+name: Test Docker Images
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: false
+        type: string
+        default: ${{ github.ref }}
+      artifact-name-prefix:
+        description: 'Prefix for artifact names from build workflow'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  test-images:
+    name: Test ${{ matrix.arch }} Images
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name-prefix }}-${{ matrix.arch }}
+          path: ./artifacts
+
+      - name: Load Docker Images from Tarball
+        run: |
+          docker load -i ./artifacts/images-${{ matrix.arch }}.tar
+          docker images
+
+      - name: Test Images
+        run: |
+          # Add your test commands here
+          echo "Testing ${{ matrix.arch }} images..."

@@ -1,44 +1,43 @@
-# .github/workflows/multi-arch-native-build.yaml
-name: multiarch-ci
+name: Build Docker Images (Reusable)
 
 on:
-  push:
-    tags:
-      - 'v4.**' # Triggers on any tag like v4.0.0, v4.1.2-rc.1, etc.
-
-  pull_request:
-    types: [opened, synchronize, reopened] # The pull request events to listen for
-    branches:
-      - 'dev/v4' # The base branch that the pull request is targeting
-
-  workflow_dispatch: # Allows manual triggering of the workflow
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: false
+        type: string
+        default: ${{ github.ref }}
+    outputs:
+      artifact-name-prefix:
+        description: 'Prefix for artifact names'
+        value: ${{ jobs.build-images.outputs.artifact-name-prefix }}
 
 permissions:
-  contents: read # For checking out code and uploading artifacts
-  packages: write # Only if you decide to push to GHCR later, but not strictly needed for this 'archive' workflow
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  contents: read
 
 jobs:
   build-images:
     name: Build and Save ${{ matrix.arch }} Images
-    runs-on: ${{ matrix.runner }} # Uses native runners!
+    runs-on: ${{ matrix.runner }}
     strategy:
-      fail-fast: false # Don't cancel other jobs if one fails
+      fail-fast: false
       matrix:
-        arch: [amd64, arm64] # Architectures to build
+        arch: [amd64, arm64]
         include:
           - arch: amd64
             runner: ubuntu-24.04
           - arch: arm64
             runner: ubuntu-24.04-arm
 
+    outputs:
+      artifact-name-prefix: ${{ steps.set-outputs.outputs.artifact-name-prefix }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
 
       - name: Install Deps
@@ -87,6 +86,11 @@ jobs:
 
           echo "DOCKER_TARBALL_NAME=images-${{ matrix.arch }}.tar" >> $GITHUB_ENV
 
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          echo "artifact-name-prefix=images-${{ github.sha }}" >> $GITHUB_OUTPUT
+
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -94,40 +98,3 @@ jobs:
           path: ${{ env.DOCKER_TARBALL_NAME }}
           retention-days: 7
           if-no-files-found: error
-
-  test-images:
-    name: Test ${{ matrix.arch }} Images
-    needs: build-images
-    runs-on: ${{ matrix.runner }} # Uses native runners!
-    strategy:
-      fail-fast: false # Don't cancel other jobs if one fails
-      matrix:
-        arch: [amd64, arm64] # Architectures to build
-        include:
-          - arch: amd64
-            runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-
-      - name: Download Docker Image Artifact
-        uses: actions/download-artifact@v4
-        with:
-          # This name has to match the name used in the build-images job
-          name: images-${{ github.sha }}-${{ matrix.arch }}
-          path: ./artifacts
-
-      - name: Load Docker Images from Tarball
-        run: |
-          pwd
-          ls -lR
-          docker load -i ./artifacts/images-${{ matrix.arch }}.tar
-          docker images
