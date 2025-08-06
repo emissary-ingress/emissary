@@ -109,7 +109,7 @@ def main():
                                 ],
                     ),
                 ],
-                extra_files=[ "python", "pyproject.toml" ],
+                extra_files=[ "LICENSE", "python", "pyproject.toml" ],
         ),
         SimpleBuild("apiext"),
         SimpleBuild("kat-client"),
