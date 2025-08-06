@@ -2,7 +2,7 @@
 name = "emissary"
 version = "4.0.0-dev"
 readme = "python/README.md"
-requires-python = "==3.11.*"
+requires-python = "==3.12.2"
 description = "ADD DESCRIPTION HERE"
 license = { file = "LICENSE" }
 authors = [
@@ -42,6 +42,9 @@ dependencies = [
 homepage = "https://www.getambassador.io"
 repository = "https://github.com/emissary-ingress/emissary"
 documentation = "https://www.getambassador.io/docs/emissary"
+
+[project.scripts]
+diagd = "ambassador_diag.diagd:main"
 
 
 [build-system]
