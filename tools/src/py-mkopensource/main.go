@@ -236,9 +236,16 @@ func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHe
 			Name:    distribName,
 			Version: distribVersion,
 		}
-		licenses := parseLicenses(distribName, distribVersion, distrib.Get("License"))
+
+		distribLicense := distrib.Get("License")
+
+		if distribLicense == "" {
+			distribLicense = distrib.Get("License-Expression")
+		}
+
+		licenses := parseLicenses(distribName, distribVersion, distribLicense)
 		if licenses == nil {
-			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distrib.Get("License")))
+			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distribLicense))
 			continue
 		}
 
