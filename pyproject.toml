@@ -65,6 +65,7 @@ dev-dependencies = [
     "kat==4.*",
     "tests==4.*",
     # Dev Requirements
+    "pip>=25.2",
     "mypy>=1",
     "ruff>=0.6",
     "retry2>=0.9",
