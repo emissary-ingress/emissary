@@ -88,6 +88,7 @@ dockers:
       - --build-arg=LIBARCH=aarch64
       - --build-arg=ENVOY_IMAGE={{ .Env.ENVOY_IMAGE }}
     extra_files:
+      - LICENSE
       - python
       - pyproject.toml
 
@@ -105,6 +106,7 @@ dockers:
       - --build-arg=LIBARCH=x86_64
       - --build-arg=ENVOY_IMAGE={{ .Env.ENVOY_IMAGE }}
     extra_files:
+      - LICENSE
       - python
       - pyproject.toml
 
