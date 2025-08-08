@@ -105,6 +105,15 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	}
 	os.Setenv("PYTHONUNBUFFERED", "true")
 
+	execPath := os.Getenv("PATH")
+
+	// Make sure that the PATH includes /usr/local/bin, which is where we
+	// expect diagd to be installed.
+	if !strings.Contains(execPath, "/usr/local/bin") {
+		execPath = fmt.Sprintf("/usr/local/bin:%s", execPath)
+		os.Setenv("PATH", execPath)
+	}
+
 	// Make sure that all of the directories that we need actually exist.
 	if err := ensureDir(GetHomeDir()); err != nil {
 		return err

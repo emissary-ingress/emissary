@@ -82,15 +82,15 @@ dockers:
       - busyambassador
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-arm64"
       - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-arm64"
     build_flag_templates:
       - --platform=linux/arm64
       - --build-arg=LIBARCH=aarch64
       - --build-arg=ENVOY_IMAGE={{ .Env.ENVOY_IMAGE }}
     extra_files:
+      - LICENSE
       - python
+      - pyproject.toml
 
   - use: buildx
     goos: linux
@@ -100,15 +100,15 @@ dockers:
       - busyambassador
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-amd64"
     build_flag_templates:
       - --platform=linux/amd64
       - --build-arg=LIBARCH=x86_64
       - --build-arg=ENVOY_IMAGE={{ .Env.ENVOY_IMAGE }}
     extra_files:
+      - LICENSE
       - python
+      - pyproject.toml
 
   ## apiext
   - use: buildx
@@ -119,8 +119,6 @@ dockers:
       - apiext
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-arm64"
       - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-arm64"
     build_flag_templates:
       - --platform=linux/arm64
@@ -134,8 +132,6 @@ dockers:
       - apiext
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-amd64"
     build_flag_templates:
       - --platform=linux/amd64
@@ -148,8 +144,6 @@ dockers:
     dockerfile: docker/test-auth/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-arm64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-arm64"
     build_flag_templates:
       - --platform=linux/arm64
@@ -163,8 +157,6 @@ dockers:
     dockerfile: docker/test-auth/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-amd64"
     build_flag_templates:
       - --platform=linux/amd64
@@ -179,8 +171,6 @@ dockers:
     dockerfile: docker/test-shadow/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-arm64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-arm64"
     build_flag_templates:
       - --platform=linux/arm64
@@ -194,8 +184,6 @@ dockers:
     dockerfile: docker/test-shadow/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-amd64"
     build_flag_templates:
       - --platform=linux/amd64
@@ -210,8 +198,6 @@ dockers:
     dockerfile: docker/test-stats/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
     build_flag_templates:
       - --platform=linux/arm64
@@ -225,8 +211,6 @@ dockers:
     dockerfile: docker/test-stats/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
     build_flag_templates:
       - --platform=linux/amd64
@@ -241,8 +225,6 @@ dockers:
     dockerfile: docker/kat-client/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-arm64"
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-arm64"
     build_flag_templates:
       - --platform=linux/arm64
@@ -256,8 +238,6 @@ dockers:
     dockerfile: docker/kat-client/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-amd64"
     build_flag_templates:
       - --platform=linux/amd64
@@ -272,8 +252,6 @@ dockers:
     dockerfile: docker/kat-server/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-arm64"
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-arm64"
     build_flag_templates:
       - --platform=linux/arm64
@@ -287,8 +265,6 @@ dockers:
     dockerfile: docker/kat-server/Dockerfile
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-amd64"
     build_flag_templates:
       - --platform=linux/amd64
@@ -300,8 +276,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-amd64"
     create_flags:
       - --insecure
@@ -311,8 +285,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure
@@ -322,8 +294,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-amd64"
     create_flags:
       - --insecure
@@ -333,8 +303,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure
@@ -344,8 +312,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-amd64"
     create_flags:
       - --insecure
@@ -355,8 +321,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure
@@ -366,8 +330,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-amd64"
     create_flags:
       - --insecure
@@ -377,8 +339,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure
@@ -388,8 +348,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-amd64"
     create_flags:
       - --insecure
@@ -399,8 +357,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure
@@ -410,8 +366,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-amd64"
     create_flags:
       - --insecure
@@ -421,8 +375,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure
@@ -432,8 +384,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-amd64"
     create_flags:
       - --insecure
@@ -443,8 +393,6 @@ docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest"
     image_templates:
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure

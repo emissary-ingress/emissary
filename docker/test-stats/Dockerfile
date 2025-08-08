@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM docker.io/frolvlad/alpine-glibc:alpine-3.18_glibc-2.34
+FROM docker.io/library/python:3.12.2-slim-bookworm
 
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
       PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
@@ -29,8 +29,9 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
-# We need curl, pip, and dnsutils (for nslookup).
-RUN apk --no-cache add curl python3 py3-pip bind-tools jq
+# # We need curl, pip, and dnsutils (for nslookup).
+# RUN apt-get update && \
+#       DEBIAN_FRONTEND=noninteractive apt-get install -y curl python3 python3-pip dnsutils jq
 
 # Set WORKDIR to /application which is the root of all our apps.
 WORKDIR /application
