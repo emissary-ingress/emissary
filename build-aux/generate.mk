@@ -165,8 +165,8 @@ $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copy
 	GOPATH= GOFLAGS=-mod=mod $(tools/conversion-gen) \
 	  --skip-unsafe \
 	  --go-header-file=build-aux/copyright-boilerplate.go.txt \
-	  --input-dirs=./$* \
-	  --output-file-base=zz_generated.conversion
+	  --output-file=zz_generated.conversion.go \
+	  ./$*
 # Because v1 just aliases v2, conversion-gen will need to be able to see the v2 conversion functions
 # when generating code for v1.
 $(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.conversion.go: $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go

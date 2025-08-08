@@ -1,6 +1,8 @@
 module local
 
-go 1.21
+go 1.24
+
+toolchain go1.24.5
 
 require github.com/datawire/ocibuild v0.0.3-0.20220131233601-25ee488931d1
 
