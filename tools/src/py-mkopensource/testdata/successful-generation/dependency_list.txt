@@ -1,13 +1,13 @@
-Name: CacheControl
-Version: 0.12.6
-Summary: httplib2 caching for requests
-Home-page: https://github.com/ionrock/cachecontrol
-Author: Eric Larson
-Author-email: eric@ionrock.org
+Name: ptyprocess
+Version: 0.7.0
+Summary: Run a subprocess in a pseudo terminal
+Home-page: https://github.com/pexpect/ptyprocess
+Author: Thomas Kluyver
+Author-email: thomas@kluyver.me.uk
 License: UNKNOWN
-Location: /usr/lib/python3.8/site-packages
-Requires: requests, msgpack
-Required-by:
+Location: /Users/flynn/emissary/k-e/.venv/lib/python3.12/site-packages
+Requires:
+Required-by: pexpect
 
 Name: Flask
 Version: 2.0.2
