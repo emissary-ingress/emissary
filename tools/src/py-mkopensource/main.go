@@ -33,56 +33,31 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// of the BSD license is it?).  We pin the exact versions so
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
-		{"blinker", "1.8.2", ""}:                       {MIT},
-		{"build", "1.2.1", ""}:                         {MIT},
-		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
-		{"CacheControl", "0.12.10", "UNKNOWN"}:         {Apache2},
-		{"Click", "7.0", "BSD"}:                        {BSD3},
-		{"Flask", "3.0.3", ""}:                         {BSD3},
-		{"GitPython", "3.1.11", "UNKNOWN"}:             {BSD3},
-		{"Jinja2", "3.1.4", ""}:                        {BSD3},
-		{"colorama", "0.4.3", "BSD"}:                   {BSD3},
-		{"colorama", "0.4.4", "BSD"}:                   {BSD3},
-		{"decorator", "4.4.2", "new BSD License"}:      {BSD2},
-		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
-		{"idna", "3.7", ""}:                            {BSD3},
-		{"importlib-metadata", "5.1.0", "None"}:        {Apache2},
-		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
-		{"itsdangerous", "2.2.0", ""}:                  {BSD3},
-		{"jsonpatch", "1.33", "Modified BSD License"}:  {BSD3},
-		{"jsonpointer", "2.4", "Modified BSD License"}: {BSD3},
-		{"jsonschema", "3.2.0", "UNKNOWN"}:             {MIT},
-		{"lockfile", "0.12.2", "UNKNOWN"}:              {MIT},
-		{"oauthlib", "3.1.0", "BSD"}:                   {BSD3},
-		{"oauthlib", "3.2.2", "BSD"}:                   {BSD3},
-		{"pep517", "0.13.0", ""}:                       {MIT},
-		{"pip-tools", "7.3.0", "BSD"}:                  {BSD3},
-		{"ptyprocess", "0.6.0", "UNKNOWN"}:             {ISC},
-		{"pyasn1", "0.5.0", "BSD"}:                     {BSD2},
-		{"pyasn1-modules", "0.3.0", "BSD"}:             {BSD2},
-		{"pycparser", "2.20", "BSD"}:                   {BSD3},
-		{"pyparsing", "3.0.9", ""}:                     {MIT},
-		{"pyproject_hooks", "1.1.0", ""}:               {MIT},
-		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
-		{"python-dateutil", "2.8.2", "Dual License"}:   {BSD3, Apache2},
-		{"python-json-logger", "2.0.7", "BSD"}:         {BSD2},
-		{"semantic-version", "2.10.0", "BSD"}:          {BSD2},
-		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
-		{"tomli", "2.0.1", ""}:                         {MIT},
-		{"typing_extensions", "4.11.0", ""}:            {PSF},
-		{"urllib3", "2.2.1", ""}:                       {MIT},
-		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
-		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
-		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},
-		{"Werkzeug", "3.0.3", ""}:                      {BSD3},
-		{"zipp", "3.11.0", "None"}:                     {MIT},
-		{"gunicorn", "22.0.0", "None"}:                 {MIT},
+		{"blinker", "1.9.0", ""}:                          {MIT},
+		{"Jinja2", "3.1.6", ""}:                           {BSD3},
+		{"MarkupSafe", "3.0.2", "Copyright 2010 Pallets"}: {BSD2},
+		{"colorama", "0.4.6", ""}:                         {BSD3},
+		{"gitdb", "4.0.12", "BSD License"}:                {BSD3},
+		{"idna", "3.10", ""}:                              {BSD3},
+		{"itsdangerous", "2.2.0", ""}:                     {BSD3},
+		{"jsonpatch", "1.33", "Modified BSD License"}:     {BSD3},
+		{"jsonpointer", "3.0.0", "Modified BSD License"}:  {BSD3},
+		{"packaging", "24.2", ""}:                         {BSD2, Apache2},
+		{"pathspec", "0.12.1", ""}:                        {MPL2},
+		{"ptyprocess", "0.7.0", "UNKNOWN"}:                {ISC},
+		{"python-json-logger", "2.0.7", "BSD"}:            {BSD2},
+		{"ruff", "0.12.7", ""}:                            {MIT},
+		{"semantic-version", "2.10.0", "BSD"}:             {BSD2},
+		{"typing_extensions", "4.14.1", "PSF-2.0"}:        {PSF},
+		{"Werkzeug", "3.1.3", ""}:                         {BSD3},
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"orjson", "3.10.3", "Apache-2.0 OR MIT"}: {Apache2, MIT},
-		{"packaging", "23.1", ""}:                 {BSD2, Apache2},
-		{"packaging", "24.0", ""}:                 {BSD2, Apache2},
+		{"cryptography", "45.0.6", "Apache-2.0 OR BSD-3-Clause"}:                             {Apache2, BSD3},
+		{"docutils", "0.19", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PSF, BSD2},
+		{"orjson", "3.11.1", "Apache-2.0 OR MIT"}:                                            {Apache2, MIT},
+		{"prometheus_client", "0.22.1", "Apache-2.0 AND BSD-2-Clause"}:                       {Apache2, BSD2},
+		{"python-dateutil", "2.9.0.post0", "Dual License"}:                                   {Apache2, BSD3},
 	}[tuple{name, version, license}]
 	if ok {
 		ret := make(map[License]struct{}, len(override))
@@ -236,9 +211,16 @@ func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHe
 			Name:    distribName,
 			Version: distribVersion,
 		}
-		licenses := parseLicenses(distribName, distribVersion, distrib.Get("License"))
+
+		distribLicense := distrib.Get("License")
+
+		if distribLicense == "" {
+			distribLicense = distrib.Get("License-Expression")
+		}
+
+		licenses := parseLicenses(distribName, distribVersion, distribLicense)
 		if licenses == nil {
-			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distrib.Get("License")))
+			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distribLicense))
 			continue
 		}
 

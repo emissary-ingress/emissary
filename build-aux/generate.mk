@@ -73,7 +73,6 @@ generate-clean: ## Delete generated sources that get committed to Git
 .PHONY: generate-clean
 
 generate-fast: ## Update the subset of generated-sources-that-get-committed-to-Git that can be updated quickly
-generate-fast:
 	$(MAKE) generate-fast-clean
 	$(MAKE) $(patsubst %/,%,$(generate-fast/files))
 .PHONY: generate-fast
@@ -260,7 +259,7 @@ $(OSS_HOME)/python/tests/src/tests/integration/manifests/rbac_namespace_scope.ya
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+$(OSS_HOME)/DEPENDENCIES.md: $(OSS_HOME)/.venv $(OSS_HOME)/build-aux/pip-show.txt $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
@@ -270,7 +269,7 @@ $(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
 
-$(OSS_HOME)/DEPENDENCY_LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+$(OSS_HOME)/DEPENDENCY_LICENSES.md: $(OSS_HOME)/.venv $(OSS_HOME)/build-aux/pip-show.txt $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	echo -e "Emissary-ingress incorporates Free and Open Source software under the following licenses:\n" > $@
 	set -e; { \
