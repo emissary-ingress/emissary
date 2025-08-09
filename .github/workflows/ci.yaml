@@ -41,7 +41,6 @@ jobs:
 
   build-images:
     name: Build Images
-    needs: [gotest, pytest]
     uses: ./.github/workflows/build-images.yaml
     with:
       ref: ${{ github.ref }}
