@@ -1,0 +1,32 @@
+---
+name: Release (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: false
+        type: string
+        default: ${{ github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Would Release
+        run: echo "Would release here..."
+      # - name: Install Deps
+      #   uses: ./.github/actions/setup-deps
+      # - name: GoReleaser Build
+      #   shell: bash
+      #   run: |
+      #     echo 'insert gh cli magic here'
+      #     exit 412
+      # - name: Collect Job Logs
+      #   uses: ./.github/actions/after-job
+      #   if: always()

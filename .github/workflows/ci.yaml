@@ -53,3 +53,12 @@ jobs:
     with:
       ref: ${{ github.ref }}
       artifact-name-prefix: ${{ needs.build-images.outputs.artifact-name-prefix }}
+
+  release:
+    name: Release
+    needs: [lint, gotest, pytest, build-images, test-images]
+    if: startsWith(github.ref, 'refs/tags/v4.') && !contains(github.ref_name, '-')
+    uses: ./.github/workflows/release.yaml
+    with:
+      ref: ${{ github.ref }}
+    secrets: inherit
