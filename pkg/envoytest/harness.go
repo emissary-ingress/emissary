@@ -49,13 +49,13 @@ func getLocalEnvoyImage(ctx context.Context) (string, error) {
 		return env, nil
 	}
 
-	// Use the Envoy image listed in .goreleaser.yaml
+	// Use the Envoy image listed in gorel.prologue.
 	ossHome, err := getOSSHome(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	goreleaserConfigPath := filepath.Join(ossHome, ".goreleaser.yaml")
+	goreleaserConfigPath := filepath.Join(ossHome, "gorel.prologue")
 	data, err := os.ReadFile(goreleaserConfigPath)
 	if err != nil {
 		return "", err
