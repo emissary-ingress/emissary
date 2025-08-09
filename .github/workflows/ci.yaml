@@ -1,14 +1,20 @@
 ---
-name: lint-test-build-release
+name: CI/CD Pipeline
 
-"on":
+on:
   push:
+    tags:
+      - 'v4.**' # Triggers on any tag like v4.0.0, v4.1.2-rc.1, etc.
+
+  pull_request:
+    types: [opened, synchronize, reopened] # The pull request events to listen for
     branches:
-      # - master
-      # - release/v*
-      - dev/v*
-  pull_request: { }
-  workflow_dispatch:
+      - 'dev/v4' # The base branch that the pull request is targeting
+
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+permissions:
+  contents: read
 
 jobs:
   lint:  ########################################################################
