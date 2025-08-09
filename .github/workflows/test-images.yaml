@@ -1,0 +1,87 @@
+name: Test Docker Images
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: false
+        type: string
+        default: ${{ github.ref }}
+      artifact-name-prefix:
+        description: 'Prefix for artifact names from build workflow'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  test-images:
+    name: Test ${{ matrix.arch }} Images
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+
+      - name: Install k3d
+        run: |
+          # Install k3d using the official method
+          wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+
+      - name: Create k3d cluster
+        run: |
+          k3d cluster create test-cluster-${{ matrix.arch }} \
+            --api-port 6443 \
+            --port "80:80@loadbalancer" \
+            --port "443:443@loadbalancer" \
+            --wait
+
+          # Verify cluster is ready
+          kubectl cluster-info --context k3d-test-cluster-${{ matrix.arch }}
+
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name-prefix }}-${{ matrix.arch }}
+          path: ./artifacts
+
+      - name: Load Images into k3d cluster
+        run: |
+          # Import the tarball directly into k3d cluster
+          k3d image import ./artifacts/images-${{ matrix.arch }}.tar -c test-cluster-${{ matrix.arch }}
+          echo "Images imported into k3d cluster"
+
+      - name: Test Images
+        run: |
+          # Verify k3d cluster is running
+          kubectl cluster-info
+          kubectl get nodes
+
+          # List images available in the k3d cluster
+          echo "Images available in k3d cluster:"
+          docker exec k3d-test-cluster-${{ matrix.arch }}-server-0 crictl images
+
+          # Add your test commands here
+          echo "Would test ${{ matrix.arch }} images..."
+
+      - name: Cleanup k3d cluster
+        if: always()
+        run: |
+          k3d cluster delete test-cluster-${{ matrix.arch }} || true

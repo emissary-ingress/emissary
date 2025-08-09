@@ -45,3 +45,11 @@ jobs:
     uses: ./.github/workflows/build-images.yaml
     with:
       ref: ${{ github.ref }}
+
+  test-images:
+    name: Test Images
+    needs: build-images
+    uses: ./.github/workflows/test-images.yaml
+    with:
+      ref: ${{ github.ref }}
+      artifact-name-prefix: ${{ needs.build-images.outputs.artifact-name-prefix }}
