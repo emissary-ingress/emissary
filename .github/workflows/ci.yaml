@@ -17,8 +17,29 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    name: Lint
+    uses: ./.github/workflows/reusable/lint.yaml
+    with:
+      ref: ${{ github.ref }}
+
+  gotest:
+    name: Go Tests
+    needs: lint
+    uses: ./.github/workflows/reusable/gotest.yaml
+    with:
+      ref: ${{ github.ref }}
+
+  pytest:
+    name: Python Tests
+    needs: lint
+    uses: ./.github/workflows/reusable/pytest.yaml
+    with:
+      ref: ${{ github.ref }}
+
   build-images:
     name: Build Images
+    needs: [gotest, pytest]
     uses: ./.github/workflows/reusable/build-images.yaml
     with:
       ref: ${{ github.ref }}

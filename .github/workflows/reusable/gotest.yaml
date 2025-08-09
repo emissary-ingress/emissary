@@ -1,0 +1,36 @@
+---
+name: Go Tests (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: false
+        type: string
+        default: ${{ github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  gotest:
+    runs-on: ubuntu-latest
+    name: Run Golang Tests
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+        with:
+          install-python: "true"
+      - name: Run Golang Unit Tests
+        shell: bash
+        run: |
+          make gotest
+      - name: Collect Job Logs
+        uses: ./.github/actions/collect-logs
+        if: always()
