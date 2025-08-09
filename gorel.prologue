@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2025 Emissary Authors.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Copyright 2022-2025 Emissary Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.  You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Docs for goreleaser are at https://goreleaser.com.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+# Allow overriding the registry and image name with environment variables.
+env:
+  - ENVOY_IMAGE=envoyproxy/envoy:distroless-v1.30.3
+  - REGISTRY={{ if index .Env "REGISTRY"  }}{{ .Env.REGISTRY }}{{ else }}ghcr.io/emissary-ingress{{ end }}
+  - EMISSARY_IMAGE={{ if index .Env "EMISSARY_IMAGE"  }}{{ .Env.EMISSARY_IMAGE }}{{ else }}emissary{{ end }}
+  - APIEXT_IMAGE={{ if index .Env "APIEXT_IMAGE"  }}{{ .Env.APIEXT_IMAGE }}{{ else }}apiext{{ end }}
+  - TEST_AUTH_IMAGE={{ if index .Env "TEST_AUTH_IMAGE"  }}{{ .Env.TEST_AUTH_IMAGE }}{{ else }}test-auth{{ end }}
+  - TEST_SHADOW_IMAGE={{ if index .Env "TEST_SHADOW_IMAGE"  }}{{ .Env.TEST_SHADOW_IMAGE }}{{ else }}test-shadow{{ end }}
+  - TEST_STATS_IMAGE={{ if index .Env "TEST_STATS_IMAGE"  }}{{ .Env.TEST_STATS_IMAGE }}{{ else }}test-stats{{ end }}
+  - KAT_CLIENT_IMAGE={{ if index .Env "KAT_CLIENT_IMAGE"  }}{{ .Env.KAT_CLIENT_IMAGE }}{{ else }}kat-client{{ end }}
+  - KAT_SERVER_IMAGE={{ if index .Env "KAT_SERVER_IMAGE"  }}{{ .Env.KAT_SERVER_IMAGE }}{{ else }}kat-server{{ end }}
+
+before:
+  hooks:
+    - go mod tidy
+    - rm -rf python/ambassador.version
+    - make VERSION=v{{ .Version }} python/ambassador.version
+    # Make the chart as part of the build process.
+    - make VERSION=v{{ .Version }} chart
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
