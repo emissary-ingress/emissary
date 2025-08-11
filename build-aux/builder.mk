@@ -115,6 +115,8 @@ REGISTRY_ERR += $(NL)       you would like to use for development
 REGISTRY_ERR += $(END)
 
 images:
+	$(eval ARCH_ARG := $(if $(BUILD_ARCH),--arch $(BUILD_ARCH)))
+	python make-gorel.py --header gorel.prologue $(ARCH_ARG) > .goreleaser.yaml
 	goreleaser release --snapshot --clean
 .PHONY: images
 

@@ -1,0 +1,41 @@
+---
+name: Python Tests (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: false
+        type: string
+        default: ${{ github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    name: Run Python Tests
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+        with:
+          install-golang: "false"
+      - name: Create Python Virtual Env
+        shell: bash
+        run: >-
+          make python-virtual-environment
+      - name: Run Python Unit Tests
+        env:
+          PYTEST_ARGS: --cov-branch --cov=ambassador --cov-report=html:/tmp/cov_html
+        run: |
+          make pytest-unit-tests
+      - name: Collect Job Logs
+        uses: ./.github/actions/collect-logs
+        if: always()

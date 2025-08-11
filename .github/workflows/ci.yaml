@@ -1,136 +1,63 @@
 ---
-name: lint-test-build-release
+name: CI/CD Pipeline
 
-"on":
+on:
   push:
+    tags:
+      - 'v4.**' # Triggers on any tag like v4.0.0, v4.1.2-rc.1, etc.
+
+  pull_request:
+    types: [opened, synchronize, reopened] # The pull request events to listen for
     branches:
-      # - master
-      # - release/v*
-      - dev/v*
-  pull_request: { }
-  workflow_dispatch:
+      - 'dev/v4' # The base branch that the pull request is targeting
+
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint:  ########################################################################
-    runs-on: ubuntu-latest
+  lint:
     name: Lint
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: Lint Dependencies
-        shell: bash
-        run: |
-          make lint-deps
-      - name: Lint Source Files
-        shell: bash
-        run: |
-          make lint
-      - name: Collect Job Logs
-        uses: ./.github/actions/collect-logs
-        if: always()
+    uses: ./.github/workflows/lint.yaml
+    with:
+      ref: ${{ github.ref }}
 
-  gotest:  ######################################################################
-    runs-on: ubuntu-latest
-    name: Run Golang Tests
-    needs:
-      - lint
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-        with:
-          install-python: "true"
-      - name: Run Golang Unit Tests
-        shell: bash
-        run: |
-          make gotest
-      - name: Collect Job Logs
-        uses: ./.github/actions/collect-logs
-        if: always()
+  gotest:
+    name: Go Tests
+    uses: ./.github/workflows/gotest.yaml
+    with:
+      ref: ${{ github.ref }}
 
-  pytest:  ######################################################################
-    runs-on: ubuntu-latest
-    name: Run Python Tests
-    needs:
-      - lint
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-        with:
-          install-golang: "false"
-      - name: Create Python Virtual Env
-        shell: bash
-        run: >-
-          make python-virtual-environment
-      - name: Run Python Unit Tests
-        env:
-          PYTEST_ARGS: --cov-branch --cov=ambassador --cov-report=html:/tmp/cov_html
-        run: |
-          make pytest-unit-tests
-      - name: Collect Job Logs
-        uses: ./.github/actions/collect-logs
-        if: always()
+  pytest:
+    name: Python Tests
+    uses: ./.github/workflows/pytest.yaml
+    with:
+      ref: ${{ github.ref }}
 
-  build:  #######################################################################
-    name: Build w/ GoReleaser
-    needs:
-      - gotest
-      - pytest
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          version: ~> v2
-          install-only: true
-          distribution: goreleaser
-      - name: GoReleaser Check(s)
-        shell: bash
-        run: |
-          goreleaser check
-          goreleaser healthcheck
-      - name: GoReleaser Build
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          goreleaser build --snapshot --clean
-      - name: Post-Build Cleanup
-        uses: ./.github/actions/after-job
-        if: always()
+  build-images:
+    name: Build Images
+    uses: ./.github/workflows/build-images.yaml
+    with:
+      ref: ${{ github.ref }}
 
-  release:  #####################################################################
-    name: Create GitHub Release
-    needs:
-      - build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Would Release
-        run: echo "Would release here..."
-      # - name: Install Deps
-      #   uses: ./.github/actions/setup-deps
-      # - name: GoReleaser Build
-      #   shell: bash
-      #   run: |
-      #     echo 'insert gh cli magic here'
-      #     exit 412
-      # - name: Collect Job Logs
-      #   uses: ./.github/actions/after-job
-      #   if: always()
+  test-images:
+    name: Test Images
+    needs: build-images
+    uses: ./.github/workflows/test-images.yaml
+    with:
+      ref: ${{ github.ref }}
+      artifact-name-prefix: ${{ needs.build-images.outputs.artifact-name-prefix }}
+
+  release:
+    name: Release
+    needs: [lint, gotest, pytest, build-images, test-images]
+    if: startsWith(github.ref, 'refs/tags/v4.') && !contains(github.ref_name, '-')
+    uses: ./.github/workflows/release.yaml
+    with:
+      ref: ${{ github.ref }}
+    secrets: inherit
