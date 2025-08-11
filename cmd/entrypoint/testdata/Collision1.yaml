@@ -1,15 +1,14 @@
-# @TEMPLATE@
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: emissary-ingress.dev/v4alpha1
 kind: Host
 metadata:
   name: staging.upchieve.org
   namespace: default
 spec:
-  hostname: staging.upchieve.org
   acmeProvider:
     authority: none
     email: rhs@datawire.io
+  hostname: staging.upchieve.org
   requestPolicy:
     insecure:
       action: Route
@@ -19,7 +18,7 @@ spec:
 # metadata:
 #   name: staging
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: emissary-ingress.dev/v4alpha1
 kind: KubernetesEndpointResolver
 metadata:
   labels:
@@ -27,58 +26,58 @@ metadata:
   name: endpoint
   namespace: ambassador
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: emissary-ingress.dev/v4alpha1
 kind: Mapping
 metadata:
   name: subway-staging-socket-stable-mapping
   namespace: staging
 spec:
-  allow_upgrade:
+  allowUpgrade:
   - websocket
   host: staging.upchieve.org
-  load_balancer:
+  loadBalancer:
     policy: ring_hash
-    source_ip: true
+    sourceIP: true
   prefix: /
-  query_parameters:
-    transport: true
+  queryParameters:
+    transport: "true"
   resolver: endpoint
   service: subway-staging-stable.staging:3001
-  timeout_ms: 500000
+  timeoutMS: 500000
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: emissary-ingress.dev/v4alpha1
 kind: Mapping
 metadata:
   name: subway-staging-whiteboard-reset-stable-mapping
   namespace: staging
 spec:
   host: staging.upchieve.org
-  load_balancer:
+  loadBalancer:
     policy: ring_hash
-    source_ip: true
+    sourceIP: true
   prefix: /whiteboard/reset/
   resolver: endpoint
   rewrite: /whiteboard/reset/
   service: subway-staging-stable.staging:3000
-  timeout_ms: 500000
+  timeoutMS: 500000
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: emissary-ingress.dev/v4alpha1
 kind: Mapping
 metadata:
   name: subway-staging-whiteboard-stable-mapping
   namespace: staging
 spec:
-  allow_upgrade:
+  allowUpgrade:
   - websocket
   host: staging.upchieve.org
-  load_balancer:
+  loadBalancer:
     policy: ring_hash
-    source_ip: true
+    sourceIP: true
   prefix: /whiteboard/
   resolver: endpoint
   rewrite: /whiteboard/
   service: subway-staging-stable.staging:3000
-  timeout_ms: 500000
+  timeoutMS: 500000
 ---
 apiVersion: v1
 kind: Service

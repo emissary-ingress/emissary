@@ -11,16 +11,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/emissary-ingress.dev/v4alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 )
 
-func getExpected(expectedFile string, inputObjects []kates.Object) ([]RenderedListener, []v3alpha1.Mapping, []string, error) {
+func getExpected(expectedFile string, inputObjects []kates.Object) ([]RenderedListener, []amb.Mapping, []string, error) {
 	// Figure out all the mappings and clusters we'll need.
 	neededClusters := []string{}
-	neededMappings := []v3alpha1.Mapping{}
+	neededMappings := []amb.Mapping{}
 
 	// Read the expected rendering from a file.
 	content, err := ioutil.ReadFile(expectedFile)
@@ -38,7 +38,7 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]RenderedLi
 
 	for _, obj := range inputObjects {
 		// Skip things that aren't Mappings.
-		mapping, ok := obj.(*v3alpha1.Mapping)
+		mapping, ok := obj.(*amb.Mapping)
 
 		if !ok {
 			continue

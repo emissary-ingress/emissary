@@ -1,0 +1,149 @@
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-base
+    namespace: default
+  spec:
+    port: 6789
+    service: tcpmapping-base:80
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-with-stats-name
+    namespace: default
+  spec:
+    port: 6789
+    service: tcpmapping-base:80
+    statsName: alt-stats-name
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-breakers-defined
+    namespace: default
+  spec:
+    circuitBreakers:
+    - max_connections: 1
+      max_pending_requests: 1
+      priority: default
+    port: 6790
+    service: tcpmapping-breakers-defined
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-absent-breakers
+    namespace: default
+  spec:
+    circuitBreakers:
+    - {}
+    port: 6790
+    service: tcpmapping-absent-breakers
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-some-breakers
+    namespace: default
+  spec:
+    circuitBreakers:
+    - max_connections: 1
+    port: 6790
+    service: tcpmapping-absent-breakers
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-most-breakers
+    namespace: default
+  spec:
+    circuitBreakers:
+    - max_pending_requests: 1
+      priority: default
+    port: 6790
+    service: tcpmapping-most-breakers
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-zero-breakers
+    namespace: default
+  spec:
+    circuitBreakers:
+    - max_connections: 0
+      max_pending_requests: 0
+      priority: default
+    port: 6790
+    service: tcpmapping-zero-breakers
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-weight-present
+    namespace: other-namespace
+  spec:
+    port: 6789
+    service: tcpmapping-weight-present
+    weight: 50
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-weight-zero
+    namespace: other-namespace
+  spec:
+    port: 6789
+    service: tcpmapping-weight-zero
+    weight: 0
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-v4-v6
+    namespace: tcp-namespace
+  spec:
+    enableIPv4: true
+    enableIPv6: true
+    port: 9876
+    service: tcpmapping-v4-v6
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-v4-v6-false
+    namespace: tcp-namespace
+  spec:
+    enableIPv4: false
+    enableIPv6: false
+    port: 9876
+    service: tcpmapping-v4-v6-false
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-tls-false
+    namespace: tcp-namespace
+  spec:
+    port: 9876
+    service: tcpmapping-tls-false
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-tls-meaningless-true
+    namespace: tcp-namespace
+  spec:
+    port: 9876
+    service: https://tcpmapping-tls-meaningless-true
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TCPMapping
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tcpmapping-tls-set
+    namespace: tcp-namespace
+  spec:
+    port: 9876
+    service: tcpmapping-tls-set
+    tls: tls-secret

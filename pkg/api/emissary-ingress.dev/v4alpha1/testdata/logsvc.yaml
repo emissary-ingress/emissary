@@ -1,0 +1,109 @@
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: LogService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: logsvc-no-flush
+    namespace: default
+  spec:
+    driver: http
+    driverConfig:
+      additionalLogHeaders:
+      - headerName: included-on-all
+      - duringTrailer: false
+        headerName: not-included-on-trailer
+      - duringResponse: false
+        duringTrailer: false
+        headerName: not-included on resp-trail
+      - duringRequest: false
+        duringResponse: false
+        duringTrailer: false
+        headerName: not-anywhere
+      - duringTrailer: true
+        headerName: included-on-trailer
+      - duringResponse: true
+        duringTrailer: true
+        headerName: included on resp-trail
+      - duringRequest: true
+        duringResponse: true
+        duringTrailer: true
+        headerName: everywhere
+    service: logsvc
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: LogService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: logsvc-with-stats-name
+    namespace: default
+  spec:
+    driver: http
+    driverConfig:
+      additionalLogHeaders:
+      - headerName: included-on-all
+      - duringTrailer: false
+        headerName: not-included-on-trailer
+      - duringResponse: false
+        duringTrailer: false
+        headerName: not-included on resp-trail
+      - duringRequest: false
+        duringResponse: false
+        duringTrailer: false
+        headerName: not-anywhere
+      - duringTrailer: true
+        headerName: included-on-trailer
+      - duringResponse: true
+        duringTrailer: true
+        headerName: included on resp-trail
+      - duringRequest: true
+        duringResponse: true
+        duringTrailer: true
+        headerName: everywhere
+    service: logsvc
+    statsName: alt-stats-name
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: LogService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: logsvc-flush
+    namespace: default
+  spec:
+    driver: http
+    driverConfig:
+      additionalLogHeaders:
+      - headerName: included-on-all
+      - duringTrailer: false
+        headerName: not-included-on-trailer
+      - duringResponse: false
+        duringTrailer: false
+        headerName: not-included on resp-trail
+      - duringRequest: false
+        duringResponse: false
+        duringTrailer: false
+        headerName: not-anywhere
+    flushIntervalByteSize: 1
+    flushIntervalTime: 1
+    grpc: false
+    service: logsvc
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: LogService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: logsvc-zero-flush
+    namespace: default
+  spec:
+    driver: http
+    driverConfig:
+      additionalLogHeaders:
+      - headerName: included-on-all
+      - duringTrailer: false
+        headerName: not-included-on-trailer
+      - duringResponse: false
+        duringTrailer: false
+        headerName: not-included on resp-trail
+      - duringRequest: false
+        duringResponse: false
+        duringTrailer: false
+        headerName: not-anywhere
+    flushIntervalByteSize: 0
+    flushIntervalTime: 0
+    grpc: true
+    service: logsvc

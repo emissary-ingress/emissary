@@ -1,0 +1,35 @@
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "RateLimitService"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "ratelimitsvc-no-timeout"
+      namespace: "default"
+  spec:
+      service: "ratelimitsvc"
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "RateLimitService"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "ratelimitsvc-with-stats-name"
+      namespace: "default"
+  spec:
+      service: "ratelimitsvc"
+      stats_name: "alt-stats-name"
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "RateLimitService"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "ratelimitsvc-timeout"
+      namespace: "default"
+  spec:
+      service: "ratelimitsvc"
+      timeout_ms: 500
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "RateLimitService"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "ratelimitsvc-zero-timeout"
+      namespace: "default"
+  spec:
+      service: "ratelimitsvc"
+      timeout_ms: 0

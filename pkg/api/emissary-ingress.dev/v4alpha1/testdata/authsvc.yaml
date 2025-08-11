@@ -1,0 +1,87 @@
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: AuthService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: authsvc-no-timeout
+    namespace: default
+  spec:
+    authService: authservice
+    proto: grpc
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: AuthService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: authsvc-with-stats-name
+    namespace: default
+  spec:
+    authService: authservice
+    proto: grpc
+    statsName: alt-stats-name
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: AuthService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: authsvc-timeout
+    namespace: default
+  spec:
+    authService: authservice
+    proto: grpc
+    timeoutMS: 5000
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: AuthService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: authsvc-zero-timeout
+    namespace: default
+  spec:
+    authService: authservice
+    proto: grpc
+    timeoutMS: 0
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: AuthService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: authsvc-all-false
+    namespace: default
+  spec:
+    addLinkerdHeaders: false
+    allowRequestBody: false
+    authService: authservice
+    failureModeAllow: false
+    proto: grpc
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: AuthService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: authsvc-one-true
+    namespace: default
+  spec:
+    addLinkerdHeaders: false
+    allowRequestBody: true
+    authService: authservice
+    failureModeAllow: false
+    proto: grpc
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: AuthService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: authsvc-two-true
+    namespace: default
+  spec:
+    addLinkerdHeaders: true
+    allowRequestBody: false
+    authService: authservice
+    failureModeAllow: true
+    proto: grpc
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: AuthService
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: authsvc-all-true
+    namespace: default
+  spec:
+    addLinkerdHeaders: true
+    allowRequestBody: true
+    authService: authservice
+    failureModeAllow: true
+    proto: grpc

@@ -1,0 +1,54 @@
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TLSContext
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tlscontext-base
+    namespace: default
+  spec:
+    secret: tlscontext-base
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TLSContext
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tlscontext-secretnamespacing-false
+    namespace: default
+  spec:
+    secret: tlscontext-secretnamespacing-false
+    secretNamespacing: false
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TLSContext
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tlscontext-secretnamespacing-true
+    namespace: default
+  spec:
+    secret: tlscontext-secretnamespacing-true
+    secretNamespacing: true
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TLSContext
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tlscontext-certrequired-false
+    namespace: default
+  spec:
+    certRequired: false
+    secret: tlscontext-certrequired-false
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TLSContext
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tlscontext-rcf-0
+    namespace: default
+  spec:
+    redirectCleartextFrom: 0
+    secret: tlscontext-rcf-0
+- apiVersion: emissary-ingress.dev/v4alpha1
+  kind: TLSContext
+  metadata:
+    creationTimestamp: "2020-07-03T02:19:06Z"
+    name: tlscontext-certreq-rcf-set
+    namespace: default
+  spec:
+    certRequired: true
+    redirectCleartextFrom: 8080
+    secret: tlscontext-certreq-rcf-set

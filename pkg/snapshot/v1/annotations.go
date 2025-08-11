@@ -6,8 +6,7 @@ import (
 	"strings"
 
 	"github.com/datawire/dlib/derror"
-	crdAll "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io"
-	crdCurrent "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	crdCurrent "github.com/emissary-ingress/emissary/v3/pkg/api/emissary-ingress.dev/v4alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
@@ -19,8 +18,10 @@ func annotationKey(obj kates.Object) string {
 }
 
 var (
-	scheme    = crdAll.BuildScheme()
-	validator = crdAll.NewValidator()
+	// scheme    = crdAll.BuildScheme()
+	// validator = crdAll.NewValidator()
+	scheme = crdCurrent.BuildScheme()
+	// validator = crdCurrent.NewValidator()
 )
 
 func (s *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) error {
@@ -73,12 +74,22 @@ func ValidateAndConvertObject(
 ) (out kates.Object, err error) {
 	// Validate it
 	gvk := in.GetObjectKind().GroupVersionKind()
-	if !scheme.Recognizes(gvk) {
-		return nil, fmt.Errorf("unsupported GroupVersionKind %q, ignoring", gvk)
+
+	recognized := false
+
+	if gvk.Group == "emissary-ingress.dev" && gvk.Version == "v4alpha1" {
+		recognized = true
+	} else if strings.HasPrefix(gvk.Group, "getambassador.io/") && scheme.Recognizes(gvk) {
+		recognized = true
 	}
-	if err := validator.Validate(ctx, in); err != nil {
-		return nil, err
+
+	if !recognized {
+		return nil, fmt.Errorf("FFS unsupported GroupVersionKind %q, ignoring", gvk)
 	}
+
+	// if err := validator.Validate(ctx, in); err != nil {
+	// 	return nil, err
+	// }
 
 	// Convert it to the correct type+version.
 	out, err = convertAnnotationObject(in)
@@ -86,10 +97,10 @@ func ValidateAndConvertObject(
 		return nil, err
 	}
 
-	// Validate it again (after conversion) just to be safe
-	if err := validator.Validate(ctx, out); err != nil {
-		return nil, err
-	}
+	// // Validate it again (after conversion) just to be safe
+	// if err := validator.Validate(ctx, out); err != nil {
+	// 	return nil, err
+	// }
 
 	return out, nil
 }
