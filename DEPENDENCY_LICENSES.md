@@ -6,4 +6,3 @@ Emissary-ingress incorporates Free and Open Source software under the following 
 * [ISC license](https://opensource.org/licenses/ISC)
 * [MIT license](https://opensource.org/licenses/MIT)
 * [Mozilla Public License 2.0](https://opensource.org/licenses/MPL-2.0)
-* [Python Software Foundation license](https://spdx.org/licenses/PSF-2.0.html)

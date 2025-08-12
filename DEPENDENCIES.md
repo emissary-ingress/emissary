@@ -203,5 +203,4 @@ libraries:
     python-json-logger  2.0.7     2-clause BSD license
     requests            2.32.4    Apache License 2.0
     semantic-version    2.10.0    2-clause BSD license
-    typing_extensions   4.14.1    Python Software Foundation license
     urllib3             2.5.0     MIT license

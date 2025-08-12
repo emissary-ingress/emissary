@@ -7,7 +7,6 @@ dependencies = [
     "pyyaml",
     "requests",
     "durationpy",
-    "typing-extensions",
     "semantic-version",
     "prometheus-client",
 ]

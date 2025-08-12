@@ -15,7 +15,7 @@
 import logging
 from typing import Any, Optional
 
-from typing_extensions import NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 from .cache import Cache
 from .config import Config
