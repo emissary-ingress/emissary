@@ -3,15 +3,14 @@ name = "ambassador_diag"
 version = "4.0.0-dev"
 readme = "../README.md"
 dependencies = [
-    "click==8.*",
-    "flask==3.*",
-    "requests==2.*",
-    "gunicorn==22.*",
-    "jsonpatch==1.*",
-    "expiringdict==1.*",
-    "typing-extensions>=4",
-    "prometheus-client<=1.0",
-    "python-json-logger>=2.0",
+    "click",
+    "flask",
+    "requests",
+    "gunicorn",
+    "jsonpatch",
+    "expiringdict",
+    "prometheus-client",
+    "python-json-logger",
 ]
 
 
