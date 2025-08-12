@@ -37,6 +37,35 @@ dependencies = [
     "ambassador-diag==4.*",
 ]
 
+[dependency-groups]
+runtime = []
+dev = [
+    # Project-Specific
+    "kat==4.*",
+    "tests==4.*",
+    # Dev Requirements
+    "pip>=25.2",
+    "mypy>=1",
+    "ruff>=0.6",
+    "retry2>=0.9",
+    "pytest==8.*",
+    "pexpect>=4.9",
+    "packaging>=24",
+    "httpretty>=1.1",
+    "gitpython>=3.1",
+    "pyopenssl>=24.2",
+    "pytest-cov>=5.0",
+    "pytest-rerunfailures>=14",
+    # Type Stubs
+    "types-orjson>=3",
+    "types-pyyaml>=6",
+    "types-retry>=0.9",
+    "types-protobuf>=5",
+    "types-requests>=2",
+    "types-pyopenssl>=24",
+    "types-setuptools>=71",
+]
+
 
 [project.urls]
 homepage = "https://www.getambassador.io"
@@ -55,39 +84,12 @@ build-backend = "hatchling.build"
 [tool.uv]
 cache-dir = ".uv_cache"
 link-mode = "symlink"
+default-groups = ["runtime"]
 managed = true
 native-tls = false
 python-downloads = "automatic"
 python-preference = "only-managed"
 upgrade-package = []  # ref: https://docs.astral.sh/uv/reference/settings/#upgrade-package
-dev-dependencies = [
-    # Project-Specific
-    "kat==4.*",
-    "tests==4.*",
-    # Dev Requirements
-    "pip>=25.2",
-    "mypy>=1",
-    "ruff>=0.6",
-    "retry2>=0.9",
-    "pytest==8.*",
-    "awscli>=1.33",
-    "pexpect>=4.9",
-    "packaging>=24",
-    "httpretty>=1.1",
-    "gitpython>=3.1",
-    "pyopenssl>=24.2",
-    "pytest-cov>=5.0",
-    "pytest-rerunfailures>=14",
-    # Type Stubs
-    "types-orjson>=3",
-    "types-pyyaml>=6",
-    "types-retry>=0.9",
-    "types-protobuf>=5",
-    "types-requests>=2",
-    "types-pyopenssl>=24",
-    "types-setuptools>=71",
-]
-
 
 [tool.uv.sources]
 kat = { workspace = true }
