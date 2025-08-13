@@ -3,13 +3,12 @@ name = "ambassador"
 version = "4.0.0-dev"
 readme = "../README.md"
 dependencies = [
-    "orjson==3.*",
-    "pyyaml==6.*",
-    "requests==2.*",
-    "durationpy<=1.0",
-    "typing-extensions>=4",
-    "semantic-version==2.*",
-    "prometheus-client<=1.0",
+    "orjson",
+    "pyyaml",
+    "requests",
+    "durationpy",
+    "semantic-version",
+    "prometheus-client",
 ]
 
 

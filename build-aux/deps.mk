@@ -20,12 +20,15 @@ clean: vendor.rm-r
 # `uv` should use and which pip3 to use, because we do _not_ want system
 # packages in here.
 #
-# Finally, even though pip-show.txt depends on having the virtualenv set
-# up, the rule must always run (hence the FORCE).
+# Finally, we use an ephemeral venv for this, which _only_ has the real
+# runtime dependencies plus pip. There's no real point in including dev
+# dependencies here.
 
-$(OSS_HOME)/build-aux/pip-show.txt: FORCE $(OSS_HOME)/.venv
+$(OSS_HOME)/build-aux/pip-show.txt: FORCE
 	echo "Generating $@ in $(OSS_HOME)/build-aux"
-	uv pip list --python $(OSS_HOME)/.venv/bin/python --format=freeze --exclude-editable | cut -d= -f1 | xargs $(OSS_HOME)/.venv/bin/pip3 show | egrep '^([A-Za-z-]+: |---)' > $@
+	UV_PROJECT_ENVIRONMENT=.pip-venv uv sync --group pip
+	uv pip list --python $(OSS_HOME)/.pip-venv/bin/python --format=freeze --exclude-editable | cut -d= -f1 | xargs $(OSS_HOME)/.pip-venv/bin/pip3 show | egrep '^([A-Za-z-]+: |---)' > $@
+	rm -rf $(OSS_HOME)/.pip-venv
 clean: build-aux/pip-show.txt.rm
 
 $(OSS_HOME)/build-aux/go-version.txt: $(_go-version/deps)

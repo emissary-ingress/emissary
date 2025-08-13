@@ -195,7 +195,7 @@ pytest-kat-envoy3-%: python-integration-test-environment pytest-kat-envoy3-tests
 
 $(OSS_HOME)/.venv: pyproject.toml
 	rm -rf $@
-	uv sync
+	uv sync --dev
 clobber: .venv.rm-r
 
 GOTEST_ARGS ?= -race -count=1 -timeout=30m -ldflags=-linkmode=internal

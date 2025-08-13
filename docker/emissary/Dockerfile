@@ -25,7 +25,7 @@ ARG TARGETARCH
 ARG LIBARCH
 
 # Based on https://github.com/alexdmoss/distroless-python...
-RUN pip install --upgrade pip uv ruff
+RUN pip install --upgrade pip uv
 
 # Copy over ambassador.version
 WORKDIR /buildroot/ambassador/python

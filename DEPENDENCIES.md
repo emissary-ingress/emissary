@@ -178,71 +178,29 @@ following Free and Open Source software:
 The Emissary-ingress Python code makes use of the following Free and Open Source
 libraries:
 
-    Name                  Version          License(s)
-    ----                  -------          ----------
-    Flask                 3.1.1            3-clause BSD license
-    GitPython             3.1.45           3-clause BSD license
-    Jinja2                3.1.6            3-clause BSD license
-    MarkupSafe            3.0.2            2-clause BSD license
-    PyYAML                6.0.2            MIT license
-    Pygments              2.19.2           2-clause BSD license
-    Werkzeug              3.1.3            3-clause BSD license
-    awscli                1.42.6           Apache License 2.0
-    blinker               1.9.0            MIT license
-    botocore              1.40.6           Apache License 2.0
-    certifi               2025.8.3         Mozilla Public License 2.0
-    cffi                  1.17.1           MIT license
-    charset-normalizer    3.4.2            MIT license
-    click                 8.2.1            3-clause BSD license
-    colorama              0.4.6            3-clause BSD license
-    coverage              7.10.2           Apache License 2.0
-    cryptography          45.0.6           3-clause BSD license, Apache License 2.0
-    decorator             5.2.1            2-clause BSD license
-    docutils              0.19             2-clause BSD license, Python Software Foundation license
-    durationpy            0.10             MIT license
-    expiringdict          1.2.2            Apache License 2.0
-    gitdb                 4.0.12           3-clause BSD license
-    gunicorn              22.0.0           MIT license
-    httpretty             1.1.4            MIT license
-    idna                  3.10             3-clause BSD license
-    iniconfig             2.1.0            MIT license
-    itsdangerous          2.2.0            3-clause BSD license
-    jmespath              1.0.1            MIT license
-    jsonpatch             1.33             3-clause BSD license
-    jsonpointer           3.0.0            3-clause BSD license
-    mypy                  1.17.1           MIT license
-    mypy_extensions       1.1.0            MIT license
-    orjson                3.11.1           Apache License 2.0, MIT license
-    packaging             24.2             2-clause BSD license, Apache License 2.0
-    pathspec              0.12.1           Mozilla Public License 2.0
-    pexpect               4.9.0            ISC license
-    pip                   25.2             MIT license
-    pluggy                1.6.0            MIT license
-    prometheus_client     0.22.1           2-clause BSD license, Apache License 2.0
-    ptyprocess            0.7.0            ISC license
-    pyOpenSSL             25.1.0           Apache License 2.0
-    pyasn1                0.6.1            2-clause BSD license
-    pycparser             2.22             3-clause BSD license
-    pytest                8.4.1            MIT license
-    pytest-cov            6.2.1            MIT license
-    pytest-rerunfailures  15.1             Mozilla Public License 2.0
-    python-dateutil       2.9.0.post0      3-clause BSD license, Apache License 2.0
-    python-json-logger    2.0.7            2-clause BSD license
-    requests              2.32.4           Apache License 2.0
-    retry2                0.9.5            Apache License 2.0
-    rsa                   4.7.2            Apache License 2.0
-    ruff                  0.12.8           MIT license
-    s3transfer            0.13.1           Apache License 2.0
-    semantic-version      2.10.0           2-clause BSD license
-    six                   1.17.0           MIT license
-    smmap                 5.0.2            3-clause BSD license
-    types-PyYAML          6.0.12.20250516  Apache License 2.0
-    types-cffi            1.17.0.20250805  Apache License 2.0
-    types-orjson          3.6.2            Apache License 2.0
-    types-protobuf        6.30.2.20250703  Apache License 2.0
-    types-pyOpenSSL       24.1.0.20240722  Apache License 2.0
-    types-requests        2.32.4.20250611  Apache License 2.0
-    types-retry           0.9.9.20250322   Apache License 2.0
-    types-setuptools      80.9.0.20250801  Apache License 2.0
-    typing_extensions     4.14.1           Python Software Foundation license
-    urllib3               2.5.0            MIT license
+    Name                Version   License(s)
+    ----                -------   ----------
+    Flask               3.1.1     3-clause BSD license
+    Jinja2              3.1.6     3-clause BSD license
+    MarkupSafe          3.0.2     2-clause BSD license
+    PyYAML              6.0.2     MIT license
+    Werkzeug            3.1.3     3-clause BSD license
+    blinker             1.9.0     MIT license
+    certifi             2025.8.3  Mozilla Public License 2.0
+    charset-normalizer  3.4.3     MIT license
+    click               8.2.1     3-clause BSD license
+    durationpy          0.10      MIT license
+    expiringdict        1.2.2     Apache License 2.0
+    gunicorn            22.0.0    MIT license
+    idna                3.10      3-clause BSD license
+    itsdangerous        2.2.0     3-clause BSD license
+    jsonpatch           1.33      3-clause BSD license
+    jsonpointer         3.0.0     3-clause BSD license
+    orjson              3.11.1    Apache License 2.0, MIT license
+    packaging           24.2      2-clause BSD license, Apache License 2.0
+    pip                 25.2      MIT license
+    prometheus_client   0.22.1    2-clause BSD license, Apache License 2.0
+    python-json-logger  2.0.7     2-clause BSD license
+    requests            2.32.4    Apache License 2.0
+    semantic-version    2.10.0    2-clause BSD license
+    urllib3             2.5.0     MIT license

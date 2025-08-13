@@ -37,6 +37,47 @@ dependencies = [
     "ambassador-diag==4.*",
 ]
 
+[dependency-groups]
+runtime = [
+    # Production runtime dependencies - centrally managed versions
+    "click==8.2.1",
+    "flask==3.1.1",
+    "requests==2.32.4",
+    "gunicorn==22.0.0",
+    "jsonpatch==1.33",
+    "expiringdict==1.2.2",
+    "orjson==3.11.1",
+    "pyyaml==6.0.2",
+    "durationpy==0.10",
+    "semantic-version==2.10.0",
+    "prometheus-client==0.22.1",
+    "python-json-logger==2.0.7",
+]
+dev = [
+    # Project-Specific
+    "kat==4.*",
+    "tests==4.*",
+    # Dev Requirements (critical - locked to current versions)
+    "mypy==1.17.1",
+    "ruff==0.12.8",
+    "pytest==8.4.1",
+    "pytest-cov==6.2.1",
+    "cryptography==45.0.6",
+    # Dev Requirements (flexible)
+    "pexpect>=4.9",
+    "packaging>=24",
+    "httpretty>=1.1",
+    "pytest-rerunfailures>=14",
+    # Type Stubs (flexible for latest improvements)
+    "types-orjson>=3",
+    "types-pyyaml>=6",
+    "types-protobuf>=5",
+    "types-requests>=2",
+    "types-setuptools>=71",
+]
+pip = [
+    "pip>=25.2",
+]
 
 [project.urls]
 homepage = "https://www.getambassador.io"
@@ -55,39 +96,12 @@ build-backend = "hatchling.build"
 [tool.uv]
 cache-dir = ".uv_cache"
 link-mode = "symlink"
+default-groups = ["runtime"]
 managed = true
 native-tls = false
 python-downloads = "automatic"
 python-preference = "only-managed"
 upgrade-package = []  # ref: https://docs.astral.sh/uv/reference/settings/#upgrade-package
-dev-dependencies = [
-    # Project-Specific
-    "kat==4.*",
-    "tests==4.*",
-    # Dev Requirements
-    "pip>=25.2",
-    "mypy>=1",
-    "ruff>=0.6",
-    "retry2>=0.9",
-    "pytest==8.*",
-    "awscli>=1.33",
-    "pexpect>=4.9",
-    "packaging>=24",
-    "httpretty>=1.1",
-    "gitpython>=3.1",
-    "pyopenssl>=24.2",
-    "pytest-cov>=5.0",
-    "pytest-rerunfailures>=14",
-    # Type Stubs
-    "types-orjson>=3",
-    "types-pyyaml>=6",
-    "types-retry>=0.9",
-    "types-protobuf>=5",
-    "types-requests>=2",
-    "types-pyopenssl>=24",
-    "types-setuptools>=71",
-]
-
 
 [tool.uv.sources]
 kat = { workspace = true }
