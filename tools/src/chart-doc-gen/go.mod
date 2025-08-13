@@ -1,6 +1,8 @@
 module local
 
-go 1.21
+go 1.24
+
+toolchain go1.24.5
 
 require kubepack.dev/chart-doc-gen v0.5.0
 

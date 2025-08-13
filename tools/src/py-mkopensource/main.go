@@ -46,7 +46,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pathspec", "0.12.1", ""}:                        {MPL2},
 		{"ptyprocess", "0.7.0", "UNKNOWN"}:                {ISC},
 		{"python-json-logger", "2.0.7", "BSD"}:            {BSD2},
-		{"ruff", "0.12.7", ""}:                            {MIT},
+		{"ruff", "0.12.8", ""}:                            {MIT},
 		{"semantic-version", "2.10.0", "BSD"}:             {BSD2},
 		{"typing_extensions", "4.14.1", "PSF-2.0"}:        {PSF},
 		{"Werkzeug", "3.1.3", ""}:                         {BSD3},

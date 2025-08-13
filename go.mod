@@ -1,42 +1,8 @@
 module github.com/emissary-ingress/emissary/v3
 
-go 1.21
+go 1.24
 
-// If you're editing this file, there's a few things you should know:
-//
-//  1. Avoid the `replace` command as much as possible.  Go only pays
-//     attention to the `replace` command when it appears in the main
-//     module, which means that if the `replace` command is required
-//     for the compile to work, then anything using ambassador.git as
-//     a library needs to duplicate that `replace` in their go.mod.
-//     We don't want to burden our users with that if we can avoid it
-//     (since we encourage them to use the gRPC Go libraries when
-//     implementing plugin services), and we don't want to deal with
-//     that ourselves in apro.git.
-//
-//     The biggest reason we wouldn't be able to avoid it is if we
-//     need to pull in a library that has a `replace` in its
-//     go.mod--just as us adding a `replace` to our go.mod would
-//     require our dependents to do the same, our dependencies adding
-//     a `replace` requires us to do the same.  And even then, if
-//     we're careful we might be able to avoid it.
-//
-//  2. If you do add a `replace` command to this file, always include
-//     a version number to the left of the "=>" (even if you're
-//     copying the command from a dependnecy and the dependency's
-//     go.mod doesn't have a version on the left side).  This way we
-//     don't accidentally keep pinning to an older version after our
-//     dependency's `replace` goes away.  Sometimes it can be tricky
-//     to figure out what version to put on the left side; often the
-//     easiest way to figure it out is to get it working without a
-//     version, run `go mod vendor`, then grep for "=>" in
-//     `./vendor/modules.txt`.  If you don't see a "=>" line for that
-//     replacement in modules.txt, then that's an indicator that we
-//     don't really need that `replace`, maybe instead using a
-//     `require`.
-//
-//  3. If you do add a `replace` command to this file, you must also
-//     add it to the go.mod in apro.git (see above for explanation).
+toolchain go1.24.5
 
 // Because we (unfortunately) need to require k8s.io/kubernetes, which
 // is (unfortunately) managed in a way that makes it hostile to being
@@ -74,12 +40,71 @@ exclude (
 	k8s.io/sample-apiserver v0.0.0
 )
 
-// Invalid pseudo-version.
-exclude github.com/go-check/check v1.0.0-20180628173108-788fd7840127
+// TEMPORARY HACK, DO NOT MERGE THIS
+replace github.com/datawire/go-mkopensource => github.com/LukeShu/go-mkopensource v0.0.0-20250206080114-4ff6b660d8d4
 
+// "Normal" `replace` directives (MUST have a version number to the
+// left of `=>`!!!)
+//
+//  1. Avoid the `replace` command as much as possible.  Go only pays
+//     attention to the `replace` command when it appears in the main
+//     module, which means that if the `replace` command is required
+//     for the compile to work, then anything using ambassador.git as
+//     a library needs to duplicate that `replace` in their go.mod.
+//     We don't want to burden our users with that if we can avoid it
+//     (since we encourage them to use the gRPC Go libraries when
+//     implementing plugin services), and we don't want to deal with
+//     that ourselves in apro.git.
+//
+//     The biggest reason we wouldn't be able to avoid it is if we
+//     need to pull in a library that has a `replace` in its
+//     go.mod--just as us adding a `replace` to our go.mod would
+//     require our dependents to do the same, our dependencies adding
+//     a `replace` requires us to do the same.  And even then, if
+//     we're careful we might be able to avoid it.
+//
+//  2. If you do add a `replace` command to this file, always include
+//     a version number to the left of the "=>" (even if you're
+//     copying the command from a dependnecy and the dependency's
+//     go.mod doesn't have a version on the left side).  This way we
+//     don't accidentally keep pinning to an older version after our
+//     dependency's `replace` goes away.  Sometimes it can be tricky
+//     to figure out what version to put on the left side; often the
+//     easiest way to figure it out is to get it working without a
+//     version, run `go mod vendor`, then grep for "=>" in
+//     `./vendor/modules.txt`.  If you don't see a "=>" line for that
+//     replacement in modules.txt, then that's an indicator that we
+//     don't really need that `replace`, maybe instead using a
+//     `require`.
+//
+//  3. If you do add a `replace` command to this file, you must also
+//     add it to the go.mod in apro.git (see above for explanation).
+//
 // We've got some bug-fixes that we need for conversion-gen and
 // controller-gen.
-replace k8s.io/code-generator => github.com/emissary-ingress/code-generator v0.28.0-alpha.0.0.20231105041308-a20b0cd90dea
+replace k8s.io/code-generator v0.30.1 => github.com/emissary-ingress/code-generator v0.30.2-0.20250205230848-daa3b0f955a4
+
+// "Anti-rename" `replace` directives (should not have a version
+// number to the left of `=>`)
+//
+// These are the 1 exception to the "must have a version number on the
+// left" rule above.  This is for when a package has been renamed, we
+// have the old name as an indirect dependency; use the last version
+// before the rename.  This prevents `go get -u ./...` from causing
+// out errors.
+//
+//  - go-metrics v0.4.1 was the last version before it renamed to github.com/hashicorp/go-metrics
+//  - mergo v0.3.16 was the last version before it renamed to dario.cat/mergo
+replace (
+	github.com/armon/go-metrics => github.com/armon/go-metrics v0.4.1
+	github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// Everything from here on out should be managed by `go get` and `go          //
+// mod tidy` and friends; a human should generally not be editing             //
+// these themselves.                                                          //
+////////////////////////////////////////////////////////////////////////////////
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -89,7 +114,7 @@ require (
 	github.com/datawire/go-mkopensource v0.0.12-0.20230821212923-d1d8451579a1
 	github.com/envoyproxy/go-control-plane v0.11.1
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/go-logr/zapr v1.2.4
+	github.com/go-logr/zapr v1.3.0
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/hashicorp/consul/api v1.26.1
@@ -103,25 +128,25 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.26.0
-	golang.org/x/mod v0.14.0
-	golang.org/x/sync v0.5.0
+	golang.org/x/mod v0.15.0
+	golang.org/x/sync v0.6.0
 	golang.org/x/sys v0.18.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917
 	google.golang.org/grpc v1.60.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.28.5
-	k8s.io/apiextensions-apiserver v0.28.5
-	k8s.io/apimachinery v0.28.5
-	k8s.io/cli-runtime v0.28.5
-	k8s.io/client-go v0.28.5
-	k8s.io/code-generator v0.28.5
-	k8s.io/klog/v2 v2.110.1
-	k8s.io/kubectl v0.28.5
-	k8s.io/kubernetes v1.28.5
-	k8s.io/metrics v0.28.5
-	sigs.k8s.io/controller-runtime v0.16.3
+	k8s.io/api v0.30.1
+	k8s.io/apiextensions-apiserver v0.30.1
+	k8s.io/apimachinery v0.30.1
+	k8s.io/cli-runtime v0.30.1
+	k8s.io/client-go v0.30.1
+	k8s.io/code-generator v0.30.1
+	k8s.io/klog/v2 v2.120.1
+	k8s.io/kubectl v0.30.1
+	k8s.io/kubernetes v1.30.1
+	k8s.io/metrics v0.30.1
+	sigs.k8s.io/controller-runtime v0.18.2
 	sigs.k8s.io/controller-tools v0.13.0
 	sigs.k8s.io/e2e-framework v0.3.0
 	sigs.k8s.io/gateway-api v0.2.0
@@ -148,12 +173,12 @@ require (
 	github.com/cncf/xds/go v0.0.0-20230607035331-e9ce68804cb4 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/docker/distribution v2.8.2+incompatible // indirect
+	github.com/distribution/reference v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
-	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
+	github.com/evanphx/json-patch/v5 v5.9.0 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
@@ -161,14 +186,14 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
 	github.com/go-git/go-git/v5 v5.11.0 // indirect
-	github.com/go-logr/logr v1.3.0 // indirect
+	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-openapi/jsonpointer v0.20.0 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/cel-go v0.18.1 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
@@ -209,6 +234,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -236,7 +262,7 @@ require (
 	golang.org/x/term v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.16.1 // indirect
+	golang.org/x/tools v0.18.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231212172506-995d672761c0 // indirect
@@ -245,10 +271,10 @@ require (
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiserver v0.28.5 // indirect
-	k8s.io/component-base v0.28.5 // indirect
-	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
+	k8s.io/apiserver v0.30.1 // indirect
+	k8s.io/component-base v0.30.1 // indirect
+	k8s.io/gengo/v2 v2.0.0-20240228010128-51d4e06bde70 // indirect
+	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.13.5-0.20230601165947-6ce0bf390ce3 // indirect

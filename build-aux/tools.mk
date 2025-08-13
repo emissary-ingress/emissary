@@ -66,7 +66,7 @@ tools/protoc-gen-go      = $(tools.bindir)/protoc-gen-go
 tools/protoc-gen-go-grpc = $(tools.bindir)/protoc-gen-go-grpc
 tools/yq                 = $(tools.bindir)/yq
 $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(tools.srcdir)/%/go.mod
-	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
+	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import _ "(.*)".*,\1,p' pin.go)
 # Let these use the main Emissary go.mod instead of having their own go.mod.
 tools.main-gomod += $(tools/controller-gen)     # ensure runtime libraries are consistent
 tools.main-gomod += $(tools/conversion-gen)     # ensure runtime libraries are consistent
@@ -75,7 +75,7 @@ tools.main-gomod += $(tools/protoc-gen-go-grpc) # ensure runtime libraries are c
 tools.main-gomod += $(tools/go-mkopensource)    # ensure it is consistent with py-mkopensource
 tools.main-gomod += $(tools/kubestatus)         # is actually part of Emissary
 $(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.mod
-	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
+	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import _ "(.*)".*,\1,p' pin.go)
 
 # Local Go sources
 # ================
@@ -157,7 +157,7 @@ $(tools/ct): $(tools.bindir)/%: $(tools.srcdir)/%/wrap.sh $(tools/ct).d/bin/ct $
 $(tools/ct).d/bin/ct: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	@PS4=; set -ex; {\
 	  cd $(<D); \
-	  pkg=$$(sed -En 's,^import "(.*)".*,\1,p' pin.go); \
+	  pkg=$$(sed -En 's,^import _ "(.*)".*,\1,p' pin.go); \
 	  ver=$$(go list -f='{{ .Module.Version }}' "$$pkg"); \
 	  GOOS= GOARCH= go build -o $(abspath $@) -ldflags="-X $$pkg/cmd.Version=$$ver" "$$pkg"; \
 	}
@@ -166,7 +166,7 @@ $(tools/ct).d/bin/kubectl: $(tools/kubectl)
 	ln -s ../../kubectl $@
 $(tools/ct).d/dir.txt: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	mkdir -p $(@D)
-	cd $(<D) && GOFLAGS='-mod=readonly' go list -f='{{ .Module.Dir }}' "$$(sed -En 's,^import "(.*)".*,\1,p' pin.go)" >$(abspath $@)
+	cd $(<D) && GOFLAGS='-mod=readonly' go list -f='{{ .Module.Dir }}' "$$(sed -En 's,^import _ "(.*)".*,\1,p' pin.go)" >$(abspath $@)
 $(tools/ct).d/venv: %/venv: %/dir.txt
 	rm -rf $@
 	python3 -m venv $@
