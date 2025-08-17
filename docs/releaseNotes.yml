@@ -94,6 +94,14 @@ items:
         github:
           - title: "Remove usage of md5"
             link: https://github.com/emissary-ingress/emissary/pull/5794
+      - title: Fix Helm Chart InitContainer Templating
+        type: bugfix
+        body: >-
+          This release fixes a Helm chart (version 8.9.1) templating issue that caused user-provided
+          <code>initContainers</code> to be incorrectly processed, leading to deployment failures
+          with a "cannot unmarshal object into Go struct field ... args of type string" error.
+          The chart now correctly adds custom init containers as distinct entries in the Pod specification.
+    
 
   - version: 3.9.0
     prevVersion: 3.8.0
