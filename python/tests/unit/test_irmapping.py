@@ -13,7 +13,7 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import IR, Config
 from ambassador.fetch import ResourceFetcher
-from ambassador.ir.irbasemappinggroup import IRBaseMappingGroup
+from ambassador.ir.irhttpmappinggroup import IRHTTPMappingGroup
 from ambassador.utils import NullSecretHandler
 
 
@@ -47,8 +47,8 @@ docs:
 """
 
     conf = _get_ir_config(yaml)
-    all_mappings: List[IRBaseMappingGroup] = []
-    for i in conf.groups.values():
+    all_mappings: List[IRHTTPMappingGroup] = []
+    for i in conf.http_mapping_groups.values():
         all_mappings = all_mappings + i.mappings
 
     slowsvc_mappings = [x for x in all_mappings if x["name"] == "slowsvc-slow"]

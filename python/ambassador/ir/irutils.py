@@ -178,6 +178,10 @@ def disable_strict_selectors() -> bool:
     return parse_bool(os.environ.get("DISABLE_STRICT_LABEL_SELECTORS", "false"))
 
 
+def are_mapping_group_fixes_disabled() -> bool:
+    return parse_bool(os.environ.get("DISABLE_MAPPING_GROUP_FIXES", "false"))
+
+
 ################
 ## selector_matches is a utility for doing K8s label selector matching.
 

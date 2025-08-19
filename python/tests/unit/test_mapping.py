@@ -32,7 +32,7 @@ spec:
     assert errors[0]["ok"] == False
     assert errors[0]["error"] == "host exact-match * contains *, which cannot match anything."
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         assert g.prefix != "/star/"
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
@@ -68,7 +68,7 @@ spec:
         errors[0]["error"] == ":authority exact-match '*' contains *, which cannot match anything."
     )
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         assert g.prefix != "/star/"
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
@@ -100,7 +100,7 @@ spec:
 
     found = 0
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         if g.prefix == "/wanted_group/":
             assert g.host == "foo.example.com"
             found += 1
@@ -137,7 +137,7 @@ spec:
 
     found = 0
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         if g.prefix == "/wanted_group/":
             assert g.host == "foo.example.com"
             found += 1
@@ -175,7 +175,7 @@ spec:
 
     found = 0
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         if g.prefix == "/wanted_group/":
             assert g.host == "foo.example.com"
             found += 1
@@ -211,7 +211,7 @@ spec:
 
     found = 0
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         if g.prefix == "/wanted_group/":
             assert g.host == "*.example.com"
             found += 1
@@ -248,7 +248,7 @@ spec:
 
     found = 0
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         if g.prefix == "/wanted_group/":
             assert g.host == "*.example.com"
             found += 1
@@ -286,7 +286,7 @@ spec:
 
     found = 0
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         if g.prefix == "/wanted_group/":
             assert g.host == "*.example.com"
             found += 1
@@ -325,7 +325,7 @@ spec:
 
     found = 0
 
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         if g.prefix == "/wanted_group/":
             assert g.host == "*.example.com"
             found += 1
