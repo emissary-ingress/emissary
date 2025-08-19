@@ -115,8 +115,15 @@ class V3TLSContext(Dict):
             EnvoyValidationContext,
             self.get_common().setdefault("validation_context", empty_context),
         )
-
         src: EnvoyCoreSource = {"filename": value}
+
+        # Create the 'match_subject_alt_names' dictionary if it doesn't exist
+        match_san = validation.setdefault("match_subject_alt_names", {})
+
+        # Create the SAN type (e.g., DNS) dictionary if it doesn't exist
+        san_type_dict = match_san.setdefault(san_type, [])
+        san_type_dict.append(src)
+
         validation[key] = src
 
     def add_context(self, ctx: IRTLSContext) -> None:
@@ -142,6 +149,7 @@ class V3TLSContext(Dict):
             ("min_tls_version", self.update_tls_version, "tls_minimum_protocol_version"),
             ("max_tls_version", self.update_tls_version, "tls_maximum_protocol_version"),
             ("sni", self.__setitem__, "sni"),
+            ("verify_upstream_certs", self.__setitem__, "verify_upstream_certs")
         ]:
             value = ctx.get(ctxkey, None)
 
