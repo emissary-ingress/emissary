@@ -1,36 +1,16 @@
-{{- if .Values.createDefaultListeners }}
+{{- range $name, $listener := .Values.listeners }}
+{{- if or $listener.create (and $.Values.createDefaultListeners (has $name (list "http" "https"))) }}
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
-  name: {{ include "ambassador.fullname" . }}-https-listener
-  namespace: {{ include "ambassador.namespace" . }}
+  name: {{ include "ambassador.fullname" $ }}-{{ $name }}-listener
+  namespace: {{ include "ambassador.namespace" $ }}
 spec:
-  port: 8443
-  protocol: HTTPS
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
-  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
+  {{- if hasKey $.Values.env "AMBASSADOR_ID" }}
   ambassador_id:
-  - {{ .Values.env.AMBASSADOR_ID | quote }}
+  - {{ $.Values.env.AMBASSADOR_ID | quote }}
   {{- end }}
----
-apiVersion: getambassador.io/v3alpha1
-kind: Listener
-metadata:
-  name: {{ include "ambassador.fullname" . }}-http-listener
-  namespace: {{ include "ambassador.namespace" . }}
-spec:
-  port: 8080
-  protocol: HTTP
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
-  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
-  ambassador_id:
-  - {{ .Values.env.AMBASSADOR_ID | quote }}
-  {{- end }}
-{{ end }}
+  {{- toYaml $listener.spec | nindent 2 }}
+{{- end }}
+{{- end }}
