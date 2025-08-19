@@ -73,6 +73,7 @@ use the stand alone chart instead [AmbassadorAgent Repo](https://github.com/data
 - Upgrade Emissary to v3.1.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 
 - Change: The default for the `module` value has changed to enable serving remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint by default.
+- Feature: Add possibility to configure relabelings in service monitorhttps://github.com/datawire/apro/pull/2998
 
 ## v8.0.0
 
