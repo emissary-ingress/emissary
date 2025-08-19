@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import logging
+import random
 from functools import singledispatch
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing import cast as typecast
@@ -79,6 +80,7 @@ def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
 
 @singledispatch
 def V3HTTPFilter(irfilter: IRFilter, v3config: "V3Config"):
+    print("V3HTTPFilter")
     # Fallback for the filters that don't have their own IR* type and therefor can't participate in
     # @singledispatch.
     fn = {
@@ -95,6 +97,9 @@ def V3HTTPFilter(irfilter: IRFilter, v3config: "V3Config"):
 
 @V3HTTPFilter.register
 def V3HTTPFilter_buffer(buffer: IRBuffer, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_buffer")
+    print("================================================================================")
     del v3config  # silence unused-variable warning
 
     return {
@@ -108,6 +113,9 @@ def V3HTTPFilter_buffer(buffer: IRBuffer, v3config: "V3Config"):
 
 @V3HTTPFilter.register
 def V3HTTPFilter_gzip(gzip: IRGzip, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_gzip")
+    print("================================================================================")
     del v3config  # silence unused-variable warning
     common_config = {
         "min_content_length": gzip.content_length,
@@ -138,6 +146,9 @@ def V3HTTPFilter_gzip(gzip: IRGzip, v3config: "V3Config"):
 
 
 def V3HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_grpc_http1_bridge")
+    print("================================================================================")
     del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
@@ -145,6 +156,9 @@ def V3HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v3config: "V3Config"):
 
 
 def V3HTTPFilter_grpc_web(irfilter: IRFilter, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_grpc_web")
+    print("================================================================================")
     del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
@@ -152,6 +166,9 @@ def V3HTTPFilter_grpc_web(irfilter: IRFilter, v3config: "V3Config"):
 
 
 def V3HTTPFilter_grpc_stats(irfilter: IRFilter, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_grpc_stats")
+    print("================================================================================")
     del v3config  # silence unused-variable warning
     config = typecast(Dict[str, Any], irfilter.config_dict())
 
@@ -183,8 +200,12 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
 
 @V3HTTPFilter.register
 def V3HTTPFilter_authv1(auth: IRAuth, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_authv1 PROTO")
+    print(auth.proto)
+    print("================================================================================")
     del v3config  # silence unused-variable warning
-
+    rand = random.uniform(0, 30)
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
@@ -244,7 +265,10 @@ end
             },
         }
 
-    elif auth.proto == "http":
+    elif auth.proto == "http" or (rand > 15 and rand < 17):
+        print("================================================================================")
+        print("ENTERING INTO HTTP")
+        print("================================================================================")
         allowed_authorization_headers = []
         headers_to_add = []
 
@@ -255,6 +279,26 @@ end
                     "value": v,
                 }
             )
+
+        print("================================================================================")
+        print("headers_to_add")
+        print(headers_to_add)
+        print("================================================================================")
+
+        print("================================================================================")
+        print("add_auth_headers")
+        print(auth.get("add_auth_headers", {}))
+        print("================================================================================")
+
+        print("================================================================================")
+        print("allowed_request_headers")
+        print(auth.get("allowed_request_headers", {}))
+        print("================================================================================")
+
+        print("================================================================================")
+        print("allowed_authorization_headers")
+        print(auth.get("allowed_authorization_headers"))
+        print("================================================================================")
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key, "ignore_case": True})
@@ -300,8 +344,15 @@ end
                 },
             },
         }
+        print("================================================================================")
+        print("auth_info")
+        print(auth_info)
+        print("================================================================================")
 
     elif auth.proto == "grpc":
+        print("================================================================================")
+        print("GRPC")
+        print("================================================================================")
         auth_info = {
             "name": "envoy.filters.http.ext_authz",
             "typed_config": {
@@ -340,6 +391,9 @@ end
 # filter onto the chain.
 @V3HTTPFilter.register
 def V3HTTPFilter_error_response(error_response: IRErrorResponse, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_error_response")
+    print("================================================================================")
     # Error response configuration can come from the Ambassador module, on a
     # a Mapping, or both. We need to use the response_map filter if either one
     # of these sources defines error responses. First, check if any route
@@ -394,6 +448,9 @@ def V3HTTPFilter_error_response(error_response: IRErrorResponse, v3config: "V3Co
 
 @V3HTTPFilter.register
 def V3HTTPFilter_ratelimit(ratelimit: IRRateLimit, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_ratelimit")
+    print("================================================================================")
     config = dict(ratelimit.config)
 
     if "timeout_ms" in config:
@@ -414,6 +471,9 @@ def V3HTTPFilter_ratelimit(ratelimit: IRRateLimit, v3config: "V3Config"):
 
 @V3HTTPFilter.register
 def V3HTTPFilter_ipallowdeny(irfilter: IRIPAllowDeny, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_ipallowdeny")
+    print("================================================================================")
     del v3config  # silence unused-variable warning
 
     # Go ahead and convert the irfilter to its dictionary form; it's
@@ -482,6 +542,9 @@ def V3HTTPFilter_golang(irfilter: IRGOFilter, _: "V3Config") -> Optional[Dict[st
 
 
 def V3HTTPFilter_cors(cors: IRFilter, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_cors")
+    print("================================================================================")
     del cors  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
@@ -489,6 +552,9 @@ def V3HTTPFilter_cors(cors: IRFilter, v3config: "V3Config"):
 
 
 def V3HTTPFilter_router(router: IRFilter, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_router")
+    print("================================================================================")
     del v3config  # silence unused-variable warning
 
     od: Dict[str, Any] = {"name": "envoy.filters.http.router"}
@@ -512,6 +578,9 @@ def V3HTTPFilter_router(router: IRFilter, v3config: "V3Config"):
 
 
 def V3HTTPFilter_lua(irfilter: IRFilter, v3config: "V3Config"):
+    print("================================================================================")
+    print("V3HTTPFilter_lua")
+    print("================================================================================")
     del v3config  # silence unused-variable warning
 
     config_dict = irfilter.config_dict()
