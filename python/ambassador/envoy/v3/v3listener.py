@@ -523,6 +523,15 @@ class V3Listener:
                     "idle_timeout": "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
                 }
 
+        listener_max_connection_lifetime_ms = self.config.ir.ambassador_module.get(
+            "listener_max_connection_lifetime_ms", None
+        )
+        if listener_max_connection_lifetime_ms:
+            common_http_options = base_http_config.setdefault("common_http_protocol_options", {})
+            common_http_options["max_connection_duration"] = "%0.3fs" % (
+                float(listener_max_connection_lifetime_ms) / 1000.0
+            )
+
         if "headers_with_underscores_action" in self.config.ir.ambassador_module:
             if "common_http_protocol_options" in base_http_config:
                 base_http_config["common_http_protocol_options"][

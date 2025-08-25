@@ -49,6 +49,7 @@ class IRAmbassador(IRResource):
         "headers_with_underscores_action",
         "keepalive",
         "listener_idle_timeout_ms",
+        "listener_max_connection_lifetime_ms",
         "liveness_probe",
         "load_balancer",
         "max_request_headers_kb",
@@ -132,6 +133,7 @@ class IRAmbassador(IRResource):
             envoy_validation_timeout=IRAmbassador.default_validation_timeout,
             enable_ipv4=True,
             listener_idle_timeout_ms=None,
+            listener_max_connection_lifetime_ms=None,
             liveness_probe={"enabled": True},
             readiness_probe={"enabled": True},
             diagnostics={"enabled": True},  # TODO(lukeshu): In getambassador.io/v3alpha2, change
