@@ -1,0 +1,50 @@
+#!/bin/sh
+
+check_arg () {
+	if [ -z "$2" ]; then
+		echo "$1 cannot be unset" >&2
+		exit 1
+	fi
+}
+
+if [ $# -ne 4 ]; then
+  echo "Usage: $0 <chart-source> <version> <image-repo> <output-dir>" >&2
+  exit 1
+fi
+
+set -e
+
+chart_source="$1"
+version="$2"
+image_repo="$3"
+output_dir="$4"
+
+check_arg chart_source "$chart_source"
+check_arg version "$version"
+check_arg image_repo "$image_repo"
+check_arg output_dir "$output_dir"
+
+# set -x
+
+workdir=$(mktemp -d -t build-chart)
+trap "rm -rf $workdir" EXIT
+
+cp -pr "$chart_source"/* "$workdir"
+
+for file in "$workdir/Chart.yaml" "$workdir/values.yaml"; do
+	sed \
+		-e "s/@version@/$version/g" \
+		-e "s/@chartVersion@/$version/g" \
+		-e "s,@imageRepo@,${image_repo},g" \
+		< ${file}.in > ${file}
+	rm -f ${file}.in
+done
+
+go run kubepack.dev/chart-doc-gen@v0.5.0 \
+	-d "$workdir/doc.yaml" \
+	-t "$workdir/readme.tpl" \
+	-v "$workdir/values.yaml" \
+	> $workdir/README.md
+
+helm package --destination="$output_dir" "$workdir"
+

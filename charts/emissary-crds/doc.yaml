@@ -1,0 +1,18 @@
+project:
+  name: Emissary-ingress CRDs
+  shortName: emissary-crds
+  url: https://github.com/emissary-ingress/emissary
+  description: CRDs for the Emissary-ingress project
+  app: Emissary-ingress
+repository:
+  url: oci://ghcr.io/emissary-ingress/emissary-crds
+  name: emissary-crds
+chart:
+  name: emissary-crds
+  values: "-- generate from values file --"
+  valuesExample: "-- generate from values file --"
+prerequisites:
+  - "Kubernetes v1.11+"
+release:
+  name: emissary-crds
+  namespace: emissary-system

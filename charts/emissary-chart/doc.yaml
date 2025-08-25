@@ -12,7 +12,7 @@ chart:
   values: "-- generate from values file --"
   valuesExample: "-- generate from values file --"
 prerequisites:
-- "Kubernetes v1.11+"
+  - "Kubernetes v1.11+"
 release:
   name: emissary-ingress
   namespace: ambassador

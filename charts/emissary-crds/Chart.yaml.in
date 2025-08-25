@@ -1,0 +1,22 @@
+apiVersion: "v2"
+appVersion: "@version@"
+description: |
+  Emissary-ingress is a CNCF API Gateway built on Envoy Proxy, specializing
+  in self-service operation with minimal operational complexity.
+type: application
+home: https://emissary-ingress.dev/
+keywords:
+  - emissary-ingress
+  - crds
+  - ingress-controller
+  - conversion-webhook
+kubeVersion: ">=1.25.0-0"
+name: "emissary-crds-chart"
+sources:
+  - https://github.com/emissary-ingress/emissary/
+version: "@version@"
+#icon: https://linkerd.io/images/logo-only-200h.png
+maintainers:
+  - name: Emissary authors
+    email: cncf-emissary-ingress-maintainers@lists.cncf.io
+    url: https://github.com/emissary-ingress/emissary/
