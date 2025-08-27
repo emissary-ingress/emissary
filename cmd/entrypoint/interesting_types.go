@@ -60,7 +60,7 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 	if fs != "" {
 		endpointFs += fmt.Sprintf(",%s", fs)
 	}
-	configMapFs := fmt.Sprintf("metadata.namespace=%s", GetCloudConnectTokenResourceNamespace())
+	configMapFs := fmt.Sprintf("metadata.namespace=%s", GetAmbassadorNamespace())
 
 	// We set interestingTypes to the list of types that we'd like to watch (if that type exits
 	// in this cluster).

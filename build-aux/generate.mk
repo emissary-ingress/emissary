@@ -26,8 +26,6 @@ generate/precious    = $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
 # Whole directories with rules for each individual file in it
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
-generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
-generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
 generate/files      += $(OSS_HOME)/DEPENDENCY_LICENSES.md
@@ -220,10 +218,6 @@ helm.name.emissary-emissaryns = emissary-ingress
 helm.name.emissary-defaultns = emissary-ingress
 helm.namespace.emissary-emissaryns = emissary
 helm.namespace.emissary-defaultns = default
-helm.name.emissary-emissaryns-agent = emissary-ingress
-helm.namespace.emissary-emissaryns-agent = emissary
-helm.name.emissary-defaultns-agent = emissary-ingress
-helm.namespace.emissary-defaultns-agent = default
 helm.name.emissary-emissaryns-migration = emissary-ingress
 helm.namespace.emissary-emissaryns-migration = emissary
 helm.name.emissary-defaultns-migration = emissary-ingress

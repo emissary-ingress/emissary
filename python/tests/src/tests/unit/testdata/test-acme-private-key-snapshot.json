@@ -2149,16 +2149,6 @@
       "deltaType": "add"
     },
     {
-      "kind": "Secret",
-      "apiVersion": "v1",
-      "metadata": {
-        "name": "ambassador-agent-token-vpmlk",
-        "namespace": "ambassador",
-        "creationTimestamp": "2021-11-19T15:11:49Z"
-      },
-      "deltaType": "add"
-    },
-    {
       "kind": "Mapping",
       "apiVersion": "getambassador.io/v3alpha1",
       "metadata": {

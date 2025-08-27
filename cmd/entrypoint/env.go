@@ -13,20 +13,10 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-func GetAgentService() string {
-	// Using an agent service is no longer supported, so return empty.
-	// For good measure, we also set AGENT_SERVICE to empty in the entrypoint.
-	return ""
-}
-
 func GetAmbassadorID() string {
 	id := os.Getenv("AMBASSADOR_ID")
 	if id != "" {
 		return id
-	}
-	svc := GetAgentService()
-	if svc != "" {
-		return fmt.Sprintf("intercept-%s", svc)
 	}
 	return "default"
 }
@@ -132,12 +122,7 @@ func isDebug(name string) bool {
 
 func GetEnvoyFlags() []string {
 	result := []string{"-c", GetEnvoyBootstrapFile(), "--base-id", GetEnvoyBaseID()}
-	svc := GetAgentService()
-	if svc != "" {
-		result = append(result, "--drain-time-s", "1")
-	} else {
-		result = append(result, "--drain-time-s", env("AMBASSADOR_DRAIN_TIME", "600"))
-	}
+	result = append(result, "--drain-time-s", env("AMBASSADOR_DRAIN_TIME", "600"))
 	if isDebug("envoy") {
 		result = append(result, "-l", "trace")
 	} else {
@@ -228,14 +213,6 @@ func GetLicenseSecretName() string {
 
 func GetLicenseSecretNamespace() string {
 	return env("AMBASSADOR_AES_SECRET_NAMESPACE", GetAmbassadorNamespace())
-}
-
-func GetCloudConnectTokenResourceName() string {
-	return env("AGENT_CONFIG_RESOURCE_NAME", "ambassador-agent-cloud-token")
-}
-
-func GetCloudConnectTokenResourceNamespace() string {
-	return env("AGENT_NAMESPACE", GetAmbassadorNamespace())
 }
 
 func GetEventHost() string {

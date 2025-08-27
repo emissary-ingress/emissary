@@ -87,14 +87,6 @@ ambassador_root="/ambassador"
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
-# If we have an AGENT_SERVICE, but no AMBASSADOR_ID, force AMBASSADOR_ID
-# from the AGENT_SERVICE.
-
-if [ -z "$AMBASSADOR_ID" -a -n "$AGENT_SERVICE" ]; then
-    export AMBASSADOR_ID="intercept-${AGENT_SERVICE}"
-    log "Intercept: set AMBASSADOR_ID to $AMBASSADOR_ID"
-fi
-
 export AMBASSADOR_NAMESPACE="${AMBASSADOR_NAMESPACE:-default}"
 export AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$ambassador_root}"
 export ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"

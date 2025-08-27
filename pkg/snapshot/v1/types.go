@@ -101,11 +101,6 @@ type KubernetesSnapshot struct {
 	// [kind/name.namespace][]kates.Object
 	Annotations map[string]AnnotationList `json:"annotations"`
 
-	// Pods and Deployments were added to be used by Ambassador Agent so it can
-	// report to AgentCom in Ambassador Cloud.
-	Pods        []*kates.Pod        `json:"Pods,omitempty"`
-	Deployments []*kates.Deployment `json:"Deployments,omitempty"`
-
 	// ArgoRollouts represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For this reason, Rollouts resources are fetched making use of the
 	// k8s dynamic client that returns an unstructured.Unstructured object. This is a better strategy

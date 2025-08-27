@@ -89,16 +89,6 @@ class ResourceFetcher:
         # should be handled by entrypoint, so that we can make the fetcher _much_ simpler.
         self.invalid = []
 
-        # HACK
-        # If AGENT_SERVICE is set, skip the init dir: we'll force some defaults later
-        # instead.
-        #
-        # XXX This is rather a hack. We can do better.
-
-        if os.environ.get("AGENT_SERVICE", "").lower() != "":
-            logger.debug("Intercept agent active: skipping init dir")
-            skip_init_dir = True
-
         if not skip_init_dir:
             # Check /ambassador/init-config for initialization resources -- note NOT
             # $AMBASSADOR_CONFIG_BASE_DIR/init-config! This is compile-time stuff that

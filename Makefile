@@ -131,27 +131,6 @@ tel-quit: ## Quit telepresence
 tel-list: ## List intercepts
 	telepresence list
 
-EMISSARY_AGENT_ENV=emissary-agent.env
-
-.PHONY: intercept-emissary-agent
-intercept-emissary-agent:
-	telepresence intercept --namespace ambassador ambassador-agent -p 8080:http \
-		--http-header=test-$(USER)=1 --preview-url=false --env-file $(EMISSARY_AGENT_ENV)
-
-.PHONY: leave-emissary-agent
-leave-emissary-agent:
-	telepresence leave ambassador-agent-ambassador
-
-RUN_EMISSARY_AGENT=bin/run-emissary-agent.sh
-$(RUN_EMISSARY_AGENT):
-	@test -e $(EMISSARY_AGENT_ENV) || echo "Environment file $(EMISSARY_AGENT_ENV) does not exist, please run 'make intercept-emissary-agent' to create it."
-	echo 'AES_LOG_LEVEL=debug AES_SNAPSHOT_URL=http://ambassador-admin.ambassador:8005/snapshot-external AES_DIAGNOSTICS_URL="http://ambassador-admin.ambassador:8877/ambassador/v0/diag/?json=true" AES_REPORT_DIAGNOSTICS_TO_CLOUD=true go run ./cmd/busyambassador agent' >> $(RUN_EMISSARY_AGENT)
-	chmod a+x $(RUN_EMISSARY_AGENT)
-
-.PHONY: irun-emissary-agent
-irun-emissary-agent: bin/run-emissary-agent.sh ## Run emissary-agent using the environment variables fetched by the intercept.
-	bin/run-emissary-agent.sh
-
 ## Helper target for setting up local dev environment when working with python components
 ## such as pytest, diagd, etc...
 .PHONY: python-dev-setup

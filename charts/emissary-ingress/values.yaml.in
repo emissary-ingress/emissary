@@ -247,8 +247,6 @@ deploymentStrategy:
 # configures progressDeadlineSeconds for deployments
 progressDeadlines:
   ambassador: 600
-  agent: 600
-
 
 restartPolicy:
 
@@ -404,39 +402,6 @@ prometheusExporter: # +doc-gen:break
 # DEPRECATED: Use security.podSecurityContext
 # securityContext:
 #   runAsUser: 8888
-
-
-# Configure the ambassador agent
-agent:
-  # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Ambassador Cloud connectivity.
-  enabled: false
-  # API token for reporting snapshots to [Ambassador Cloud](https://app.getambassador.io/cloud/);
-  # If empty, agent will not report snapshots
-  cloudConnectToken: ''
-  # Address of the Ambassador Cloud rpc server.
-  rpcAddress: https://app.getambassador.io/
-
-  # If `true`, Ambassador Agent will report diagnostics to Ambassador Cloud
-  reportDiagnostics: true
-
-  createArgoRBAC: true
-  image:
-    # Leave blank to use image.repository and image.tag
-    tag: 1.0.14
-    repository: docker.io/ambassador/ambassador-agent
-    pullPolicy: IfNotPresent
-
-  podSecurityContext: {}
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core
-  #  runAsUser: 8888
-
-  containerSecurityContext: {}
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core
-  # allowPrivilegeEscalation: false
-
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
 
 
 deploymentTool: ''

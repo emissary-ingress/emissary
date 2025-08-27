@@ -36,12 +36,7 @@ volumeMounts:
 resources: null
 
 module: null
-agent:
-  enabled: false
 
 waitForApiext:
   enabled: true
   createRoles: true
-
-agent:
-  enabled: false

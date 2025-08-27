@@ -35,7 +35,6 @@ At the core of Emissary-ingress is Envoy Proxy which has very extensive configur
 - Diagd - provides diagnostic ui, translates snapshots/ir into envoy configuration (*in-process*)
 - Ambex - gRPC server implementation of envoy xDS for dynamic envoy configration (*in-process*)
 - Envoy Proxy - Proxy that handles routing all user traffic (*in-process*)
-- Ambassador Agent - provides connectivity between cluster and Ambassador Cloud.  (*own container*)
 
 ## Custom Resource Definitions (CRD)
 
@@ -98,9 +97,9 @@ Emissary-ingress has evolved over many years, many contributors and many version
 
 /buildroot/ambassador/python/entrypoint.sh
 
-The `busyambassador` binary provides a busybox like interface that dispatches the CMD's that are provided to a container for the various configured Golang binaries. This enables a single image to support multiple binaries on startup that are declartively set within a `deployment` in the `command` field when setting the image for a deployment. An example of this can be seen in the `ambassador-agent` deployment.
+The `busyambassador` binary provides a busybox like interface that dispatches the CMD's that are provided to a container for the various configured Golang binaries. This enables a single image to support multiple binaries on startup that are declartively set within a `deployment` in the `command` field when setting the image for a deployment.
 
-The image takes advantage of the `ENTRYPOINT` and `CMD` fields within a docker image manifest. You can see this in `builder/Dockerfile` in the final optimized image on the last line there is `ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]`. This entrypoint cannot be overriden by the user and will run that bash script. By default the bash script will run the `entrypoint` binary which will be discussed in the next section but if passed a known binary name such as the `agent` example then `busyambassador` will run the correct command.
+The image takes advantage of the `ENTRYPOINT` and `CMD` fields within a docker image manifest. You can see this in `builder/Dockerfile` in the final optimized image on the last line there is `ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]`. This entrypoint cannot be overriden by the user and will run that bash script. By default the bash script will run the `entrypoint` binary which will be discussed in the next section but if passed a known binary name, then `busyambassador` will run the correct command.
 
 To learn more about `busyambassador` the code can be found:
 

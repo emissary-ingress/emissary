@@ -346,15 +346,6 @@ class IRHTTPMapping(IRBaseMapping):
         if add_linkerd_headers:
             add_request_hdrs["l5d-dst-override"] = svc.hostname_port
 
-        # XXX BRUTAL HACK HERE:
-        # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
-        # force TLS origination because it's the agent. I know, I know. It's a hack.
-        if ("tls" not in new_args) and ir.agent_origination_ctx:
-            ir.logger.debug(
-                f"Mapping {name}: Agent forcing origination TLS context to {ir.agent_origination_ctx.name}"
-            )
-            new_args["tls"] = ir.agent_origination_ctx.name
-
         if "query_parameters" in kwargs:
             for pname, pvalue in kwargs.get("query_parameters", {}).items():
                 if pvalue is True:

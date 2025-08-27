@@ -61,7 +61,7 @@ WORKDIR /opt/ambassador/bin
 COPY busyambassador busyambassador
 
 # Make the symlinks we need
-RUN for name in agent apiext entrypoint kubestatus; do ln -s busyambassador $name; done
+RUN for name in apiext entrypoint kubestatus; do ln -s busyambassador $name; done
 RUN ln -s ../emissary/bin/diagd diagd
 
 # Set up for a non-root environment.
@@ -148,7 +148,7 @@ ENV HOME=/tmp/ambassador
 ENV PATH=/usr/local/bin:$PATH
 
 # Set up symlinks in /usr/local/bin for busyambassador and friends.
-RUN for name in agent apiext busyambassador diagd entrypoint kubestatus; do \
+RUN for name in apiext busyambassador diagd entrypoint kubestatus; do \
     ln -s ../../../opt/ambassador/bin/$name /usr/local/bin/$name; \
     done
 

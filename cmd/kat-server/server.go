@@ -110,11 +110,6 @@ func main() {
 			},
 		}
 		listeners = append(listeners, s)
-	case "grpc_agent":
-		s = &srv.GRPCAgent{
-			Port: Port,
-		}
-		listeners = append(listeners, s)
 	case "health_check_server":
 		port := Port
 		securePort := SSLPort
