@@ -8,6 +8,7 @@ numbering uses [semantic versioning](http://semver.org).
 - Upgrade Emissary to v3.10.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Ambassador Agent is no longer installed by default and requires setting `agent.enabled: true` to opt-in. We recommend you
 use the stand alone chart instead [AmbassadorAgent Repo](https://github.com/datawire/ambassador-agent).
+- Support EndpointSlices in RBAC
 
 ## v8.9.0
 
