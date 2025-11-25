@@ -14,6 +14,7 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	// first party (protobuf)
@@ -42,7 +43,13 @@ type GRPCAuthV2 struct {
 func (g *GRPCAuthV2) Start(ctx context.Context) <-chan bool {
 	dlog.Printf(ctx, "GRPCAuthV2: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
-	grpcHandler := grpc.NewServer()
+	// Create secure gRPC server with TLS credentials
+	creds, err := credentials.NewServerTLSFromFile(g.Cert, g.Key)
+	if err != nil {
+		dlog.Error(ctx, err)
+		panic(err) // TODO: do something better
+	}
+	grpcHandler := grpc.NewServer(grpc.Creds(creds))
 	dlog.Printf(ctx, "registering v2 service")
 	pb.RegisterAuthorizationServer(grpcHandler, g)
 
