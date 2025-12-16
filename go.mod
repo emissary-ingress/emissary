@@ -148,7 +148,7 @@ require (
 	k8s.io/code-generator v0.32.1
 	k8s.io/klog/v2 v2.130.1
 	k8s.io/kubectl v0.32.1
-	k8s.io/kubernetes v1.32.1
+	k8s.io/kubernetes v1.32.10
 	k8s.io/metrics v0.32.1
 	sigs.k8s.io/controller-runtime v0.20.1
 	sigs.k8s.io/controller-tools v0.17.1
