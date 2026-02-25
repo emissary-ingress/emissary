@@ -127,17 +127,17 @@ following Free and Open Source software:
     go.starlark.net                                                                         v0.0.0-20230525235612-a134d8f9ddca     3-clause BSD license
     go.uber.org/multierr                                                                    v1.11.0                                MIT license
     go.uber.org/zap                                                                         v1.26.0                                MIT license
-    golang.org/x/crypto                                                                     v0.45.0                                3-clause BSD license
-    golang.org/x/exp                                                                        v0.0.0-20240719175910-8a7402abbf56     3-clause BSD license
-    golang.org/x/mod                                                                        v0.29.0                                3-clause BSD license
-    golang.org/x/net                                                                        v0.47.0                                3-clause BSD license
-    golang.org/x/oauth2                                                                     v0.27.0                                3-clause BSD license
-    golang.org/x/sync                                                                       v0.18.0                                3-clause BSD license
-    golang.org/x/sys                                                                        v0.38.0                                3-clause BSD license
-    golang.org/x/term                                                                       v0.37.0                                3-clause BSD license
-    golang.org/x/text                                                                       v0.31.0                                3-clause BSD license
+    golang.org/x/crypto                                                                     v0.48.0                                3-clause BSD license
+    golang.org/x/exp                                                                        v0.0.0-20231110203233-9a3e6036ecaa     3-clause BSD license
+    golang.org/x/mod                                                                        v0.33.0                                3-clause BSD license
+    golang.org/x/net                                                                        v0.50.0                                3-clause BSD license
+    golang.org/x/oauth2                                                                     v0.15.0                                3-clause BSD license
+    golang.org/x/sync                                                                       v0.19.0                                3-clause BSD license
+    golang.org/x/sys                                                                        v0.41.0                                3-clause BSD license
+    golang.org/x/term                                                                       v0.40.0                                3-clause BSD license
+    golang.org/x/text                                                                       v0.34.0                                3-clause BSD license
     golang.org/x/time                                                                       v0.5.0                                 3-clause BSD license
-    golang.org/x/tools                                                                      v0.38.0                                3-clause BSD license
+    golang.org/x/tools                                                                      v0.42.0                                3-clause BSD license
     gomodules.xyz/jsonpatch/v2                                                              v2.4.0                                 Apache License 2.0
     google.golang.org/genproto                                                              v0.0.0-20231212172506-995d672761c0     Apache License 2.0
     google.golang.org/genproto/googleapis/api                                               v0.0.0-20231211222908-989df2bf70f3     Apache License 2.0
