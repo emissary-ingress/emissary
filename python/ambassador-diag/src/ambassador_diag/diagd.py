@@ -179,7 +179,6 @@ class DiagApp(Flask):
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
     banner_endpoint: Optional[str]
-    metrics_endpoint: Optional[str]
 
     # Reconfiguration stats
     reconf_stats: ReconfigStats
@@ -201,7 +200,6 @@ class DiagApp(Flask):
         ambex_pid: int,
         kick: Optional[str],
         banner_endpoint: Optional[str],
-        metrics_endpoint: Optional[str],
         k8s=False,
         do_checks=True,
         no_envoy=False,
@@ -228,7 +226,6 @@ class DiagApp(Flask):
         self.allow_fs_commands = allow_fs_commands
         self.report_action_keys = report_action_keys
         self.banner_endpoint = banner_endpoint
-        self.metrics_endpoint = metrics_endpoint
         self.metrics_registry = CollectorRegistry(auto_describe=True)
         self.enable_fast_reconfigure = enable_fast_reconfigure
 
@@ -1222,18 +1219,8 @@ def get_prometheus_metrics(*args, **kwargs):
     # Ambassador OSS metrics
     ambassador_metrics = generate_latest(registry=app.metrics_registry).decode("utf-8")
 
-    # Extra metrics endpoint
-    extra_metrics_content = ""
-    if app.metrics_endpoint and app.ir:
-        try:
-            response = requests.get(app.metrics_endpoint)
-            if response.status_code == 200:
-                extra_metrics_content = response.text
-        except Exception as e:
-            app.logger.error("could not get metrics_endpoint: %s" % e)
-
     return Response(
-        "".join([envoy_metrics, ambassador_metrics, extra_metrics_content]).encode("utf-8"),
+        "".join([envoy_metrics, ambassador_metrics]).encode("utf-8"),
         200,
         mimetype="text/plain",
     )
@@ -2182,13 +2169,6 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     help="Optional endpoint of extra banner to include",
     show_default=True,
 )
-@click.option(
-    "--metrics-endpoint",
-    type=str,
-    default="http://127.0.0.1:8500/metrics",
-    help="Optional endpoint of extra prometheus metrics to include",
-    show_default=True,
-)
 @click.option("--no-checks", is_flag=True, help="If True, don't do Envoy-cluster health checking")
 @click.option("--no-envoy", is_flag=True, help="If True, don't interact with Envoy at all")
 @click.option("--reload", is_flag=True, help="If True, run Flask in debug mode for live reloading")
@@ -2231,7 +2211,6 @@ def main(
     ambex_pid=0,
     kick=None,
     banner_endpoint=None,  # "http://127.0.0.1:8500/banner" was an Edge Stack thing
-    metrics_endpoint=None,  # "http://127.0.0.1:8500/metrics" was an Edge Stack thing
     k8s=False,
     no_checks=False,
     no_envoy=False,
@@ -2298,7 +2277,6 @@ def main(
         ambex_pid,
         kick,
         banner_endpoint,
-        metrics_endpoint,
         k8s,
         not no_checks,
         no_envoy,

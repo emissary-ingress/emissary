@@ -59,6 +59,11 @@ from the Helm charts.
   - Also set `enableV1: true` to additionally support `v1` CRDs. There is
     no way to support only `v1` CRDs.
 
+- **BREAKING CHANGE**: Support for the extra metrics endpoint (set by
+  supplying `--metrics-endpoint` on the command line for `diagd`) has
+  been removed. This was a holdover from Ambassador Edge Stack (thanks to
+  [Jeremy Dinsel] for the report!)
+
 ### Changes
 
 - Fix: Correctly distinguish Mappings that differ only by `weight`, even
@@ -103,6 +108,7 @@ from the Helm charts.
 [Abhay Bothra]: https://github.com/bothra90
 [Catalin Codreanu]: https://github.com/ccodreanu
 [Frederic Mereu]: https://github.com/fad3t
+[Jeremy Dinsel]: https://github.com/jdinsel-xealth
 [Luke Shumaker]: https://github.com/lukeshu
 [Pier]: https://github.com/pie-r
 [Sunny Kumar]: https://github.com/sunnykrGupta
