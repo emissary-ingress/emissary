@@ -1063,7 +1063,7 @@ def show_overview(reqid=None):
         else:
             return jsonify(tvars)
     else:
-    
+
         return Response(render_template("overview.html", **tvars))
 
 
@@ -1171,7 +1171,7 @@ def show_intermediate(source=None, reqid=None):
         else:
             return jsonify(tvars)
     else:
-    
+
         return Response(render_template("diag.html", **tvars))
 
 
@@ -1664,7 +1664,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 % econf_bad_reason
             )
 
-            
+
 
             # DO stop the reconfiguration timer before leaving.
             self.app.config_timer.stop()
@@ -1815,7 +1815,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.chime()
 
     def chime(self):
-        # In general, our reports here should be action "update", but we need to tweak that 
+        # In general, our reports here should be action "update", but we need to tweak that
         # depending on whether we've done this before and on whether the environment looks OK.
 
         already_chimed = bool_fmt(self.chimed)
