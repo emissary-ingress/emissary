@@ -196,7 +196,7 @@ class SystemInfo:
 
         try:
             MyHostName = socket.gethostname()
-        except:
+        except Exception:
             pass
 
 

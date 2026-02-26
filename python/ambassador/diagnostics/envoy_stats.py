@@ -337,7 +337,7 @@ class EnvoyStatsMgr:
 
             try:
                 node[keypath[-1]] = int(value)
-            except:
+            except Exception:
                 continue
 
         # Now dig into clusters a bit more.

@@ -1048,7 +1048,7 @@ class Runner:
             try:
                 self._setup_k8s(expanded)
                 self._query(expanded_up)
-            except:
+            except Exception:
                 traceback.print_exc()
                 pytest.exit("setup failed")
             finally:

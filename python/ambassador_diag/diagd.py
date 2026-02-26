@@ -597,7 +597,7 @@ def get_templates_dir():
     try:
         # this will fail when not in a distribution
         res_dir = resource_filename(Requirement.parse("ambassador"), "templates")
-    except:
+    except Exception:
         pass
 
     maybe_dirs = [res_dir, os.path.join(os.path.dirname(__file__), "..", "templates")]
@@ -747,7 +747,7 @@ class Notices:
             local_notices = parse_json(local_data)
         except OSError:
             pass
-        except:
+        except Exception:
             local_notices.append(
                 {"level": "ERROR", "message": "bad local notices: %s" % local_data}
             )
@@ -2231,7 +2231,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         try:
             v_str = v_encoded.decode("utf-8")
-        except:
+        except Exception:
             pass
 
         self.logger.error(

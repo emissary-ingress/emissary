@@ -689,7 +689,7 @@ class IR:
 
         try:
             agent_port = int(agent_port_str)
-        except:
+        except Exception:
             self.post_error(f"Intercept agent port {agent_port_str} is not valid")
             self.agent_active = False
             return
