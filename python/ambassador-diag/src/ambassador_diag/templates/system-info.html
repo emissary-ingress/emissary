@@ -1,6 +1,6 @@
 <div class="row">
   <div class="col-7">
-    Ambassador version <samp>{{ system.version }}</samp>
+    Emissary version <samp>{{ system.version }}</samp>
     <br/>
     Hostname <samp>{{ system.hostname }}</samp>
     <br/>
@@ -17,9 +17,9 @@
     {% endif %}
     <br/>
     <br/>
-    Ambassador ID <samp>{{ system.ambassador_id }}</samp>
+    Emissary namespace <samp>{{ system.ambassador_namespace }}</samp>{%- if system.single_namespace %} (single namespace only){%- endif -%}
     <br/>
-    Ambassador namespace <samp>{{ system.ambassador_namespace }}</samp>{%- if system.single_namespace %} (single namespace only){%- endif -%}
+    ambassador_id <samp>{{ system.ambassador_id }}</samp>
     <br/>
     {%- if system.knative_enabled -%}KNative support enabled<br/>{%- endif %}
     {%- if system.statsd_enabled -%}Statsd support enabled<br/>{%- endif %}

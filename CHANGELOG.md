@@ -92,6 +92,9 @@ from the Helm charts.
   webhook not to manage aspects of its certificate, don't invert the
   meaning of the environment variables.
 
+- Fix: The diagnostics UI refers to Emissary (instead of Ambassador) and
+  links to emissary-ingress.dev's docs.
+
 - Feature: Emissary now supports both `arm64` and `amd64` architectures
   using multiarch Docker images.
 
