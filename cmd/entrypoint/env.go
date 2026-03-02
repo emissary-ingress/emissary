@@ -153,6 +153,10 @@ func GetDiagdBindPort() string {
 	return env("AMBASSADOR_DIAGD_BIND_PORT", "8004")
 }
 
+func GetDiagdBanner() string {
+	return env("AMBASSADOR_DIAGD_BANNER_ENDPOINT", "")
+}
+
 func IsEnvoyAvailable() bool {
 	_, err := dexec.LookPath("envoy")
 	return err == nil
@@ -168,6 +172,12 @@ func GetDiagdFlags(ctx context.Context) []string {
 	diagdBind := GetDiagdBindAddress()
 	if diagdBind != "" {
 		result = append(result, "--host", diagdBind)
+	}
+
+	diagdBanner := GetDiagdBanner()
+
+	if diagdBanner != "" {
+		result = append(result, "--banner-endpoint", diagdBanner)
 	}
 
 	// XXX: this was not in entrypoint.sh

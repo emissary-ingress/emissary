@@ -64,6 +64,12 @@ from the Helm charts.
   been removed. This was a holdover from Ambassador Edge Stack (thanks to
   [Jeremy Dinsel] for the report!)
 
+- **BREAKING CHANGE**: The default `--banner-endpoint` argument has been
+  removed, since it was a holdover from Ambassador Edge Stack. If you
+  want to use the diagnostics-banner functionality, you can now set
+  `AMBASSADOR_DIAGD_BANNER_ENDPOINT` in the environment to the URL from
+  which to fetch the banner.
+
 ### Changes
 
 - Fix: Correctly distinguish Mappings that differ only by `weight`, even

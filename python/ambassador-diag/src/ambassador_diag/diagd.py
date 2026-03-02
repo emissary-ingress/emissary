@@ -2165,7 +2165,6 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 @click.option(
     "--banner-endpoint",
     type=str,
-    default="http://127.0.0.1:8500/banner",
     help="Optional endpoint of extra banner to include",
     show_default=True,
 )
@@ -2210,7 +2209,7 @@ def main(
     config_path=None,
     ambex_pid=0,
     kick=None,
-    banner_endpoint=None,  # "http://127.0.0.1:8500/banner" was an Edge Stack thing
+    banner_endpoint=None,
     k8s=False,
     no_checks=False,
     no_envoy=False,
