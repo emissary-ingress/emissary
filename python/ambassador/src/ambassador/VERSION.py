@@ -22,8 +22,13 @@ import os
 # it's this static string.
 Version = "MISSING(FILE)"
 Commit = "MISSING(FILE)"
+
+# We used to base this on the current filename, but it's far easier to
+# use a constant filename after the massive refactor for 4.0.
+VersionFile = "/buildroot/ambassador/python/ambassador.version"
+
 try:
-    with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
+    with open(VersionFile, "r") as version:
         info = version.read().split("\n")
         while len(info) < 2:
             info.append("MISSING(VAL)")
