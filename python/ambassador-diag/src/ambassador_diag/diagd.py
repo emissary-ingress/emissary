@@ -2296,6 +2296,7 @@ def main(
         "bind": "%s:%s" % (host, port),
         # 'workers': 1,
         "threads": workers,
+        "control_socket_disable": True,
     }
 
     app.logger.info(
