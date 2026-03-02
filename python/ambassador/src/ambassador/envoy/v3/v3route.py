@@ -55,7 +55,10 @@ def v3prettyroute(route: DictifiedV3Route) -> str:
 
     for header in headers:
         name = header.get("name", None).lower()
+        # Support both old exact_match and new string_match.exact formats
         exact = header.get("exact_match", None)
+        if not exact and "string_match" in header:
+            exact = header["string_match"].get("exact", None)
 
         if header == ":authority":
             if exact:
@@ -223,7 +226,7 @@ class V3RouteVariants:
         # we'll just match any XFP.
 
         if value:
-            headers_copy.append({"name": "x-forwarded-proto", "exact_match": value})
+            headers_copy.append({"name": "x-forwarded-proto", "string_match": {"exact": value}})
 
         # Don't bother writing headers_copy back if it's empty.
         if headers_copy:
@@ -711,9 +714,9 @@ class V3Route(Cacheable):
                         # But wait! What about 'foo.*.com'?? Turns out Envoy doesn't
                         # support that in the places it actually does host globbing,
                         # so we won't either for the moment.
-                        header["exact_match"] = header_value
+                        header["string_match"] = {"exact": header_value}
                 else:
-                    header["exact_match"] = header_value
+                    header["string_match"] = {"exact": header_value}
 
             headers.append(header)
 

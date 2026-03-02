@@ -101,6 +101,9 @@ from the Helm charts.
 - Fix: The diagnostics UI refers to Emissary (instead of Ambassador) and
   links to emissary-ingress.dev's docs.
 
+- Fix: Emissary now uses the current `string_match` Envoy HeaderMatcher
+  stanza rather than the deprecated `exact_match` stanza.
+
 - Feature: Emissary now supports both `arm64` and `amd64` architectures
   using multiarch Docker images.
 

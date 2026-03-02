@@ -309,12 +309,19 @@ func RenderEnvoyConfig(t *testing.T, envoyConfig *apiv3_bootstrap.Bootstrap) ([]
 
 							for _, h := range hdrs {
 								hName := h.Name
-								prefixMatch := h.GetPrefixMatch()
-								suffixMatch := h.GetSuffixMatch()
-								exactMatch := h.GetExactMatch()
+								stringMatch := h.GetStringMatch()
+
+								if stringMatch == nil {
+									scheme = "error-no-string-match!"
+									continue
+								}
+
+								prefixMatch := h.GetStringMatch().GetPrefix()
+								suffixMatch := h.GetStringMatch().GetSuffix()
+								exactMatch := h.GetStringMatch().GetExact()
 
 								regexMatch := ""
-								srm := h.GetSafeRegexMatch()
+								srm := h.GetStringMatch().GetSafeRegex()
 
 								if srm != nil {
 									regexMatch = srm.Regex

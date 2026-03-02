@@ -50,7 +50,7 @@ class V3Ready(dict):
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.filters.http.health_check.v3.HealthCheck",
                         "pass_through_mode": False,
-                        "headers": [{"name": ":path", "exact_match": "/ready"}],
+                        "headers": [{"name": ":path", "string_match": {"exact": "/ready"}}],
                     },
                 },
                 {"name": "envoy.filters.http.router"},

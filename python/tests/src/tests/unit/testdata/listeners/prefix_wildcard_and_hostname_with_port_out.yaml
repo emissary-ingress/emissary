@@ -36,7 +36,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_ready
                           runtime_fraction:
@@ -62,7 +63,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_alive
                           runtime_fraction:
@@ -88,7 +90,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/
                           runtime_fraction:
@@ -116,7 +119,8 @@ listeners:
                           headers:
                             - name: ":authority"
                               suffix_match: ".local"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend2/"
                           runtime_fraction:
@@ -145,9 +149,11 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local"
+                            - string_match:
+                                exact: "quote.local"
                               name: ":authority"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend/"
                           runtime_fraction:
@@ -163,7 +169,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local"
+                            - string_match:
+                                exact: "quote.local"
                               name: ":authority"
                           prefix: "/backend/"
                           runtime_fraction:
@@ -180,7 +187,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_ready
                           runtime_fraction:
@@ -206,7 +214,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_alive
                           runtime_fraction:
@@ -232,7 +241,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/
                           runtime_fraction:
@@ -258,9 +268,11 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local:8500"
+                            - string_match:
+                                exact: "quote.local:8500"
                               name: ":authority"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend3/"
                           runtime_fraction:
@@ -276,7 +288,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local:8500"
+                            - string_match:
+                                exact: "quote.local:8500"
                               name: ":authority"
                           prefix: "/backend3/"
                           runtime_fraction:
@@ -291,7 +304,8 @@ listeners:
                           headers:
                             - name: ":authority"
                               suffix_match: ".local:8500"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend4/"
                           runtime_fraction:
@@ -362,7 +376,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_ready
                           runtime_fraction:
@@ -388,7 +403,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_alive
                           runtime_fraction:
@@ -414,7 +430,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/
                           runtime_fraction:
@@ -442,7 +459,8 @@ listeners:
                           headers:
                             - name: ":authority"
                               suffix_match: ".local"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend2/"
                           runtime_fraction:
@@ -471,9 +489,11 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local"
+                            - string_match:
+                                exact: "quote.local"
                               name: ":authority"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend/"
                           runtime_fraction:
@@ -489,7 +509,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local"
+                            - string_match:
+                                exact: "quote.local"
                               name: ":authority"
                           prefix: "/backend/"
                           runtime_fraction:
@@ -506,7 +527,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_ready
                           runtime_fraction:
@@ -532,7 +554,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_alive
                           runtime_fraction:
@@ -558,7 +581,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/
                           runtime_fraction:
@@ -584,9 +608,11 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local:8500"
+                            - string_match:
+                                exact: "quote.local:8500"
                               name: ":authority"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend3/"
                           runtime_fraction:
@@ -602,7 +628,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local:8500"
+                            - string_match:
+                                exact: "quote.local:8500"
                               name: ":authority"
                           prefix: "/backend3/"
                           runtime_fraction:
@@ -617,7 +644,8 @@ listeners:
                           headers:
                             - name: ":authority"
                               suffix_match: ".local:8500"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend4/"
                           runtime_fraction:
@@ -688,7 +716,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_ready
                           runtime_fraction:
@@ -714,7 +743,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_alive
                           runtime_fraction:
@@ -740,7 +770,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/
                           runtime_fraction:
@@ -768,7 +799,8 @@ listeners:
                           headers:
                             - name: ":authority"
                               suffix_match: ".local"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend2/"
                           runtime_fraction:
@@ -797,9 +829,11 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local"
+                            - string_match:
+                                exact: "quote.local"
                               name: ":authority"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend/"
                           runtime_fraction:
@@ -815,7 +849,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local"
+                            - string_match:
+                                exact: "quote.local"
                               name: ":authority"
                           prefix: "/backend/"
                           runtime_fraction:
@@ -832,7 +867,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_ready
                           runtime_fraction:
@@ -858,7 +894,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/check_alive
                           runtime_fraction:
@@ -884,7 +921,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: https
+                            - string_match:
+                                exact: https
                               name: x-forwarded-proto
                           prefix: /ambassador/v0/
                           runtime_fraction:
@@ -910,9 +948,11 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local:8500"
+                            - string_match:
+                                exact: "quote.local:8500"
                               name: ":authority"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend3/"
                           runtime_fraction:
@@ -928,7 +968,8 @@ listeners:
                       - match:
                           case_sensitive: true
                           headers:
-                            - exact_match: "quote.local:8500"
+                            - string_match:
+                                exact: "quote.local:8500"
                               name: ":authority"
                           prefix: "/backend3/"
                           runtime_fraction:
@@ -943,7 +984,8 @@ listeners:
                           headers:
                             - name: ":authority"
                               suffix_match: ".local:8500"
-                            - exact_match: "https"
+                            - string_match:
+                                exact: "https"
                               name: x-forwarded-proto
                           prefix: "/backend4/"
                           runtime_fraction:
@@ -993,11 +1035,12 @@ listeners:
                   typed_config:
                     "@type": type.googleapis.com/envoy.extensions.filters.http.health_check.v3.HealthCheck
                     headers:
-                      - exact_match: /ready
+                      - string_match:
+                          exact: /ready
                         name: ":path"
                     pass_through_mode: False
                 - name: envoy.filters.http.router
-              route_config: 
+              route_config:
                 name: local_route
               stat_prefix: ready_http
     name: ambassador-listener-ready-127.0.0.1-8006

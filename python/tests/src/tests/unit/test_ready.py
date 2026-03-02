@@ -37,7 +37,7 @@ def _validate_ready_listener_config(econf: EnvoyConfig, expectedPort: int, ready
 
     filterTypedConfig = readyListener["filter_chains"][0]["filters"][0]["typed_config"]
     assert (
-        filterTypedConfig["http_filters"][0]["typed_config"]["headers"][0]["exact_match"]
+        filterTypedConfig["http_filters"][0]["typed_config"]["headers"][0]["string_match"]["exact"]
         == "/ready"
     )
     if readyLogEnabled:
