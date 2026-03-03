@@ -114,7 +114,7 @@ REGISTRY_ERR += $(END)
 
 .goreleaser.yaml: FORCE
 	$(eval ARCH_ARG := $(if $(BUILD_ARCH),--arch $(BUILD_ARCH)))
-	python make-gorel.py --header gorel.prologue --envoy $(ENVOY_IMAGE) $(ARCH_ARG) > $@
+	python3 make-gorel.py --header gorel.prologue --envoy $(ENVOY_IMAGE) $(ARCH_ARG) > $@
 
 images: .goreleaser.yaml
 	goreleaser release --snapshot --clean

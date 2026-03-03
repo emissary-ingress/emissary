@@ -30,12 +30,15 @@ ifneq ($(filter tools/bin/goversion,$(MAKECMDGOALS)),tools/bin/goversion)
   endif
 
   # Ensure goversion is built before we try to use it
+  print-version:
+	@echo $(VERSION)
+
   _goversion_check := $(shell test -x $(OSS_HOME)/tools/bin/goversion || $(MAKE) -C $(OSS_HOME) tools/bin/goversion >&2)
   VERSION := $(or $(VERSION),$(shell $(OSS_HOME)/tools/bin/goversion))
-  $(if $(or $(filter v4.%,$(VERSION)),$(filter v0.0.0-%,$(VERSION))),\
-    ,$(error VERSION variable is invalid: It must be v4.* or v0.0.0-$$tag, but is '$(VERSION)'))
+  $(if $(or $(filter v4.%,$(VERSION)),$(filter v0.40.%,$(VERSION)),$(filter v0.0.0-%,$(VERSION))),\
+  ,\ $(error VERSION variable is invalid: It must be v4.*, v0.40.* or v0.0.0-$$tag, but is '$(VERSION)'))
   $(if $(findstring +,$(VERSION)),\
-    $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
+    $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)    
   export VERSION
 
   ARCH := $(or $(ARCH),$(shell uname -m))

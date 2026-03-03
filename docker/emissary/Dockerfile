@@ -19,7 +19,7 @@ ARG LIBARCH
 #
 # We don't use Google's distroless image directly because its Python
 # version is older than we want.
-FROM docker.io/library/python:3.12.2-slim-bookworm AS emissary-factory
+FROM docker.io/library/python:3.12.12-slim-bookworm AS emissary-factory
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH
@@ -39,10 +39,10 @@ COPY LICENSE /emissary/LICENSE
 
 # Have uv install a Python for us.
 ENV UV_PYTHON_INSTALL_DIR=/opt/ambassador/python
-RUN uv python install 3.12.2
+RUN uv python install 3.12.12
 
 # Set up /opt/ambassador as a virtual environment for Emissary...
-RUN uv venv /opt/ambassador/emissary --python 3.12.2
+RUN uv venv /opt/ambassador/emissary --python 3.12.12
 
 # Build wheels for ambassador and ambassador-diag...
 RUN . /opt/ambassador/emissary/bin/activate && \

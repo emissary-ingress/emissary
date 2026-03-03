@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM docker.io/library/python:3.12.2-slim-bookworm
+FROM docker.io/library/python:3.12.12-slim-bookworm
 
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
       PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
