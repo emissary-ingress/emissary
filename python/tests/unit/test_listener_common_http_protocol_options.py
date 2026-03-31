@@ -41,11 +41,28 @@ def test_listener_idle_timeout_ms():
 
 
 @pytest.mark.compilertest
+def test_listener_max_connection_lifetime_ms():
+    yaml = module_and_mapping_manifests(["listener_max_connection_lifetime_ms: 3600000"], [])
+    _test_listener_common_http_protocol_options(
+        yaml, expectations={"max_connection_duration": "3600.000s"}
+    )
+
+
+@pytest.mark.compilertest
 def test_all_listener_common_http_protocol_options():
     yaml = module_and_mapping_manifests(
-        ["headers_with_underscores_action: DROP_HEADER", "listener_idle_timeout_ms: 4005"], []
+        [
+            "headers_with_underscores_action: DROP_HEADER",
+            "listener_idle_timeout_ms: 4005",
+            "listener_max_connection_lifetime_ms: 3600005",
+        ],
+        [],
     )
     _test_listener_common_http_protocol_options(
         yaml,
-        expectations={"headers_with_underscores_action": "DROP_HEADER", "idle_timeout": "4.005s"},
+        expectations={
+            "headers_with_underscores_action": "DROP_HEADER",
+            "idle_timeout": "4.005s",
+            "max_connection_duration": "3600.005s",
+        },
     )
