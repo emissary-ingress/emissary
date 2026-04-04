@@ -35,6 +35,7 @@ class IRTLSContext(IRResource):
         "redirect_cleartext_from",
         "secret_namespacing",
         "sni",
+        "verify_upstream_certs",
     }
 
     AllowedTLSVersions = ["v1.0", "v1.1", "v1.2", "v1.3"]
@@ -105,6 +106,9 @@ class IRTLSContext(IRResource):
         if not self.get("_ambassador_enabled", False):
             spec_count = 0
             errors = 0
+            if self.get("verify_upstream_certs", False):
+                spec_count += 1
+                
 
             if self.get("secret", None):
                 spec_count += 1
