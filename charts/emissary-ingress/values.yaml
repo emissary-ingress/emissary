@@ -434,10 +434,43 @@ createDefaultListeners: false
 lifecycle: # +doc-gen:break
   # Example block that works well if the main container is running behind a load balancer that
   # is slow to deregister pods - e.g. with IP-type registration in an AWS TargetGroup:
-  # lifecycle:
-  #   preStop:
-  #     exec:
-  #       command:
-  #         - "python" # The Python in the container image.
-  #         - "-c"
-  #         - import urllib.request; urllib.request.urlopen(urllib.request.Request("http://localhost:8001/healthcheck/fail", method="POST")).read(); import time ; time.sleep(780)
+  # Also, if you're giving more than 30 seconds, set the following, to higher valyes to avoid k8s terminating the pod too early
+  # terminationGracePeriodSeconds: 660
+  # progressDeadlines:
+  #   ambassador: 900
+
+  # preStop:
+  #   exec:
+  #     command:
+  #       # The python is actually the python3 included in the image, it's just called python despite convention
+  #       - "python"
+  #       - "-c"
+  #       - |
+  #         import urllib.request, time, json
+
+  #         # Step 1: Start graceful drain of inbound listeners
+  #         urllib.request.urlopen(
+  #             urllib.request.Request(
+  #                 "http://localhost:8001/drain_listeners?graceful&inboundonly",
+  #                 method="POST"
+  #             )
+  #         ).read()
+
+  #         # Step 2: Poll for active connections until drained or timeout
+  #         deadline = time.time() + 630
+  #         while time.time() < deadline:
+  #             time.sleep(5)
+  #             try:
+  #                 resp = urllib.request.urlopen(
+  #                     "http://localhost:8001/stats?filter=downstream_cx_active&format=json"
+  #                 ).read()
+  #                 # Check if connections have drained
+  #                 data = json.loads(resp)
+  #                 active = sum(
+  #                     s.get("value", 0) for s in data.get("stats", [])
+  #                     if "downstream_cx_active" in s.get("name", "")
+  #                 )
+  #                 if active == 0:
+  #                     break
+  #             except:
+  #                 break
