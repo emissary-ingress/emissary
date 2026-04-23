@@ -325,7 +325,7 @@ type SnapshotHolder struct {
 	// XXX: you would expect there to be an analogous snapshot for istio secrets, however the istio
 	// source works by directly munging the k8sSnapshot.
 
-	// The unsentDeltas field tracks the stream of deltas that have occured in between each
+	// The unsentDeltas field tracks the stream of deltas that have occurred in between each
 	// kubernetes snapshot. This is a passthrough of the full stream of deltas reported by kates
 	// which is in turn a facade fo the deltas reported by client-go.
 	unsentDeltas []*kates.Delta
