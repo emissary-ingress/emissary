@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: kat-server
-          image: ${KAT_SERVER_IMAGE}
+          image: ($kat_server_image)
           imagePullPolicy: IfNotPresent
           command: ["/work/kat-server"]
           env:

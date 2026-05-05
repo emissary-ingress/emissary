@@ -1,0 +1,72 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: tcpmapping-basic
+spec:
+  bindings:
+    - name: kat_server_image
+      value: (env('KAT_SERVER_IMAGE'))
+    - name: kat_client
+      value: (env('KAT_CLIENT'))
+    - name: gateway_url
+      value: (env('GATEWAY_URL'))
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+            template: true
+        - script:
+            timeout: 2m
+            env:
+              - name: KAT_CLIENT
+                value: ($kat_client)
+              - name: GATEWAY_URL
+                value: ($gateway_url)
+            content: |
+              set -uo pipefail
+              host="${GATEWAY_URL#*://}"
+              host="${host%%[:/]*}"
+              query=$(cat <<EOF
+              [
+                {
+                  "url": "http://${host}:6789/tcp-probe",
+                  "method": "GET"
+                }
+              ]
+              EOF
+              )
+              for i in $(seq 1 30); do
+                response=$(echo "${query}" | "${KAT_CLIENT}" 2>/tmp/e2e-kat-stderr || true)
+                status=$(jq -r '.[0].result.status // empty' <<<"${response}" 2>/dev/null || true)
+                backend=$(jq -r '.[0].result.json.backend // empty' <<<"${response}" 2>/dev/null || true)
+                if [[ "${status}" == "200" && "${backend}" == "tcp-echo" ]]; then
+                  echo "ok: TCPMapping passed bytes from ${host}:6789 to kat-server backend '${backend}'"
+                  jq '.[0].result' <<<"${response}" 2>/dev/null || echo "${response}"
+                  exit 0
+                fi
+                echo "attempt ${i}: status=${status:-none} backend=${backend:-none}"
+                sleep 2
+              done
+              echo "verify failed: TCPMapping round-trip never returned 200 from backend=tcp-echo at ${host}:6789" >&2
+              echo "last response:" >&2
+              echo "${response}" >&2
+              echo "--- kat-client stderr ---" >&2
+              cat /tmp/e2e-kat-stderr 2>/dev/null || true
+              exit 1
+      catch:
+        - describe:
+            apiVersion: v1
+            kind: Pod
+        - podLogs:
+            selector: app=tcp-echo
+            tail: 200
+        - get:
+            apiVersion: getambassador.io/v3alpha1
+            kind: TCPMapping
+        - get:
+            apiVersion: getambassador.io/v3alpha1
+            kind: Listener
+        - script:
+            content: |
+              kubectl -n emissary logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true

@@ -77,7 +77,7 @@ $(tools/kat-client):
 	cd $(OSS_HOME) && go build -o $@ ./cmd/kat-client
 
 .PHONY: e2e/run
-e2e/run: $(tools/kat-client)
+e2e/run: $(tools/kat-client) $(tools/chainsaw)
 	@if ! test -s $(E2E_VERSION_FILE); then \
 	    echo "error: $(E2E_VERSION_FILE) not found. Run 'make images' first." >&2; \
 	    exit 1; \
@@ -85,8 +85,29 @@ e2e/run: $(tools/kat-client)
 	@tag="$$(head -n1 $(E2E_VERSION_FILE))-$(ARCH)"; \
 	KAT_CLIENT=$(tools/kat-client) \
 	KAT_SERVER_IMAGE="ghcr.io/emissary-ingress/kat-server:$$tag" \
-	NAMESPACE=$(E2E_NAMESPACE) GATEWAY_URL=$(E2E_GATEWAY_URL) \
-	    bash $(OSS_HOME)/test/e2e/run.sh
+	GATEWAY_URL=$(E2E_GATEWAY_URL) \
+	    $(tools/chainsaw) test \
+	        --config $(OSS_HOME)/test/e2e/.chainsaw.yaml \
+	        $(OSS_HOME)/test/e2e/fixtures
+
+# Run a single fixture, e.g. `make e2e/run/http-basic`.
+.PHONY: e2e/run/%
+e2e/run/%: $(tools/kat-client) $(tools/chainsaw)
+	@if ! test -s $(E2E_VERSION_FILE); then \
+	    echo "error: $(E2E_VERSION_FILE) not found. Run 'make images' first." >&2; \
+	    exit 1; \
+	fi
+	@if ! test -f $(OSS_HOME)/test/e2e/fixtures/$*/chainsaw-test.yaml; then \
+	    echo "error: no fixture named '$*' under test/e2e/fixtures/" >&2; \
+	    exit 1; \
+	fi
+	@tag="$$(head -n1 $(E2E_VERSION_FILE))-$(ARCH)"; \
+	KAT_CLIENT=$(tools/kat-client) \
+	KAT_SERVER_IMAGE="ghcr.io/emissary-ingress/kat-server:$$tag" \
+	GATEWAY_URL=$(E2E_GATEWAY_URL) \
+	    $(tools/chainsaw) test \
+	        --config $(OSS_HOME)/test/e2e/.chainsaw.yaml \
+	        $(OSS_HOME)/test/e2e/fixtures/$*
 
 # Short VERSION override used for the local install path. Dirty trees produce
 # long version strings that exceed chart-label length limits in Kubernetes.

@@ -1,0 +1,28 @@
+apiVersion: chainsaw.kyverno.io/v1alpha2
+kind: Configuration
+metadata:
+  name: emissary-e2e
+spec:
+  # Each test gets a fresh, randomly-named namespace. Emissary watches all
+  # namespaces, so Mappings/Listeners/TCPMappings created in these namespaces
+  # are picked up automatically by the cluster-wide Emissary install.
+  namespace:
+    template:
+      metadata:
+        generateName: e2e-
+  execution:
+    failFast: false
+    # Tests share one Emissary instance and one set of edge ports. Routes from
+    # different tests would coexist in the same Envoy config, so run serially
+    # to keep failures attributable. Bump this once the fixtures are proven
+    # independent.
+    parallel: 1
+  cleanup:
+    skipDelete: false
+  timeouts:
+    apply: 30s
+    assert: 2m
+    cleanup: 1m
+    delete: 1m
+    error: 30s
+    exec: 2m

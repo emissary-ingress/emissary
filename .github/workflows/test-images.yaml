@@ -128,14 +128,24 @@ jobs:
           mkdir -p ${{ github.workspace }}/tools/bin
           go build -o ${{ github.workspace }}/tools/bin/kat-client ./cmd/kat-client
 
+      - name: Install Chainsaw
+        env:
+          CHAINSAW_VERSION: 0.2.14
+        run: |
+          set -euo pipefail
+          curl -sSfL "https://github.com/kyverno/chainsaw/releases/download/v${CHAINSAW_VERSION}/chainsaw_linux_${{ matrix.arch }}.tar.gz" \
+            | tar -xz -C ${{ github.workspace }}/tools/bin chainsaw
+          chmod +x ${{ github.workspace }}/tools/bin/chainsaw
+
       - name: Run E2E Fixtures
         env:
-          NAMESPACE: emissary
           GATEWAY_URL: http://localhost
           KAT_CLIENT: ${{ github.workspace }}/tools/bin/kat-client
           KAT_SERVER_IMAGE: ghcr.io/emissary-ingress/kat-server:${{ inputs.version }}-${{ matrix.arch }}
         run: |
-          bash ${{ github.workspace }}/test/e2e/run.sh
+          ${{ github.workspace }}/tools/bin/chainsaw test \
+            --config ${{ github.workspace }}/test/e2e/.chainsaw.yaml \
+            ${{ github.workspace }}/test/e2e/fixtures
 
       - name: Dump Diagnostics on Failure
         if: failure()

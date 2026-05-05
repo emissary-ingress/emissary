@@ -1,28 +1,35 @@
 # End-to-End Tests
 
-This directory contains black-box end-to-end tests that exercise a real
-Emissary-ingress installation running in a local k3d cluster. Each test applies
-Kubernetes manifests, runs requests, and asserts the response.
+Black-box end-to-end tests that exercise a real Emissary-ingress installation
+running in a local k3d cluster. Each fixture applies Kubernetes manifests,
+runs probes through the gateway, and asserts on the response.
 
-These tests are intentionally shell-based and schema-free: a fixture is any
-subdirectory of `fixtures/` containing `manifests.yaml` and `verify.sh`. The
-runner discovers them automatically — adding a new test means dropping in a new
-directory, not editing any Go/Python test harness.
+The tests are driven by [Chainsaw](https://kyverno.github.io/chainsaw/), a
+declarative Kubernetes test framework. Each fixture is one Chainsaw `Test`
+that gets its own ephemeral namespace, applies its manifests, runs a probe,
+and is automatically torn down (with diagnostics on failure).
 
 ## Layout
 
 ```
 test/e2e/
-├── run.sh                      # fixture runner (iterates fixtures/, apply → verify → teardown)
-└── fixtures/                   # one subdirectory per fixture
+├── .chainsaw.yaml              # Chainsaw Configuration (timeouts, parallelism, namespacing)
+├── helm-values.yaml            # values for the Emissary helm install
+└── fixtures/
     └── <fixture-name>/
-        ├── manifests.yaml      # kubectl apply'd into $NAMESPACE before verify
-        └── verify.sh           # exit 0 = pass, non-zero = fail
+        ├── chainsaw-test.yaml  # the Test resource (apply, probe, catch)
+        └── manifests.yaml      # Deployments/Services/Mappings for the scenario
 ```
 
-The runner exports `GATEWAY_URL`, `NAMESPACE`, and `FIXTURE_DIR` into each
-`verify.sh`. After every fixture it deletes what it applied, so fixtures don't
-have to clean up after themselves.
+Each test gets a fresh, randomly-named namespace (`generateName: e2e-`).
+Emissary watches all namespaces, so Mappings/Listeners/TCPMappings created in
+those test namespaces are picked up automatically by the cluster-wide
+Emissary install (which still lives in the fixed `emissary` namespace).
+
+The probe step shells out to the host-built `kat-client` binary against
+`$GATEWAY_URL`. The kat-server image is templated into manifests using the
+Chainsaw binding `kat_server_image`, which reads `KAT_SERVER_IMAGE` from the
+environment.
 
 ## Running locally
 
@@ -35,15 +42,15 @@ Everything is driven through `make` targets defined in `build-aux/e2e.mk`.
   ```
   source .venv/bin/activate     # or: uv run make ...
   ```
-- `k3d`, `kubectl`, and `helm` are fetched automatically into
+- `k3d`, `kubectl`, `helm`, and `chainsaw` are fetched automatically into
   `tools/bin/` the first time they're needed.
-- `jq` on your `PATH` (used by fixtures that assert on JSON probe output).
+- `jq` on your `PATH` (used by the probe scripts to parse kat-client JSON).
   Preinstalled on GitHub runners; `brew install jq` on macOS.
 
-The `grpc-basic` fixture uses the in-tree `kat-client` as its probe and
-`kat-server` as its backend — `make e2e/run` builds `kat-client` as a host
-binary at `tools/bin/kat-client`, and `kat-server`'s image is the one
-produced by `make images`.
+The fixtures use the in-tree `kat-client` as the probe and `kat-server` as
+the backend. `make e2e/run` builds `kat-client` as a host binary at
+`tools/bin/kat-client`, and `kat-server`'s image is the one produced by
+`make images`.
 
 ### Full cycle from scratch
 
@@ -52,13 +59,13 @@ make e2e/local
 ```
 
 This runs, in order:
-1. `e2e/cluster-up` — create a k3d cluster named `emissary-e2e` with ports
+1. `e2e/cluster-up` creates a k3d cluster named `emissary-e2e` with ports
    80/443 (HTTP fixtures) and 6789 (TCPMapping fixtures) mapped to the host
    loadbalancer and Traefik disabled.
-2. `make images` — build Emissary's container images via goreleaser snapshot.
-3. `e2e/install` — import images into k3d, then `helm install` the CRDs chart
+2. `make images` builds Emissary's container images via goreleaser snapshot.
+3. `e2e/install` imports images into k3d, then `helm install`s the CRDs chart
    and the ingress chart pinned to the locally-built image tag.
-4. `e2e/run` — execute `run.sh` against the live cluster.
+4. `e2e/run` invokes `chainsaw test` against `test/e2e/fixtures/`.
 
 ### Iterating
 
@@ -81,12 +88,12 @@ make images && make VERSION=v4.0.0-local e2e/install
 > Invalid value: ... must be no more than 63 characters`. `make e2e/local`
 > applies this override for you automatically; `make e2e/install` on its own
 > does not, so pass it explicitly (or set `E2E_LOCAL_VERSION` in the
-> environment). Use any short string — `v4.0.0-local` is just the default.
+> environment). Use any short string. `v4.0.0-local` is just the default.
 
 > **Adding a new edge port?** k3d's published ports are fixed at cluster
 > creation time. If you add a port to `e2e/cluster-up` (or want the existing
 > 6789 on a cluster you created before it was added), you have to
-> `make e2e/cluster-down && make e2e/cluster-up` to pick it up — `helm
+> `make e2e/cluster-down && make e2e/cluster-up` to pick it up. `helm
 > upgrade` alone won't get traffic in.
 
 ### Teardown
@@ -102,32 +109,46 @@ All have sensible defaults; override on the command line as needed:
 | Variable             | Default                | Purpose                                  |
 |----------------------|------------------------|------------------------------------------|
 | `E2E_CLUSTER`        | `emissary-e2e`         | k3d cluster name                         |
-| `E2E_NAMESPACE`      | `emissary`             | namespace for ingress + fixtures         |
+| `E2E_NAMESPACE`      | `emissary`             | namespace for the Emissary install       |
 | `E2E_CRD_NAMESPACE`  | `emissary-system`      | namespace for the CRDs chart             |
-| `E2E_GATEWAY_URL`    | `http://localhost`     | URL `verify.sh` probes                   |
+| `E2E_GATEWAY_URL`    | `http://localhost`     | URL the probes target                    |
 | `E2E_LOCAL_VERSION`  | `v4.0.0-local`         | short chart VERSION (dirty trees produce strings longer than k8s' 63-char label limit) |
-| `VERIFY_TIMEOUT`     | `120` (run.sh env)     | per-fixture verify timeout in seconds    |
+
+Per-fixture probe and apply timeouts are set in `.chainsaw.yaml` and on
+individual steps inside each `chainsaw-test.yaml`.
 
 ## Adding a new fixture
 
 1. Create `test/e2e/fixtures/<name>/`.
 2. Put the resources you want in `manifests.yaml` (Deployment, Service,
-   Mapping, whatever the scenario needs).
-3. Write `verify.sh` so that it exits 0 on success. It can assume
-   `GATEWAY_URL`, `NAMESPACE`, and `FIXTURE_DIR` are set. Retry loops are your
-   responsibility — pods take a moment to become ready.
+   Mapping, whatever the scenario needs). To reference the locally-built
+   kat-server image, use the Chainsaw binding `($kat_server_image)`:
+   ```yaml
+   image: ($kat_server_image)
+   ```
+3. Write `chainsaw-test.yaml` defining a `Test` resource with:
+   - `bindings` for the env-derived values (`kat_server_image`, `kat_client`,
+     `gateway_url`).
+   - A `try` block that `apply`s `manifests.yaml` (with `template: true` so
+     the `($kat_server_image)` substitution happens) and runs a probe via a
+     `script` step.
+   - A `catch` block that dumps pod logs, describes pods, and lists the
+     scenario's CRDs. Existing fixtures are good templates.
 4. Run `make e2e/run` and confirm it passes.
 
-No registration step is required — `run.sh` picks up every subdirectory of
-`fixtures/` that has both required files.
+No registration step is required. Chainsaw discovers every directory under
+`fixtures/` that contains a `chainsaw-test.yaml`.
 
 ## How CI runs this
 
-`.github/workflows/test-images.yaml` mirrors the local flow: it spins up k3d,
-imports the images built by `build-images`, `helm install`s the charts
-produced by `build-charts` (pinned to that same image tag), and then runs
-`test/e2e/run.sh`. On failure it dumps pod state and the last 500 lines of
-Emissary logs.
+`.github/workflows/test-images.yaml` mirrors the local flow: it spins up
+k3d, imports the images built by `build-images`, `helm install`s the charts
+produced by `build-charts` (pinned to that same image tag), installs
+`chainsaw` into `tools/bin/`, and then runs `chainsaw test
+test/e2e/fixtures`. On failure each fixture's `catch` block already dumps
+pod logs and the relevant CRDs; the workflow's separate diagnostics step
+adds cluster-wide context.
 
-The key difference from local: CI consumes pre-built image and chart artifacts
-from upstream jobs instead of running `make images` / `make charts` itself.
+The key difference from local: CI consumes pre-built image and chart
+artifacts from upstream jobs instead of running `make images` / `make
+charts` itself.
