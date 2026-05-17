@@ -123,6 +123,10 @@ from the Helm charts.
 - Fix: The diagnostics UI refers to Emissary (instead of Ambassador) and
   links to emissary-ingress.dev's docs.
 
+- Fix: The diagnostics UI no longer treats missing CRD definitions as a
+  warning, and setting `diagnostics.missing_tls_ok: true` on the
+  Ambassador Module suppresses the missing-`TLSContext` warning.
+
 - Fix: Emissary now uses the current `string_match` Envoy HeaderMatcher
   stanza rather than the deprecated `exact_match` stanza.
 
