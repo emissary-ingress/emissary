@@ -4,7 +4,7 @@
 
 ######## Envoy
 
-FROM envoyproxy/envoy:distroless-v1.35.9 as envoy-factory
+FROM envoyproxy/envoy:distroless-v1.35.11 as envoy-factory
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH
