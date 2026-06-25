@@ -249,7 +249,9 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 				dlog.Errorf(ctx, "error parsing module: %v", err)
 				continue
 			}
-			secretNamespacing = secs.Defaults.TLSSecretNamespacing
+			if secs.Defaults.TLSSecretNamespacing != nil {
+				secretNamespacing = *secs.Defaults.TLSSecretNamespacing
+			}
 			break
 		}
 	}
@@ -425,7 +427,7 @@ func secretRef(namespace, name string, secretNamespacing bool, action func(snaps
 // but... yeah.
 type ModuleSecrets struct {
 	Defaults struct {
-		TLSSecretNamespacing bool `json:"tls_secret_namespacing"`
+		TLSSecretNamespacing *bool `json:"tls_secret_namespacing"`
 	} `json:"defaults"`
 	Upstream struct {
 		Secret string `json:"secret"`
