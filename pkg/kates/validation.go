@@ -135,6 +135,9 @@ func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (validation.S
 				tmVersion := path.Base(tm.APIVersion)
 				for _, version := range crd.Spec.Versions {
 					if version.Name == tmVersion {
+						if version.Schema == nil {
+							break
+						}
 						validator, _, err = validation.NewSchemaValidator(version.Schema.OpenAPIV3Schema)
 						if err != nil {
 							return nil, err
