@@ -32,29 +32,53 @@ func GetAmbID(ctx context.Context, resource kates.Object) amb.AmbassadorID {
 		return id
 
 	case *amb.Mapping:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.TCPMapping:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.Module:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.TLSContext:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.AuthService:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.RateLimitService:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.LogService:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.TracingService:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.DevPortal:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.ConsulResolver:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.KubernetesEndpointResolver:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	case *amb.KubernetesServiceResolver:
-		return r.Spec.AmbassadorID
+		if r.Spec != nil {
+			return r.Spec.AmbassadorID
+		}
 	}
 
 	ann := resource.GetAnnotations()
