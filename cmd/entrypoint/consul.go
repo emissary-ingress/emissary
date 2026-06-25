@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 	"sync"
+	"sync/atomic"
 
 	consulapi "github.com/hashicorp/consul/api"
 
@@ -63,7 +64,7 @@ func ReconcileConsul(ctx context.Context, consulWatcher *consulWatcher, s *snaps
 type consulWatcher struct {
 	watchFunc                 watchConsulFunc
 	resolvers                 map[string]*resolver
-	firstReconcileHasHappened bool
+	firstReconcileHasHappened atomic.Bool
 
 	// The changed method returns this channel. We write down this channel to signal that a new
 	// snapshot is available since the last time the update method was invoke.
@@ -134,7 +135,7 @@ func (c *consulWatcher) update(snap *snapshotTypes.ConsulSnapshot) {
 }
 
 func (c *consulWatcher) isBootstrapped() bool {
-	if !c.firstReconcileHasHappened {
+	if !c.firstReconcileHasHappened.Load() {
 		return false
 	}
 	c.mutex.Lock()
@@ -242,8 +243,8 @@ func (c *consulWatcher) reconcile(ctx context.Context, resolvers []*amb.ConsulRe
 
 	// If this is the first time we are reconciling, we need to compute conditions for being
 	// bootstrapped.
-	if !c.firstReconcileHasHappened {
-		c.firstReconcileHasHappened = true
+	if !c.firstReconcileHasHappened.Load() {
+		c.firstReconcileHasHappened.Store(true)
 		var keysForBootstrap []string
 		for _, mappings := range mappingsByResolver {
 			for _, m := range mappings {
