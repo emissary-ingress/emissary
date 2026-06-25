@@ -182,9 +182,7 @@ func (fsw *FSWatcher) Run(ctx context.Context) {
 			if fsw.cTimer != nil {
 				dlog.Debugf(ctx, "FSW: stopping cTimer")
 
-				if !fsw.cTimer.Stop() {
-					<-fsw.cTimer.C
-				}
+				fsw.cTimer.Stop()
 			}
 
 			dlog.Debugf(ctx, "FSW: starting cTimer")
