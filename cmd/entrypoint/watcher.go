@@ -346,13 +346,21 @@ type SnapshotHolder struct {
 func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) (*SnapshotHolder, error) {
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Gateway", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
-		return gateway.Compile_Gateway(untyped.(*gw.Gateway))
+		obj, ok := untyped.(*gw.Gateway)
+		if !ok {
+			return nil, fmt.Errorf("unexpected type %T, expected *Gateway", untyped)
+		}
+		return gateway.Compile_Gateway(obj)
 	})
 	if err != nil {
 		return nil, err
 	}
 	err = disp.Register("HTTPRoute", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
-		return gateway.Compile_HTTPRoute(untyped.(*gw.HTTPRoute))
+		obj, ok := untyped.(*gw.HTTPRoute)
+		if !ok {
+			return nil, fmt.Errorf("unexpected type %T, expected *HTTPRoute", untyped)
+		}
+		return gateway.Compile_HTTPRoute(obj)
 	})
 	if err != nil {
 		return nil, err
