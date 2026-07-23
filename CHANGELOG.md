@@ -8,9 +8,8 @@ as the Ambassador API Gateway.
 
 ## Emissary v4 Release Notes
 
-## [Not Yet Released]
-
-### Changes
+## [4.1.0] 1 May 2026
+[4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
 - Update: Upgrade from Envoy 1.36.2 to Envoy 1.37.2 ([1.37.0 release notes],
   [1.37.1 release notes], [1.37.2 release notes]).
@@ -23,9 +22,10 @@ as the Ambassador API Gateway.
   cache is present but the incoming snapshot has no deltas. Previously,
   an empty-delta snapshot with a cached entry kept the stale entry around
   until another delta happened to arrive, which caused the Istio mTLS
-  cert-rotation failure described in [#4744] (the rotated `istio-certs`
-  Secret never produces a delta, since it doesn't map to a K8s resource)
-  (thanks, [Jonathan Bailey]!).
+  cert-rotation failure described in [#4744] (thanks, [Jonathan Bailey]!).
+
+[#4744]: https://github.com/emissary-ingress/emissary/issues/4744
+[Jonathan Bailey]: https://github.com/jonathanelbailey
 
 ## [4.0.1] 26 March 2026
 [4.0.1]: https://github.com/emissary-ingress/emissary/compare/v3.10.0...v4.0.1
