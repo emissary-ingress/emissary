@@ -20,9 +20,12 @@ def _test_router(yaml, expectations={}):
 
         http_route_filter = http_filters[-1]
 
-        # If we expect nothing, then the typed config should be missing entirely.
+        # If we expect nothing, then typed_config should contain only the @type
+        # (no extra fields), because Envoy now requires typed_config on all filters.
         if len(expectations) == 0:
-            assert "typed_config" not in http_route_filter
+            if "typed_config" in http_route_filter:
+                tc = http_route_filter["typed_config"]
+                assert list(tc.keys()) == ["@type"], f"unexpected router typed_config keys: {tc}"
             return
 
         assert "typed_config" in http_route_filter
