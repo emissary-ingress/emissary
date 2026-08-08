@@ -33,6 +33,15 @@ from the Helm charts.
   you'll now see an error posted if you try to use it. (This shouldn't affect anyone
   running Emissary.)
 
+- Fix: `apiext` now eagerly generates its webhook server certificate for its
+  well-known Service hostname as part of its readiness check, rather than
+  generating it lazily on the first incoming TLS handshake. Previously, the
+  first CRD-conversion request from the Kubernetes apiserver after `apiext`
+  reported itself ready could be the one paying for certificate generation,
+  occasionally causing that request to time out ([#4275]).
+
+[#4275]: https://github.com/emissary-ingress/emissary/issues/4275
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
