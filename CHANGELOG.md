@@ -8,6 +8,13 @@ as the Ambassador API Gateway.
 
 ## Emissary v4 Release Notes
 
+## [TBD] TBD
+[TBD]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...TBD
+
+- Fix: Completely disable the Ambassador Labs `error_response_overrides` mechanism;
+  you'll now see an error posted if you try to use it. (This shouldn't affect anyone
+  running Emissary.)
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
