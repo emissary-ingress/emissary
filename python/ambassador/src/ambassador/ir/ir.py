@@ -414,7 +414,7 @@ class IR:
             self.save_filter(self.ratelimit, already_saved=True)
 
         # error_response_overrides is not supported in Emissary 4.
-        if self.ambassador_module.get("error_response_overrides", None):
+        if "error_response_overrides" in self.ambassador_module:
             self.post_error(
                 "error_response_overrides is not supported in Emissary 4 and will be ignored",
                 resource=self.ambassador_module,
