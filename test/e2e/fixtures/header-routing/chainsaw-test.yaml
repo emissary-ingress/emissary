@@ -1,9 +1,16 @@
+---
+# Port of KAT's tests/kat/t_headerrouting.py::HeaderRoutingTest.
+#
+# KAT:      queries() yields two Query objects, check() asserts on
+#           results[N].backend.name.
+# Chainsaw: queries.json holds the same two queries, and the jq expression
+#           below is the check().
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
     flavor: default
-  name: grpc-basic
+  name: header-routing
 spec:
   bindings:
     - name: kat_server_image
@@ -28,14 +35,19 @@ spec:
             content: |
               ../../probe.sh queries.json '
                 .[0].result.status == 200 and
-                .[0].result.headers["Grpc-Status"][0] == "0"
+                .[0].result.json.backend == "hr-target1" and
+                .[1].result.status == 200 and
+                .[1].result.json.backend == "hr-target2"
               '
       catch:
         - describe:
             apiVersion: v1
             kind: Pod
         - podLogs:
-            selector: app=grpc-echo
+            selector: app=hr-target1
+            tail: 200
+        - podLogs:
+            selector: app=hr-target2
             tail: 200
         - get:
             apiVersion: getambassador.io/v3alpha1

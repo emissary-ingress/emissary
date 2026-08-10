@@ -1,9 +1,16 @@
+---
+# Port of KAT's tests/kat/t_gzip.py::GzipNotSupportedContentTypeTest.
+#
+# This one asserts an *absence*, so it needs the route to actually be live
+# first -- otherwise a 404 from an unconfigured Emissary would satisfy
+# "no Content-Encoding header" and the test would pass for the wrong reason.
+# Hence the status check ANDed in front.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: default
-  name: grpc-basic
+    flavor: f3
+  name: gzip-unsupported-content-type
 spec:
   bindings:
     - name: kat_server_image
@@ -28,18 +35,22 @@ spec:
             content: |
               ../../probe.sh queries.json '
                 .[0].result.status == 200 and
-                .[0].result.headers["Grpc-Status"][0] == "0"
+                .[0].result.json.backend == "gzip-unsup-echo" and
+                (.[0].result.headers | has("Content-Encoding") | not)
               '
       catch:
         - describe:
             apiVersion: v1
             kind: Pod
         - podLogs:
-            selector: app=grpc-echo
+            selector: app=gzip-unsup-echo
             tail: 200
+        - get:
+            apiVersion: getambassador.io/v3alpha1
+            kind: Module
         - get:
             apiVersion: getambassador.io/v3alpha1
             kind: Mapping
         - script:
             content: |
-              kubectl -n emissary logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true
+              kubectl -n emissary-f3 logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true

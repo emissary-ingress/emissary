@@ -12,10 +12,10 @@ spec:
         generateName: e2e-
   execution:
     failFast: false
-    # Tests share one Emissary instance and one set of edge ports. Routes from
-    # different tests would coexist in the same Envoy config, so run serially
-    # to keep failures attributable. Bump this once the fixtures are proven
-    # independent.
+    # Overridden per shard by `make e2e/run`, which passes --parallel: the
+    # `default` flavor's tests overlap freely, while each pinned flavor runs
+    # serially because its tests take turns owning that Emissary's global
+    # config. This value only applies when chainsaw is invoked directly.
     parallel: 1
   cleanup:
     skipDelete: false

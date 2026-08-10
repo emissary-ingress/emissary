@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gzip-min-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gzip-min-echo
+  template:
+    metadata:
+      labels:
+        app: gzip-min-echo
+    spec:
+      containers:
+        - name: kat-server
+          image: ($kat_server_image)
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: gzip-min-echo
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gzip-min-echo
+spec:
+  selector:
+    app: gzip-min-echo
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+# The Module is global to one Emissary instance, which is why this fixture is
+# pinned to a flavor. `ambassador_id` is what binds it to that instance; the
+# Module store is keyed by name alone, so this works from any namespace.
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: ["f1"]
+  config:
+    gzip:
+      enabled: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: gzip-min-target
+spec:
+  ambassador_id: ["f1"]
+  hostname: "*"
+  prefix: /target/
+  service: gzip-min-echo:8080

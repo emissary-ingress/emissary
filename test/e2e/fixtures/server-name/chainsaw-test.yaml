@@ -1,9 +1,11 @@
+---
+# Port of KAT's tests/kat/t_basics.py::ServerNameTest.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: default
-  name: grpc-basic
+    flavor: f4
+  name: server-name
 spec:
   bindings:
     - name: kat_server_image
@@ -27,19 +29,22 @@ spec:
                 value: ($gateway_url)
             content: |
               ../../probe.sh queries.json '
-                .[0].result.status == 200 and
-                .[0].result.headers["Grpc-Status"][0] == "0"
+                .[0].result.status == 301 and
+                .[0].result.headers["Server"][0] == "test-server"
               '
       catch:
         - describe:
             apiVersion: v1
             kind: Pod
         - podLogs:
-            selector: app=grpc-echo
+            selector: app=server-name-echo
             tail: 200
+        - get:
+            apiVersion: getambassador.io/v3alpha1
+            kind: Module
         - get:
             apiVersion: getambassador.io/v3alpha1
             kind: Mapping
         - script:
             content: |
-              kubectl -n emissary logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true
+              kubectl -n emissary-f4 logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true

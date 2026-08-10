@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-name-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server-name-echo
+  template:
+    metadata:
+      labels:
+        app: server-name-echo
+    spec:
+      containers:
+        - name: kat-server
+          image: ($kat_server_image)
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: server-name-echo
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-name-echo
+spec:
+  selector:
+    app: server-name-echo
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: ["f4"]
+  config:
+    server_name: "test-server"
+---
+# Prefix has no trailing slash on purpose: requesting /server-name/ makes
+# Envoy emit its own 301, which is the response the Server header is read off.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: server-name-target
+spec:
+  ambassador_id: ["f4"]
+  hostname: "*"
+  prefix: /server-name
+  service: server-name-echo:8080
