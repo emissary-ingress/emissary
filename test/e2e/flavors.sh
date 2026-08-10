@@ -46,12 +46,26 @@ cmd_install() {
     local repo="${2:?missing image repo}"
     local tag="${3:?missing image tag}"
 
-    # module.enabled=false matters: the chart otherwise ships a Module named
+    # Two overrides keep a flavor from colliding with the base release:
+    #
+    # module.enabled=false -- the chart otherwise ships a Module named
     # `ambassador` carrying this flavor's ambassador_id. Emissary keys its
     # module store by name alone, so that one would collide with the Module a
-    # fixture creates -- Config.safe_store renames the loser to
+    # fixture creates: Config.safe_store renames the loser to
     # `ambassador.<namespace>` and get_module("ambassador") then returns
     # whichever won the race, silently dropping the fixture's config.
+    #
+    # ingressClassResource.name -- IngressClass is cluster-scoped and the chart
+    # names it from a fixed value, so a second release dies with "cannot be
+    # imported into the current release". It is the chart's only cluster-scoped
+    # resource that isn't already release-scoped. The template stamps
+    # getambassador.io/ambassador-id onto it, so a per-flavor name stays usable
+    # by any future Ingress fixture.
+    #
+    # NOTE: `helm template` hides the IngressClass unless you pass
+    # `--api-versions networking.k8s.io/v1/IngressClass`, because the template
+    # is gated on .Capabilities. Verifying a flavor render without that flag
+    # will not show this collision.
     for f in $FLAVORS; do
         local name="${f%%:*}" base="${f##*:}"
         echo "+ installing flavor '${name}' (http=${base} https=$((base + 1)) tcp=$((base + 2)))"
@@ -64,6 +78,7 @@ cmd_install() {
             --set createDefaultListeners=true \
             --set env.AMBASSADOR_ID="$name" \
             --set module.enabled=false \
+            --set ingressClassResource.name="ambassador-${name}" \
             --set "service.ports[0].name=http" \
             --set "service.ports[0].port=${base}" \
             --set "service.ports[0].targetPort=8080" \
