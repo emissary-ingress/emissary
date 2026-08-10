@@ -6,11 +6,35 @@
 and ingress controller. It is a CNCF Incubating project, formerly known
 as the Ambassador API Gateway.
 
+### Quickstart
+
+Emissary v4 supports both AMD64 and ARM64 architectures. To install
+Emissary v4 using Helm, follow the instructions in the [Emissary
+Quickstart](https://emissary-ingress.dev/docs/4.0/quick-start/).
+
+Emissary provides two Helm charts:
+
+- `ghcr.io/emissary-ingress/emissary-crds-chart` is the chart for
+  Emissary's CRDs.
+
+- `ghcr.io/emissary-ingress/emissary-ingress` is the chart for
+  Emissary itself.
+
+The Emissary project recommends using Helm to install Emissary. If you
+need YAML instead, use `helm template` to generate the YAML manifests
+from the Helm charts.
+
 ## Emissary v4 Release Notes
 
-## [Not Yet Released]
+## [TBD] TBD
+[TBD]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...TBD
 
-### Changes
+- Fix: Completely disable the Ambassador Labs `error_response_overrides` mechanism;
+  you'll now see an error posted if you try to use it. (This shouldn't affect anyone
+  running Emissary.)
+
+## [4.1.0] 1 May 2026
+[4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
 - Update: Upgrade from Envoy 1.36.2 to Envoy 1.37.2 ([1.37.0 release notes],
   [1.37.1 release notes], [1.37.2 release notes]).
@@ -23,9 +47,10 @@ as the Ambassador API Gateway.
   cache is present but the incoming snapshot has no deltas. Previously,
   an empty-delta snapshot with a cached entry kept the stale entry around
   until another delta happened to arrive, which caused the Istio mTLS
-  cert-rotation failure described in [#4744] (the rotated `istio-certs`
-  Secret never produces a delta, since it doesn't map to a K8s resource)
-  (thanks, [Jonathan Bailey]!).
+  cert-rotation failure described in [#4744] (thanks, [Jonathan Bailey]!).
+
+[#4744]: https://github.com/emissary-ingress/emissary/issues/4744
+[Jonathan Bailey]: https://github.com/jonathanelbailey
 
 ## [4.0.1] 26 March 2026
 [4.0.1]: https://github.com/emissary-ingress/emissary/compare/v3.10.0...v4.0.1
