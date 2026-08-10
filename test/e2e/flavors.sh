@@ -23,17 +23,32 @@
 # flavor list and its port math have exactly one definition.
 set -euo pipefail
 
-# <name>:<port-base>. A flavor owns <base>+0 (http), +1 (https), +2 (tcp).
-# k3d fixes published ports at cluster-creation time and the cluster reserves
-# 8100-8159, so six flavors fit; a seventh needs the cluster recreated.
-FLAVORS="${E2E_FLAVORS:-f1:8110 f2:8120 f3:8130 f4:8140}"
+# <name>:<port-base>. A slot owns <base>+0 (http), +1 (https), +2 (tcp), with a
+# 4-port stride. k3d fixes published ports at cluster-creation time and the
+# cluster reserves 8100-8159, so 15 slots fit before the range has to widen
+# *and* the cluster be recreated.
+#
+# Slots are deliberately anonymous. Nothing distinguishes one from another
+# except its ports -- all the config (Module, AuthService, ...) comes from the
+# fixture's own CRDs at runtime, so any pinned fixture could run on any slot.
+# Naming them after what they test would encode a property they don't have.
+# Genuine presets (an Emissary differing in container env, e.g. one with
+# AMBASSADOR_SINGLE_NAMESPACE or LUA_SCRIPTS_ENABLED) do differ from each other
+# and should get real names when they arrive: `single-namespace:8156`.
+#
+# Sizing: at ~28s per fixture, N slots clear the flavor-pinned backlog in
+# (count/N * 28)s. Returns flatten past N=8, where the `default` shard becomes
+# the constraint instead. The ceiling is runner CPU, not ports -- the chart
+# requests 200m per Emissary and a standard 4-vCPU runner leaves room for
+# roughly 16, so 8-12 is the practical band.
+FLAVORS="${E2E_FLAVORS:-slot1:8100 slot2:8104 slot3:8108 slot4:8112 slot5:8116 slot6:8120 slot7:8124 slot8:8128}"
 
 # `default` is the plain install on 80/443/6789 with no AMBASSADOR_ID. It picks
 # up CRDs that set no ambassador_id, so fixtures needing no global config
-# target it and can overlap freely.
+# target it and can overlap freely -- hence a parallelism well above 1.
 NAMESPACE="${E2E_NAMESPACE:-emissary}"
 GATEWAY_URL="${E2E_GATEWAY_URL:-http://localhost}"
-DEFAULT_PARALLEL="${E2E_DEFAULT_PARALLEL:-4}"
+DEFAULT_PARALLEL="${E2E_DEFAULT_PARALLEL:-8}"
 
 cmd_list() {
     for f in $FLAVORS; do
@@ -66,9 +81,17 @@ cmd_install() {
     # `--api-versions networking.k8s.io/v1/IngressClass`, because the template
     # is gated on .Capabilities. Verifying a flavor render without that flag
     # will not show this collision.
-    for f in $FLAVORS; do
-        local name="${f%%:*}" base="${f##*:}"
-        echo "+ installing flavor '${name}' (http=${base} https=$((base + 1)) tcp=$((base + 2)))"
+    # Installs run concurrently. They're independent helm releases into separate
+    # namespaces, and each spends nearly all its ~35s blocked in `--wait`, so
+    # serialising them made setup the most expensive step in the job (141s for
+    # four, against 32s to actually run the fixtures) and made every extra slot
+    # cost another 35s. Output is buffered per slot so the logs stay readable.
+    local logdir pids=() names=()
+    logdir="$(mktemp -d)"
+
+    install_one() {
+        local name="$1" base="$2"
+        set +e
         helm upgrade --install "emissary-${name}" "$chart" \
             --namespace "${NAMESPACE}-${name}" --create-namespace \
             --set image.repository="$repo" \
@@ -89,10 +112,36 @@ cmd_install() {
             --set "service.ports[2].port=$((base + 2))" \
             --set "service.ports[2].targetPort=6789" \
             --set "service.ports[2].protocol=TCP" \
-            --wait --timeout 3m
-        kubectl -n "${NAMESPACE}-${name}" \
-            rollout status "deploy/emissary-${name}" --timeout=2m
+            --wait --timeout 5m \
+            && kubectl -n "${NAMESPACE}-${name}" \
+                rollout status "deploy/emissary-${name}" --timeout=2m
+        echo "$?" >"${logdir}/${name}.rc"
+        set -e
+    }
+
+    for f in $FLAVORS; do
+        local name="${f%%:*}" base="${f##*:}"
+        echo "+ installing slot '${name}' (http=${base} https=$((base + 1)) tcp=$((base + 2)))"
+        install_one "$name" "$base" >"${logdir}/${name}.log" 2>&1 &
+        pids+=("$!"); names+=("$name")
     done
+
+    wait "${pids[@]}"
+
+    local rc=0 src
+    for name in "${names[@]}"; do
+        src="$(cat "${logdir}/${name}.rc" 2>/dev/null || echo 1)"
+        if [[ "$src" -ne 0 ]]; then
+            echo "==================== slot ${name} FAILED (rc=${src}) ====================" >&2
+            cat "${logdir}/${name}.log" >&2
+            rc=1
+        else
+            echo "+ slot '${name}' ready"
+        fi
+    done
+
+    rm -rf "$logdir"
+    return "$rc"
 }
 
 cmd_uninstall() {

@@ -46,7 +46,7 @@ kind: Module
 metadata:
   name: ambassador
 spec:
-  ambassador_id: ["f3"]
+  ambassador_id: ["slot3"]
   config:
     gzip:
       min_content_length: 32
@@ -58,7 +58,7 @@ kind: Mapping
 metadata:
   name: gzip-unsup-target
 spec:
-  ambassador_id: ["f3"]
+  ambassador_id: ["slot3"]
   hostname: "*"
   prefix: /target/
   service: gzip-unsup-echo:8080

@@ -44,7 +44,7 @@ kind: Module
 metadata:
   name: ambassador
 spec:
-  ambassador_id: ["f4"]
+  ambassador_id: ["slot4"]
   config:
     server_name: "test-server"
 ---
@@ -55,7 +55,7 @@ kind: Mapping
 metadata:
   name: server-name-target
 spec:
-  ambassador_id: ["f4"]
+  ambassador_id: ["slot4"]
   hostname: "*"
   prefix: /server-name
   service: server-name-echo:8080

@@ -41,27 +41,38 @@ A **flavor** is a pre-baked, isolated Emissary install. Isolation is by
 with `env.AMBASSADOR_ID` set, which also makes the chart stamp the matching
 `ambassador_id` onto its default Listeners.
 
-| Flavor    | Namespace      | `AMBASSADOR_ID` | http | https | tcp  |
-|-----------|----------------|-----------------|------|-------|------|
-| `default` | `emissary`     | *(unset)*       | 80   | 443   | 6789 |
-| `f1`      | `emissary-f1`  | `f1`            | 8110 | 8111  | 8112 |
-| `f2`      | `emissary-f2`  | `f2`            | 8120 | 8121  | 8122 |
-| `f3`      | `emissary-f3`  | `f3`            | 8130 | 8131  | 8132 |
-| `f4`      | `emissary-f4`  | `f4`            | 8140 | 8141  | 8142 |
+| Flavor    | Namespace        | `AMBASSADOR_ID` | http | https | tcp  |
+|-----------|------------------|-----------------|------|-------|------|
+| `default` | `emissary`       | *(unset)*       | 80   | 443   | 6789 |
+| `slot1`   | `emissary-slot1` | `slot1`         | 8100 | 8101  | 8102 |
+| `slot2`   | `emissary-slot2` | `slot2`         | 8104 | 8105  | 8106 |
+| ...       |                  |                 |      |       |      |
+| `slot8`   | `emissary-slot8` | `slot8`         | 8128 | 8129  | 8130 |
+
+The numbered slots are **anonymous and interchangeable**. Nothing distinguishes
+one from another except its ports; all the config comes from the fixture's own
+CRDs at runtime, so any pinned fixture could run on any free slot. They are
+deliberately not named after what they test, because that would encode a
+property they don't have.
+
+A genuine *preset* -- an Emissary that differs in container env rather than
+CRDs, e.g. `AMBASSADOR_SINGLE_NAMESPACE` or `LUA_SCRIPTS_ENABLED` -- really
+does differ from its peers, and a fixture can only run on the matching one.
+Those should get real names (`single-namespace:8156`) when they arrive.
 
 Every fixture declares which one it runs on:
 
 ```yaml
 metadata:
   labels:
-    flavor: f1
+    flavor: slot1
 ```
 
 and every Emissary CRD it creates repeats that id:
 
 ```yaml
 spec:
-  ambassador_id: ["f1"]
+  ambassador_id: ["slot1"]
 ```
 
 **Which flavor should a fixture use?**
@@ -86,9 +97,18 @@ shard's selector and be skipped in silence.
 > therefore installed with `--set module.enabled=false`, which leaves the
 > fixture's own Module as the only one carrying that `ambassador_id`.
 
-> **Adding a flavor.** Edit `FLAVORS` in `flavors.sh`. Ports come out of the
-> `8100-8159` block k3d publishes at cluster-creation time, so up to six fit;
-> a seventh needs the range widened *and* the cluster recreated.
+> **Adding a slot.** Edit `FLAVORS` in `flavors.sh`. Ports come out of the
+> `8100-8159` block k3d publishes at cluster-creation time; at the 4-port
+> stride that holds 15 slots, and going past that needs the range widened
+> *and* the cluster recreated.
+>
+> Slots install concurrently, so adding one costs wall-clock only if it pushes
+> the runner past its CPU budget. Sizing: at ~28s per fixture, N slots clear
+> the pinned backlog in `(count / N) * 28`s. Returns flatten past N=8, where
+> the `default` shard becomes the constraint instead -- raise
+> `E2E_DEFAULT_PARALLEL` before adding a ninth slot. The hard ceiling is runner
+> CPU (the chart requests `200m` per Emissary; a 4-vCPU runner fits ~16), so
+> 8-12 is the practical band.
 
 The probe step shells out to `probe.sh`, which runs the host-built
 `kat-client` binary against `$GATEWAY_URL` and retries until a `jq` assertion
@@ -167,7 +187,7 @@ Once the cluster is up and Emissary is installed, you usually only need:
 
 ```
 make e2e/run              # re-run every fixture, sharded by flavor
-make e2e/run/gzip-minimum # re-run one fixture (flavor read from the file)
+make e2e/run/gzip-minimum # re-run one fixture (slot read from the file)
 ```
 
 If you changed code and want to redeploy without recreating the cluster:
@@ -214,8 +234,8 @@ All have sensible defaults; override on the command line as needed:
 | `E2E_CRD_NAMESPACE`  | `emissary-system`      | namespace for the CRDs chart             |
 | `E2E_GATEWAY_URL`    | `http://localhost`     | host the probes target (flavor ports are appended) |
 | `E2E_LOCAL_VERSION`  | `v4.0.0-local`         | short chart VERSION (dirty trees produce strings longer than k8s' 63-char label limit) |
-| `E2E_FLAVORS`        | `f1:8110 ... f4:8140`  | `<name>:<port-base>` list of isolated Emissary installs |
-| `E2E_DEFAULT_PARALLEL` | `4`                  | how many `default`-flavor fixtures run at once |
+| `E2E_FLAVORS`        | `slot1:8100 ... slot8:8128` | `<name>:<port-base>` list of isolated Emissary installs |
+| `E2E_DEFAULT_PARALLEL` | `8`                  | how many `default`-flavor fixtures run at once |
 
 Per-fixture probe and apply timeouts are set in `.chainsaw.yaml` and on
 individual steps inside each `chainsaw-test.yaml`.

@@ -2,12 +2,12 @@
 # Port of KAT's tests/kat/t_gzip.py::GzipMinimumConfigTest.
 #
 # Needs its own Emissary because it sets the global `ambassador` Module, hence
-# the flavor pin. Only one fixture at a time runs on flavor f1.
+# the slot pin. Only one fixture at a time runs on slot1.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: f1
+    flavor: slot1
   name: gzip-minimum
 spec:
   bindings:
@@ -50,4 +50,4 @@ spec:
             kind: Mapping
         - script:
             content: |
-              kubectl -n emissary-f1 logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true
+              kubectl -n emissary-slot1 logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true

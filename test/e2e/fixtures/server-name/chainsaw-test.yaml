@@ -4,7 +4,7 @@ apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: f4
+    flavor: slot4
   name: server-name
 spec:
   bindings:
@@ -47,4 +47,4 @@ spec:
             kind: Mapping
         - script:
             content: |
-              kubectl -n emissary-f4 logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true
+              kubectl -n emissary-slot4 logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true
