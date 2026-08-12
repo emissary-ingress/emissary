@@ -19,6 +19,44 @@ spec:
     parallel: 1
   cleanup:
     skipDelete: false
+  # Diagnostics dumped when a test fails. These run for every fixture, and a
+  # test-level `catch` appends to them rather than replacing them, so a fixture
+  # only needs its own `catch` for something genuinely unusual.
+  #
+  # Everything here is namespace-scoped to the failing test's own namespace,
+  # except the Emissary logs. Which slot a fixture is pinned to isn't knowable
+  # from here, so the script walks every Emissary namespace. That is slightly
+  # noisier than the per-fixture `kubectl -n emissary-slotN` it replaces, but
+  # it cannot silently point at the wrong slot -- which a copy-pasted fixture
+  # very easily could.
+  error:
+    catch:
+      - describe:
+          apiVersion: v1
+          kind: Pod
+      - podLogs:
+          tail: 200
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: Mapping
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: Module
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: TCPMapping
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: Host
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: Listener
+      - script:
+          content: |
+            for ns in $(kubectl get ns -o name | sed 's|namespace/||' | grep '^emissary'); do
+              echo "==================== emissary logs: ${ns} ===================="
+              kubectl -n "${ns}" logs -l app.kubernetes.io/name=emissary-ingress --tail=100 || true
+            done
   timeouts:
     apply: 30s
     assert: 2m

@@ -12,15 +12,11 @@ metadata:
     slot: slot3
   name: gzip-unsupported-content-type
 spec:
-  bindings:
-    - name: kat_server_image
-      value: (env('KAT_SERVER_IMAGE'))
   steps:
     - name: apply-and-probe
       try:
         - apply:
             file: manifests.yaml
-            template: true
         - script:
             timeout: 2m
             content: |
@@ -29,19 +25,3 @@ spec:
                 .[0].result.json.backend == "gzip-unsup-echo" and
                 (.[0].result.headers | has("Content-Encoding") | not)
               '
-      catch:
-        - describe:
-            apiVersion: v1
-            kind: Pod
-        - podLogs:
-            selector: app=gzip-unsup-echo
-            tail: 200
-        - get:
-            apiVersion: getambassador.io/v3alpha1
-            kind: Module
-        - get:
-            apiVersion: getambassador.io/v3alpha1
-            kind: Mapping
-        - script:
-            content: |
-              kubectl -n emissary-slot3 logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true

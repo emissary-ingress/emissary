@@ -12,15 +12,11 @@ metadata:
     slot: default
   name: header-routing
 spec:
-  bindings:
-    - name: kat_server_image
-      value: (env('KAT_SERVER_IMAGE'))
   steps:
     - name: apply-and-probe
       try:
         - apply:
             file: manifests.yaml
-            template: true
         - script:
             timeout: 2m
             content: |
@@ -30,19 +26,3 @@ spec:
                 .[1].result.status == 200 and
                 .[1].result.json.backend == "hr-target2"
               '
-      catch:
-        - describe:
-            apiVersion: v1
-            kind: Pod
-        - podLogs:
-            selector: app=hr-target1
-            tail: 200
-        - podLogs:
-            selector: app=hr-target2
-            tail: 200
-        - get:
-            apiVersion: getambassador.io/v3alpha1
-            kind: Mapping
-        - script:
-            content: |
-              kubectl -n emissary logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true

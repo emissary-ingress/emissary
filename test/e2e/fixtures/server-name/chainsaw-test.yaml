@@ -7,15 +7,11 @@ metadata:
     slot: slot4
   name: server-name
 spec:
-  bindings:
-    - name: kat_server_image
-      value: (env('KAT_SERVER_IMAGE'))
   steps:
     - name: apply-and-probe
       try:
         - apply:
             file: manifests.yaml
-            template: true
         - script:
             timeout: 2m
             content: |
@@ -23,19 +19,3 @@ spec:
                 .[0].result.status == 301 and
                 .[0].result.headers["Server"][0] == "test-server"
               '
-      catch:
-        - describe:
-            apiVersion: v1
-            kind: Pod
-        - podLogs:
-            selector: app=server-name-echo
-            tail: 200
-        - get:
-            apiVersion: getambassador.io/v3alpha1
-            kind: Module
-        - get:
-            apiVersion: getambassador.io/v3alpha1
-            kind: Mapping
-        - script:
-            content: |
-              kubectl -n emissary-slot4 logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true

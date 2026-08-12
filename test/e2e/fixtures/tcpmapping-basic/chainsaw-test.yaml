@@ -5,15 +5,11 @@ metadata:
     slot: default
   name: tcpmapping-basic
 spec:
-  bindings:
-    - name: kat_server_image
-      value: (env('KAT_SERVER_IMAGE'))
   steps:
     - name: apply-and-probe
       try:
         - apply:
             file: manifests.yaml
-            template: true
         - script:
             timeout: 2m
             content: |
@@ -22,19 +18,3 @@ spec:
                 .[0].result.status == 200 and
                 .[0].result.json.backend == "tcp-echo"
               '
-      catch:
-        - describe:
-            apiVersion: v1
-            kind: Pod
-        - podLogs:
-            selector: app=tcp-echo
-            tail: 200
-        - get:
-            apiVersion: getambassador.io/v3alpha1
-            kind: TCPMapping
-        - get:
-            apiVersion: getambassador.io/v3alpha1
-            kind: Listener
-        - script:
-            content: |
-              kubectl -n emissary logs -l app.kubernetes.io/name=emissary-ingress --tail=200 || true
