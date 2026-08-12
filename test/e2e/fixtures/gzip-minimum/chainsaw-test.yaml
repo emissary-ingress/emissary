@@ -13,10 +13,6 @@ spec:
   bindings:
     - name: kat_server_image
       value: (env('KAT_SERVER_IMAGE'))
-    - name: kat_client
-      value: (env('KAT_CLIENT'))
-    - name: gateway_url
-      value: (env('GATEWAY_URL'))
   steps:
     - name: apply-and-probe
       try:
@@ -25,11 +21,6 @@ spec:
             template: true
         - script:
             timeout: 2m
-            env:
-              - name: KAT_CLIENT
-                value: ($kat_client)
-              - name: GATEWAY_URL
-                value: ($gateway_url)
             content: |
               ../../probe.sh queries.json '
                 .[0].result.status == 200 and

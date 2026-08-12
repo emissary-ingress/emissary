@@ -8,10 +8,6 @@ spec:
   bindings:
     - name: kat_server_image
       value: (env('KAT_SERVER_IMAGE'))
-    - name: kat_client
-      value: (env('KAT_CLIENT'))
-    - name: gateway_tcp_url
-      value: (env('GATEWAY_TCP_URL'))
   steps:
     - name: apply-and-probe
       try:
@@ -20,14 +16,9 @@ spec:
             template: true
         - script:
             timeout: 2m
-            env:
-              - name: KAT_CLIENT
-                value: ($kat_client)
-              # TCPMappings bind the slot's TCP edge port, not its HTTP one.
-              - name: PROBE_BASE
-                value: ($gateway_tcp_url)
             content: |
-              ../../probe.sh queries.json '
+              # TCPMappings bind the slot's TCP edge port, not its HTTP one.
+              PROBE_BASE="${GATEWAY_TCP_URL}" ../../probe.sh queries.json '
                 .[0].result.status == 200 and
                 .[0].result.json.backend == "tcp-echo"
               '
