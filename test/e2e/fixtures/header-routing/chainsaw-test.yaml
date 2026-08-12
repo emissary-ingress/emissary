@@ -9,7 +9,7 @@ apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: default
+    slot: default
   name: header-routing
 spec:
   bindings:

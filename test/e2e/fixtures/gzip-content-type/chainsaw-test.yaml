@@ -4,7 +4,7 @@ apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: slot2
+    slot: slot2
   name: gzip-content-type
 spec:
   bindings:

@@ -15,7 +15,7 @@ and is automatically torn down (with diagnostics on failure).
 test/e2e/
 ├── .chainsaw.yaml              # Chainsaw Configuration (timeouts, parallelism, namespacing)
 ├── helm-values.yaml            # values for the Emissary helm install
-├── flavors.sh                  # isolated Emissary installs + sharded runner (see below)
+├── slots.sh                  # isolated Emissary installs + sharded runner (see below)
 ├── probe.sh                    # shared retry + assert helper (see below)
 └── fixtures/
     └── <fixture-name>/
@@ -28,20 +28,20 @@ Each test gets a fresh, randomly-named namespace (`generateName: e2e-`).
 Emissary watches all namespaces, so Mappings/Listeners/TCPMappings created in
 those test namespaces are picked up automatically.
 
-## Flavors
+## Slots
 
 Most tests can't share one Emissary. A `Module`, `AuthService`,
 `RateLimitService`, `TracingService` or `LogService` configures the *whole
 instance*, so two such tests running at once would clobber each other.
 
-A **flavor** is a pre-baked, isolated Emissary install. Isolation is by
+A **slot** is a pre-baked, isolated Emissary install. Isolation is by
 `AMBASSADOR_ID`, not by namespace: an Emissary only acts on CRDs whose
 `ambassador_id` matches its own, and a CRD that omits the field defaults to
-`"default"`. So a flavor is just another helm release of the shipped chart
+`"default"`. So a slot is just another helm release of the shipped chart
 with `env.AMBASSADOR_ID` set, which also makes the chart stamp the matching
 `ambassador_id` onto its default Listeners.
 
-| Flavor    | Namespace        | `AMBASSADOR_ID` | http | https | tcp  |
+| Slot      | Namespace        | `AMBASSADOR_ID` | http | https | tcp  |
 |-----------|------------------|-----------------|------|-------|------|
 | `default` | `emissary`       | *(unset)*       | 80   | 443   | 6789 |
 | `slot1`   | `emissary-slot1` | `slot1`         | 8100 | 8101  | 8102 |
@@ -65,7 +65,7 @@ Every fixture declares which one it runs on:
 ```yaml
 metadata:
   labels:
-    flavor: slot1
+    slot: slot1
 ```
 
 and every Emissary CRD it creates repeats that id:
@@ -75,29 +75,29 @@ spec:
   ambassador_id: ["slot1"]
 ```
 
-**Which flavor should a fixture use?**
+**Which slot should a fixture use?**
 
 - **`default`** if the fixture only creates `Mapping`s, `Host`s, `TCPMapping`s
   and the like. These add no global config, so they coexist safely and the
   `default` shard runs them in parallel. Omit `ambassador_id` entirely.
-- **A numbered flavor** if the fixture creates a `Module` or any of the global
-  services. Only one fixture at a time runs on a given flavor.
+- **A numbered slot** if the fixture creates a `Module` or any of the global
+  services. Only one fixture at a time runs on a given slot.
 
-`make e2e/run` fans out one `chainsaw` process per flavor plus one for
-`default`. Each flavor's shard runs serially (`--parallel 1`); the shards run
-concurrently. `flavors.sh check` runs first and fails the suite if any fixture
-has a missing or unknown `flavor` label, since such a fixture would match no
+`make e2e/run` fans out one `chainsaw` process per slot plus one for
+`default`. Each slot's shard runs serially (`--parallel 1`); the shards run
+concurrently. `slots.sh check` runs first and fails the suite if any fixture
+has a missing or unknown `slot` label, since such a fixture would match no
 shard's selector and be skipped in silence.
 
-> **Why flavors disable the chart's Module.** The chart ships a `Module` named
+> **Why slots disable the chart's Module.** The chart ships a `Module` named
 > `ambassador` (`module.enabled: true`). Emissary keys its module store by name
 > alone, so that Module would collide with one a fixture creates: the loser is
 > renamed to `ambassador.<namespace>` and `get_module("ambassador")` then
-> returns whichever won, silently dropping the fixture's config. Flavors are
+> returns whichever won, silently dropping the fixture's config. Slots are
 > therefore installed with `--set module.enabled=false`, which leaves the
 > fixture's own Module as the only one carrying that `ambassador_id`.
 
-> **Adding a slot.** Edit `FLAVORS` in `flavors.sh`. Ports come out of the
+> **Adding a slot.** Edit `SLOTS` in `slots.sh`. Ports come out of the
 > `8100-8159` block k3d publishes at cluster-creation time; at the 4-port
 > stride that holds 15 slots, and going past that needs the range widened
 > *and* the cluster recreated.
@@ -174,19 +174,19 @@ make e2e/local
 This runs, in order:
 1. `e2e/cluster-up` creates a k3d cluster named `emissary-e2e` with ports
    80/443 (HTTP fixtures), 6789 (TCPMapping fixtures) and the `8100-8159`
-   flavor block mapped to the host loadbalancer, and Traefik disabled.
+   slot block mapped to the host loadbalancer, and Traefik disabled.
 2. `make images` builds Emissary's container images via goreleaser snapshot.
 3. `e2e/install` imports images into k3d, then `helm install`s the CRDs chart
    and the ingress chart pinned to the locally-built image tag, then
-   `e2e/install-flavors` installs one extra release per flavor.
-4. `e2e/run` shards `chainsaw test` across the flavors.
+   `e2e/install-slots` installs one extra release per slot.
+4. `e2e/run` shards `chainsaw test` across the slots.
 
 ### Iterating
 
 Once the cluster is up and Emissary is installed, you usually only need:
 
 ```
-make e2e/run              # re-run every fixture, sharded by flavor
+make e2e/run              # re-run every fixture, sharded by slot
 make e2e/run/gzip-minimum # re-run one fixture (slot read from the file)
 ```
 
@@ -207,14 +207,14 @@ make images && make VERSION=v4.0.0-local e2e/install
 
 > **Adding a new edge port?** k3d's published ports are fixed at cluster
 > creation time. If you add a port to `e2e/cluster-up` (or want the existing
-> 6789 or the `8100-8159` flavor block on a cluster you created before they
+> 6789 or the `8100-8159` slot block on a cluster you created before they
 > were added), you have to `make e2e/cluster-down && make e2e/cluster-up` to
 > pick it up. `helm upgrade` alone won't get traffic in.
 
-To reinstall just the flavors (after changing `FLAVORS` in `flavors.sh`, say):
+To reinstall just the slots (after changing `SLOTS` in `slots.sh`, say):
 
 ```
-make e2e/uninstall-flavors && make VERSION=v4.0.0-local e2e/install-flavors
+make e2e/uninstall-slots && make VERSION=v4.0.0-local e2e/install-slots
 ```
 
 ### Teardown
@@ -232,10 +232,10 @@ All have sensible defaults; override on the command line as needed:
 | `E2E_CLUSTER`        | `emissary-e2e`         | k3d cluster name                         |
 | `E2E_NAMESPACE`      | `emissary`             | namespace for the Emissary install       |
 | `E2E_CRD_NAMESPACE`  | `emissary-system`      | namespace for the CRDs chart             |
-| `E2E_GATEWAY_URL`    | `http://localhost`     | host the probes target (flavor ports are appended) |
+| `E2E_GATEWAY_URL`    | `http://localhost`     | host the probes target (slot ports are appended) |
 | `E2E_LOCAL_VERSION`  | `v4.0.0-local`         | short chart VERSION (dirty trees produce strings longer than k8s' 63-char label limit) |
-| `E2E_FLAVORS`        | `slot1:8100 ... slot8:8128` | `<name>:<port-base>` list of isolated Emissary installs |
-| `E2E_DEFAULT_PARALLEL` | `8`                  | how many `default`-flavor fixtures run at once |
+| `E2E_SLOTS`        | `slot1:8100 ... slot8:8128` | `<name>:<port-base>` list of isolated Emissary installs |
+| `E2E_DEFAULT_PARALLEL` | `8`                  | how many `default`-slot fixtures run at once |
 
 Per-fixture probe and apply timeouts are set in `.chainsaw.yaml` and on
 individual steps inside each `chainsaw-test.yaml`.
@@ -249,13 +249,13 @@ individual steps inside each `chainsaw-test.yaml`.
    ```yaml
    image: ($kat_server_image)
    ```
-3. Pick a flavor (see [Flavors](#flavors)). If the fixture creates a `Module`
-   or a global service, use a numbered flavor and put `ambassador_id: ["<f>"]`
+3. Pick a slot (see [Slots](#slots)). If the fixture creates a `Module`
+   or a global service, use a numbered slot and put `ambassador_id: ["<slot>"]`
    on every Emissary CRD in `manifests.yaml`. Otherwise use `default` and set
    no `ambassador_id`.
 4. Put the requests in `queries.json` (kat-client format, relative URLs).
 5. Write `chainsaw-test.yaml` defining a `Test` resource with:
-   - `metadata.labels.flavor` naming the flavor from step 3.
+   - `metadata.labels.slot` naming the slot from step 3.
    - `bindings` for the env-derived values (`kat_server_image`, `kat_client`,
      `gateway_url`, or `gateway_tcp_url` for TCPMapping fixtures).
    - A `try` block that `apply`s `manifests.yaml` (with `template: true` so
@@ -265,9 +265,9 @@ individual steps inside each `chainsaw-test.yaml`.
      scenario's CRDs. Existing fixtures are good templates.
 6. Run `make e2e/run/<name>` and confirm it passes.
 
-No registration step is required beyond the `flavor` label. Chainsaw discovers
+No registration step is required beyond the `slot` label. Chainsaw discovers
 every directory under `fixtures/` that contains a `chainsaw-test.yaml`, and
-`flavors.sh check` fails the suite if that label is missing or unknown.
+`slots.sh check` fails the suite if that label is missing or unknown.
 
 ### Porting a KAT test
 
@@ -283,7 +283,7 @@ piece. Each fixture's header comment names the class it came from.
 | `check()` / `assert`                       | the `jq` expression passed to `probe.sh`            |
 | `r.backend.name == "x"`                    | `.[N].result.json.backend == "x"`                   |
 | `r.headers["Server"] == ["x"]`             | `.[N].result.headers["Server"][0] == "x"`           |
-| one Emissary per test (`AMBASSADOR_ID`)    | a flavor pin                                        |
+| one Emissary per test (`AMBASSADOR_ID`)    | a slot pin                                        |
 
 When porting an assertion about an *absence* (`"X" not in r.headers`), AND in a
 positive check too. `has("X") | not` is satisfied by a 404 from an Emissary
@@ -293,14 +293,14 @@ that never picked up the route, so on its own it passes for the wrong reason.
 ## How CI runs this
 
 `.github/workflows/test-images.yaml` mirrors the local flow: it spins up k3d
-(with the flavor port block published), imports the images built by
+(with the slot port block published), imports the images built by
 `build-images`, `helm install`s the charts produced by `build-charts` (pinned
-to that same image tag), calls `flavors.sh install` for the flavor releases,
-installs `chainsaw` into `tools/bin/`, and then runs `flavors.sh run`. On
+to that same image tag), calls `slots.sh install` for the slot releases,
+installs `chainsaw` into `tools/bin/`, and then runs `slots.sh run`. On
 failure each fixture's `catch` block dumps pod logs and the relevant CRDs; the
 workflow's diagnostics step then walks every Emissary namespace.
 
-Both CI and `make` call `flavors.sh`, so the flavor list and its port math have
+Both CI and `make` call `slots.sh`, so the slot list and its port math have
 exactly one definition.
 
 The key difference from local: CI consumes pre-built image and chart

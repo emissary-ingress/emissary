@@ -4,7 +4,7 @@ apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: slot4
+    slot: slot4
   name: server-name
 spec:
   bindings:

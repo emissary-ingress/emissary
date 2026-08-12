@@ -40,7 +40,7 @@ spec:
       protocol: TCP
 ---
 # The Module is global to one Emissary instance, which is why this fixture is
-# pinned to a flavor. `ambassador_id` is what binds it to that instance; the
+# pinned to a slot. `ambassador_id` is what binds it to that instance; the
 # Module store is keyed by name alone, so this works from any namespace.
 apiVersion: getambassador.io/v3alpha1
 kind: Module

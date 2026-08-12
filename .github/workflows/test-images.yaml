@@ -56,7 +56,7 @@ jobs:
 
       - name: Create k3d cluster
         run: |
-          # 8100-8159 is the flavor port block (see test/e2e/flavors.sh).
+          # 8100-8159 is the slot port block (see test/e2e/slots.sh).
           # k3d fixes published ports at creation time, so it's reserved here.
           k3d cluster create test-cluster-${{ matrix.arch }} \
             --api-port 6443 \
@@ -125,7 +125,7 @@ jobs:
             --set createDefaultListeners=true
           kubectl -n emissary rollout status deploy/emissary-ingress --timeout=3m
 
-      - name: Install Emissary Flavors
+      - name: Install Emissary Slots
         env:
           VERSION: ${{ inputs.version }}
           ARCH: ${{ matrix.arch }}
@@ -133,7 +133,7 @@ jobs:
           set -euo pipefail
           # Isolated Emissary instances for fixtures that set global config
           # (Module, AuthService, ...). Same script `make e2e/install` uses.
-          ${{ github.workspace }}/test/e2e/flavors.sh install \
+          ${{ github.workspace }}/test/e2e/slots.sh install \
             "$(echo ${{ github.workspace }}/artifacts/charts/emissary-ingress-*.tgz)" \
             ghcr.io/emissary-ingress/emissary \
             "${VERSION}-${ARCH}"
@@ -159,8 +159,8 @@ jobs:
           KAT_CLIENT: ${{ github.workspace }}/tools/bin/kat-client
           KAT_SERVER_IMAGE: ghcr.io/emissary-ingress/kat-server:${{ inputs.version }}-${{ matrix.arch }}
         run: |
-          # One chainsaw shard per flavor, run concurrently; see flavors.sh.
-          ${{ github.workspace }}/test/e2e/flavors.sh run \
+          # One chainsaw shard per slot, run concurrently; see slots.sh.
+          ${{ github.workspace }}/test/e2e/slots.sh run \
             ${{ github.workspace }}/tools/bin/chainsaw \
             ${{ github.workspace }}/test/e2e/.chainsaw.yaml \
             ${{ github.workspace }}/test/e2e/fixtures
@@ -170,7 +170,7 @@ jobs:
         run: |
           kubectl get nodes
           kubectl get ns
-          for ns in emissary $(${{ github.workspace }}/test/e2e/flavors.sh list | awk '{print "emissary-"$1}'); do
+          for ns in emissary $(${{ github.workspace }}/test/e2e/slots.sh list | awk '{print "emissary-"$1}'); do
             echo "==================== namespace: $ns ===================="
             kubectl -n "$ns" get all || true
             kubectl -n "$ns" describe pod -l app.kubernetes.io/name=emissary-ingress || true

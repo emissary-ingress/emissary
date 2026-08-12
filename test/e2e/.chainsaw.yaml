@@ -13,7 +13,7 @@ spec:
   execution:
     failFast: false
     # Overridden per shard by `make e2e/run`, which passes --parallel: the
-    # `default` flavor's tests overlap freely, while each pinned flavor runs
+    # `default` slot's tests overlap freely, while each pinned slot runs
     # serially because its tests take turns owning that Emissary's global
     # config. This value only applies when chainsaw is invoked directly.
     parallel: 1

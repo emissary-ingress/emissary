@@ -7,7 +7,7 @@ apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: slot1
+    slot: slot1
   name: gzip-minimum
 spec:
   bindings:

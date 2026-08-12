@@ -2,7 +2,7 @@ apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    flavor: default
+    slot: default
   name: tcpmapping-basic
 spec:
   bindings:
@@ -23,7 +23,7 @@ spec:
             env:
               - name: KAT_CLIENT
                 value: ($kat_client)
-              # TCPMappings bind the flavor's TCP edge port, not its HTTP one.
+              # TCPMappings bind the slot's TCP edge port, not its HTTP one.
               - name: PROBE_BASE
                 value: ($gateway_tcp_url)
             content: |
