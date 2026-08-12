@@ -19,7 +19,13 @@ diagd = "ambassador_diag.diagd:main"
 
 
 [build-system]
-requires = ["hatchling"]
+# Pinned below 1.32: that release rejects a `readme` outside the project
+# directory ("Readme path must be within the project directory"), and this
+# package's readme is ../README.md. Since hatchling was unpinned and uv.lock
+# is not committed, the 1.32.0 release broke every CI job at dependency
+# install with no code change. Drop the pin once the readme lives in this
+# directory.
+requires = ["hatchling<1.32"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
