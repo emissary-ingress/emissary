@@ -123,8 +123,10 @@ e2e/run: $(tools/kat-client) $(tools/chainsaw)
 	        $(OSS_HOME)/test/e2e/.chainsaw.yaml \
 	        $(OSS_HOME)/test/e2e/fixtures
 
-# Run a single fixture, e.g. `make e2e/run/http-basic`. The slot is read out
-# of the fixture so the probe targets the right Emissary's ports.
+# Run a single fixture, e.g. `make e2e/run/http-basic`. A `shared` fixture goes
+# to the base Emissary; an `exclusive` one is given the first slot, since with
+# only one fixture running there is nothing to deal around. Override which slot
+# with E2E_SLOT=slot5 if that one is busy.
 .PHONY: e2e/run/%
 e2e/run/%: $(tools/kat-client) $(tools/chainsaw)
 	@if ! test -s $(E2E_VERSION_FILE); then \
@@ -136,15 +138,20 @@ e2e/run/%: $(tools/kat-client) $(tools/chainsaw)
 	    exit 1; \
 	fi
 	@tag="$$(head -n1 $(E2E_VERSION_FILE))-$(ARCH)"; \
-	slot="$$(sed -n 's/^ *slot: *//p' $(OSS_HOME)/test/e2e/fixtures/$*/chainsaw-test.yaml | head -n1)"; \
-	slot="$${slot:-default}"; \
-	url="$(E2E_GATEWAY_URL)"; tcp_url="$(E2E_GATEWAY_URL):6789"; \
-	while read -r name base; do \
-	    if test "$$name" = "$$slot"; then \
-	        url="$(E2E_GATEWAY_URL):$$base"; tcp_url="$(E2E_GATEWAY_URL):$$((base+2))"; \
-	    fi; \
-	done <<<"$$($(E2E_SLOTS_SH) list)"; \
-	echo "+ fixture '$*' on slot '$$slot' ($$url)"; \
+	kind="$$(sed -n 's/^ *slot: *//p' $(OSS_HOME)/test/e2e/fixtures/$*/chainsaw-test.yaml | head -n1)"; \
+	url="$(E2E_GATEWAY_URL)"; tcp_url="$(E2E_GATEWAY_URL):6789"; slot=default; \
+	if test "$$kind" = "exclusive"; then \
+	    want="$${E2E_SLOT:-}"; \
+	    while read -r name base; do \
+	        if test -z "$$want" -o "$$name" = "$$want"; then \
+	            slot="$$name"; \
+	            url="$(E2E_GATEWAY_URL):$$base"; tcp_url="$(E2E_GATEWAY_URL):$$((base+2))"; \
+	            break; \
+	        fi; \
+	    done <<<"$$($(E2E_SLOTS_SH) list)"; \
+	fi; \
+	echo "+ fixture '$*' ($${kind:-?}) on slot '$$slot' ($$url)"; \
+	SLOT="$$slot" \
 	KAT_CLIENT=$(tools/kat-client) \
 	KAT_SERVER_IMAGE="ghcr.io/emissary-ingress/kat-server:$$tag" \
 	GATEWAY_URL="$$url" \

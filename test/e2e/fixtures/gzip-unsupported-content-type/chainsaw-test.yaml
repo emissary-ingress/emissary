@@ -9,7 +9,7 @@ apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    slot: slot3
+    slot: exclusive
   name: gzip-unsupported-content-type
 spec:
   steps:

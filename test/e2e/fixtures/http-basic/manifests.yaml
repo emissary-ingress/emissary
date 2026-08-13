@@ -44,6 +44,7 @@ kind: Mapping
 metadata:
   name: http-echo
 spec:
+  ambassador_id: [(env('SLOT'))]
   hostname: "*"
   prefix: /backend/
   service: http-echo:8080

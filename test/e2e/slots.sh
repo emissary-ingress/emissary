@@ -81,6 +81,7 @@ cmd_install() {
     # `--api-versions networking.k8s.io/v1/IngressClass`, because the template
     # is gated on .Capabilities. Verifying a slot render without that flag
     # will not show this collision.
+
     # Installs run concurrently. They're independent helm releases into separate
     # namespaces, and each spends nearly all its ~35s blocked in `--wait`, so
     # serialising them made setup the most expensive step in the job (141s for
@@ -152,37 +153,79 @@ cmd_uninstall() {
     done
 }
 
-# Every fixture must carry a `slot` label naming a shard that actually runs.
-# Without this a typo means no shard's selector matches, and the fixture is
-# skipped in silence -- a green suite that tested nothing.
+# Fixtures declare only *whether* they need an isolated Emissary, never which
+# one. `slot: exclusive` means the fixture sets global config (a Module, an
+# AuthService, ...) and must own an Emissary for its duration; `slot: shared`
+# means it does not and can overlap freely on the base install.
+#
+# Which slot an exclusive fixture lands on is decided here at run time, so
+# nothing in the fixture names a slot -- there is no bookkeeping to keep
+# straight and no way for two fixtures to collide on a hand-picked number.
+VALID_KINDS=" shared exclusive "
+
+# Read a fixture's declared kind, and its Test name. Kept as two separate reads
+# rather than one packed line: an empty kind is exactly the case the guard below
+# needs to report, and every delimiter `read` would split on either collapses an
+# empty leading field or could appear in a value.
+slot_kind() { sed -n 's/^ *slot: *//p' "$1" | head -n1; }
+slot_name() { sed -n 's/^ *name: *//p' "$1" | head -n1; }
+
+# Every fixture must declare a kind we recognise. Without this a typo means no
+# shard picks the fixture up and it is skipped in silence -- a green suite that
+# tested nothing.
 cmd_check() {
     local fixtures="${1:?usage: slots.sh check <fixtures-dir>}"
-    local valid=" default"
-    for f in $SLOTS; do valid="${valid} ${f%%:*}"; done
+    local bad=0 t kind name shared=0 exclusive=0
 
-    local bad=0 t slot
     for t in "$fixtures"/*/chainsaw-test.yaml; do
         [[ -e "$t" ]] || continue
-        slot="$(sed -n 's/^ *slot: *//p' "$t" | head -n1)"
-        if [[ -z "$slot" ]]; then
-            echo "error: $t has no 'slot' label (add one under metadata.labels)" >&2
+        kind="$(slot_kind "$t")"; name="$(slot_name "$t")"
+        if [[ -z "$kind" ]]; then
+            echo "error: $t has no 'slot' label; add 'shared' or 'exclusive' under metadata.labels" >&2
             bad=1
-        elif [[ " ${valid} " != *" ${slot} "* ]]; then
-            echo "error: $t has unknown slot '${slot}'; known:${valid}" >&2
+        elif [[ "$VALID_KINDS" != *" ${kind} "* ]]; then
+            echo "error: $t has unknown slot kind '${kind}'; expected one of:${VALID_KINDS}" >&2
             bad=1
+        elif [[ -z "$name" ]]; then
+            echo "error: $t has no metadata.name; the runner needs it to target the fixture" >&2
+            bad=1
+        elif [[ ! "$name" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+            # Exclusive shards target fixtures by name through a generated
+            # regex, so a name containing regex metacharacters would be
+            # mis-matched. Reject rather than escape: k8s names are already
+            # restricted to this shape.
+            echo "error: $t name '${name}' must match ^[a-z0-9][a-z0-9-]*\$" >&2
+            bad=1
+        else
+            [[ "$kind" == shared ]] && shared=$((shared + 1)) || exclusive=$((exclusive + 1))
         fi
     done
+
     if [[ "$bad" -ne 0 ]]; then
         echo "error: fix the labels above, or those fixtures never run" >&2
         return 1
     fi
-    echo "+ slot labels ok ($(find "$fixtures" -name chainsaw-test.yaml | wc -l | tr -d ' ') fixtures)"
+    echo "+ slot labels ok (${shared} shared, ${exclusive} exclusive)"
 }
 
-# One chainsaw process per slot plus one for `default`. A slot's shard runs
-# serially because its tests take turns owning that Emissary's global config;
-# the shards themselves run concurrently. Output is buffered per shard so the
-# logs don't interleave.
+# One chainsaw process per shard, all concurrent:
+#
+#   shared     -- every `slot: shared` fixture, on the base Emissary, run
+#                 --parallel N because they add no global config.
+#   slot1..N   -- the `slot: exclusive` fixtures, dealt round-robin across the
+#                 available slots and each shard run --parallel 1, so a slot
+#                 hosts one fixture at a time.
+#
+# Exclusive shards target their fixtures by name via --include-test-regex,
+# which chainsaw feeds to Go's -run and matches against `chainsaw/<name>`.
+# That is what lets assignment be dynamic: the fixture says only that it needs
+# isolation, and this decides where.
+#
+# Each shard exports SLOT, which fixtures interpolate into `ambassador_id` as
+# (env('SLOT')). An Emissary with AMBASSADOR_ID unset self-identifies as
+# "default", so the shared shard's SLOT=default matches the base install.
+#
+# Output is buffered per shard so the logs don't interleave.
 cmd_run() {
     local chainsaw="${1:?usage: slots.sh run <chainsaw-bin> <config> <fixtures-dir>}"
     local config="${2:?missing config}"
@@ -190,28 +233,53 @@ cmd_run() {
 
     cmd_check "$fixtures"
 
+    # Deal the exclusive fixtures across the slots.
+    local slot_names=() slot_bases=() f
+    for f in $SLOTS; do slot_names+=("${f%%:*}"); slot_bases+=("${f##*:}"); done
+    local nslots=${#slot_names[@]}
+    (( nslots > 0 )) || { echo "error: no slots configured" >&2; return 1; }
+
+    local assigned=() i=0 t kind name
+    for ((i = 0; i < nslots; i++)); do assigned[i]=""; done
+    i=0
+    for t in "$fixtures"/*/chainsaw-test.yaml; do
+        [[ -e "$t" ]] || continue
+        kind="$(slot_kind "$t")"; name="$(slot_name "$t")"
+        [[ "$kind" == exclusive ]] || continue
+        local idx=$((i % nslots))
+        assigned[idx]="${assigned[idx]}|${name}"
+        i=$((i + 1))
+    done
+    echo "+ dealt ${i} exclusive fixture(s) across ${nslots} slot(s)"
+
     local logdir shards=() pids=()
     logdir="$(mktemp -d)"
 
     run_shard() {
-        local name="$1" url="$2" tcp_url="$3" parallel="$4"
+        local shard="$1" slot="$2" url="$3" tcp_url="$4" parallel="$5"
+        shift 5
         set +e
-        GATEWAY_URL="$url" GATEWAY_TCP_URL="$tcp_url" \
+        SLOT="$slot" GATEWAY_URL="$url" GATEWAY_TCP_URL="$tcp_url" \
             "$chainsaw" test \
                 --config "$config" \
-                --selector "slot=${name}" \
                 --parallel "$parallel" \
-                "$fixtures" >"${logdir}/${name}.log" 2>&1
-        echo "$?" >"${logdir}/${name}.rc"
+                "$@" \
+                "$fixtures" >"${logdir}/${shard}.log" 2>&1
+        echo "$?" >"${logdir}/${shard}.rc"
         set -e
     }
 
-    run_shard default "$GATEWAY_URL" "${GATEWAY_URL}:6789" "$DEFAULT_PARALLEL" &
-    pids+=("$!"); shards+=(default)
+    run_shard shared default "$GATEWAY_URL" "${GATEWAY_URL}:6789" "$DEFAULT_PARALLEL" \
+        --selector "slot=shared" &
+    pids+=("$!"); shards+=(shared)
 
-    for f in $SLOTS; do
-        local name="${f%%:*}" base="${f##*:}"
-        run_shard "$name" "${GATEWAY_URL}:${base}" "${GATEWAY_URL}:$((base + 2))" 1 &
+    for ((i = 0; i < nslots; i++)); do
+        # A slot with nothing dealt to it gets no process at all; passing an
+        # empty regex would select every test rather than none.
+        [[ -n "${assigned[i]}" ]] || continue
+        local name="${slot_names[i]}" base="${slot_bases[i]}"
+        run_shard "$name" "$name" "${GATEWAY_URL}:${base}" "${GATEWAY_URL}:$((base + 2))" 1 \
+            --include-test-regex "chainsaw/(${assigned[i]#|})\$" &
         pids+=("$!"); shards+=("$name")
     done
 

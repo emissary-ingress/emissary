@@ -47,7 +47,7 @@ kind: Module
 metadata:
   name: ambassador
 spec:
-  ambassador_id: ["slot1"]
+  ambassador_id: [(env('SLOT'))]
   config:
     gzip:
       enabled: true
@@ -57,7 +57,7 @@ kind: Mapping
 metadata:
   name: gzip-min-target
 spec:
-  ambassador_id: ["slot1"]
+  ambassador_id: [(env('SLOT'))]
   hostname: "*"
   prefix: /target/
   service: gzip-min-echo:8080

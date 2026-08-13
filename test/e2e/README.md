@@ -15,11 +15,11 @@ and is automatically torn down (with diagnostics on failure).
 test/e2e/
 ├── .chainsaw.yaml              # Chainsaw Configuration (timeouts, parallelism, namespacing)
 ├── helm-values.yaml            # values for the Emissary helm install
-├── slots.sh                  # isolated Emissary installs + sharded runner (see below)
+├── slots.sh                    # slot installs + sharded runner (see below)
 ├── probe.sh                    # shared retry + assert helper (see below)
 └── fixtures/
     └── <fixture-name>/
-        ├── chainsaw-test.yaml  # the Test resource (apply, probe, catch)
+        ├── chainsaw-test.yaml  # the Test resource (apply + probe)
         ├── manifests.yaml      # Deployments/Services/Mappings for the scenario
         └── queries.json        # kat-client query set for the probe
 ```
@@ -51,43 +51,58 @@ with `env.AMBASSADOR_ID` set, which also makes the chart stamp the matching
 
 The numbered slots are **anonymous and interchangeable**. Nothing distinguishes
 one from another except its ports; all the config comes from the fixture's own
-CRDs at runtime, so any pinned fixture could run on any free slot. They are
-deliberately not named after what they test, because that would encode a
-property they don't have.
+CRDs at runtime, so any exclusive fixture can run on any free slot.
 
-A genuine *preset* -- an Emissary that differs in container env rather than
-CRDs, e.g. `AMBASSADOR_SINGLE_NAMESPACE` or `LUA_SCRIPTS_ENABLED` -- really
-does differ from its peers, and a fixture can only run on the matching one.
-Those should get real names (`single-namespace:8156`) when they arrive.
+## Declaring what a fixture needs
 
-Every fixture declares which one it runs on:
+A fixture never names a slot. It declares only *whether* it needs one:
 
 ```yaml
 metadata:
   labels:
-    slot: slot1
+    slot: exclusive     # or: shared
 ```
 
-and every Emissary CRD it creates repeats that id:
+- **`shared`** -- the fixture only creates `Mapping`s, `Host`s, `TCPMapping`s
+  and the like. It adds no global config, so it can overlap with others on the
+  base Emissary.
+- **`exclusive`** -- the fixture creates a `Module`, `AuthService`,
+  `RateLimitService`, `TracingService` or `LogService`. Those configure the
+  whole instance, so it needs a slot to itself for its duration.
+
+Every Emissary CRD then uses the same expression, whichever kind it is:
 
 ```yaml
 spec:
-  ambassador_id: ["slot1"]
+  ambassador_id: [(env('SLOT'))]
 ```
 
-**Which slot should a fixture use?**
+`slots.sh` exports `SLOT` per shard: `default` for the shared shard, `slotN`
+for an exclusive one. An Emissary with `AMBASSADOR_ID` unset self-identifies as
+`"default"`, so the shared case needs no special handling.
 
-- **`default`** if the fixture only creates `Mapping`s, `Host`s, `TCPMapping`s
-  and the like. These add no global config, so they coexist safely and the
-  `default` shard runs them in parallel. Omit `ambassador_id` entirely.
-- **A numbered slot** if the fixture creates a `Module` or any of the global
-  services. Only one fixture at a time runs on a given slot.
+Because the line is identical everywhere, switching a fixture between shared
+and exclusive is a one-word label change with nothing else to remember.
 
-`make e2e/run` fans out one `chainsaw` process per slot plus one for
-`default`. Each slot's shard runs serially (`--parallel 1`); the shards run
-concurrently. `slots.sh check` runs first and fails the suite if any fixture
-has a missing or unknown `slot` label, since such a fixture would match no
-shard's selector and be skipped in silence.
+## How the run is sharded
+
+`make e2e/run` starts one `chainsaw` process per shard, all concurrent:
+
+- **shared** -- every `slot: shared` fixture, `--parallel $E2E_DEFAULT_PARALLEL`
+  against the base Emissary.
+- **slot1..N** -- the `slot: exclusive` fixtures, dealt round-robin across the
+  available slots, each shard `--parallel 1` so a slot hosts one fixture at a
+  time. Shards target their fixtures by name via `--include-test-regex`, which
+  chainsaw feeds to Go's `-run` and matches against `chainsaw/<name>`.
+
+Assignment happens at run time, so there is no slot bookkeeping in the
+fixtures and no way for two of them to collide on a hand-picked number. If
+there are more exclusive fixtures than slots they double up and run in
+sequence; if there are fewer, the spare slots get no process at all.
+
+`slots.sh check` runs first and fails the suite if a fixture has a missing or
+unknown `slot` label, or a name that wouldn't survive being put in a regex,
+since any of those would mean the fixture silently never runs.
 
 > **Why slots disable the chart's Module.** The chart ships a `Module` named
 > `ambassador` (`module.enabled: true`). Emissary keys its module store by name
@@ -112,9 +127,9 @@ shard's selector and be skipped in silence.
 
 The probe step shells out to `probe.sh`, which runs the host-built
 `kat-client` binary against `$GATEWAY_URL` and retries until a `jq` assertion
-passes. The kat-server image is templated into manifests using the Chainsaw
-binding `kat_server_image`, which reads `KAT_SERVER_IMAGE` from the
-environment.
+passes. Fixtures need no `bindings` at all: `script` steps inherit the process
+environment, and manifests call `(env('KAT_SERVER_IMAGE'))` and
+`(env('SLOT'))` directly.
 
 ## The probe helper
 
@@ -140,7 +155,8 @@ environment.
   `PROBE_INTERVAL` (default 2s).
 
 On failure it prints the assertion, the last full response, and kat-client's
-stderr, then exits 1 so Chainsaw runs the fixture's `catch` block.
+stderr, then exits 1 so Chainsaw runs the `catch` diagnostics configured in
+`.chainsaw.yaml`.
 
 [kat-client]: ../../cmd/kat-client/client.go
 
@@ -187,7 +203,7 @@ Once the cluster is up and Emissary is installed, you usually only need:
 
 ```
 make e2e/run              # re-run every fixture, sharded by slot
-make e2e/run/gzip-minimum # re-run one fixture (slot read from the file)
+make e2e/run/gzip-minimum # re-run one fixture (a slot is allocated for it)
 ```
 
 If you changed code and want to redeploy without recreating the cluster:
@@ -234,8 +250,9 @@ All have sensible defaults; override on the command line as needed:
 | `E2E_CRD_NAMESPACE`  | `emissary-system`      | namespace for the CRDs chart             |
 | `E2E_GATEWAY_URL`    | `http://localhost`     | host the probes target (slot ports are appended) |
 | `E2E_LOCAL_VERSION`  | `v4.0.0-local`         | short chart VERSION (dirty trees produce strings longer than k8s' 63-char label limit) |
-| `E2E_SLOTS`        | `slot1:8100 ... slot8:8128` | `<name>:<port-base>` list of isolated Emissary installs |
-| `E2E_DEFAULT_PARALLEL` | `8`                  | how many `default`-slot fixtures run at once |
+| `E2E_SLOTS`          | `slot1:8100 ... slot8:8128` | `<name>:<port-base>` list of isolated Emissary installs |
+| `E2E_DEFAULT_PARALLEL` | `8`                  | how many `shared` fixtures run at once |
+| `E2E_SLOT`           | *(first free)*         | force `make e2e/run/<name>` onto a specific slot |
 
 Per-fixture probe and apply timeouts are set in `.chainsaw.yaml` and on
 individual steps inside each `chainsaw-test.yaml`.
@@ -244,25 +261,26 @@ individual steps inside each `chainsaw-test.yaml`.
 
 1. Create `test/e2e/fixtures/<name>/`.
 2. Put the resources you want in `manifests.yaml` (Deployment, Service,
-   Mapping, whatever the scenario needs). To reference the locally-built
-   kat-server image, use the Chainsaw binding `($kat_server_image)`:
+   Mapping, whatever the scenario needs). For the locally-built kat-server
+   image, and on every Emissary CRD, use:
    ```yaml
-   image: ($kat_server_image)
+   image: (env('KAT_SERVER_IMAGE'))
+   ...
+   spec:
+     ambassador_id: [(env('SLOT'))]
    ```
-3. Pick a slot (see [Slots](#slots)). If the fixture creates a `Module`
-   or a global service, use a numbered slot and put `ambassador_id: ["<slot>"]`
-   on every Emissary CRD in `manifests.yaml`. Otherwise use `default` and set
-   no `ambassador_id`.
+3. Decide `shared` or `exclusive` (see [Declaring what a fixture
+   needs](#declaring-what-a-fixture-needs)). You never pick a slot number.
 4. Put the requests in `queries.json` (kat-client format, relative URLs).
 5. Write `chainsaw-test.yaml` defining a `Test` resource with:
-   - `metadata.labels.slot` naming the slot from step 3.
-   - `bindings` for the env-derived values (`kat_server_image`, `kat_client`,
-     `gateway_url`, or `gateway_tcp_url` for TCPMapping fixtures).
-   - A `try` block that `apply`s `manifests.yaml` (with `template: true` so
-     the `($kat_server_image)` substitution happens) and runs
+   - `metadata.labels.slot` set to `shared` or `exclusive`.
+   - A `try` block that `apply`s `manifests.yaml` and runs
      `../../probe.sh queries.json '<jq-expr>'` via a `script` step.
-   - A `catch` block that dumps pod logs, describes pods, and lists the
-     scenario's CRDs. Existing fixtures are good templates.
+
+   No `bindings`, no `template: true` (templating is on by default), and no
+   `catch` -- the diagnostics in `.chainsaw.yaml` apply to every fixture. Add a
+   `catch` only for something unusual; it appends to the global one rather than
+   replacing it. Existing fixtures are good templates.
 6. Run `make e2e/run/<name>` and confirm it passes.
 
 No registration step is required beyond the `slot` label. Chainsaw discovers

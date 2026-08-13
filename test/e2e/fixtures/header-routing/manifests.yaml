@@ -84,6 +84,7 @@ kind: Mapping
 metadata:
   name: header-routing-target1
 spec:
+  ambassador_id: [(env('SLOT'))]
   hostname: "*"
   prefix: /header-routing/
   service: hr-target1:8080
@@ -96,6 +97,7 @@ kind: Mapping
 metadata:
   name: header-routing-target2
 spec:
+  ambassador_id: [(env('SLOT'))]
   hostname: "*"
   prefix: /header-routing/
   service: hr-target2:8080

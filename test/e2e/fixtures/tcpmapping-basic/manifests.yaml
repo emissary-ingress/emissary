@@ -44,6 +44,7 @@ kind: Listener
 metadata:
   name: tcp-listener
 spec:
+  ambassador_id: [(env('SLOT'))]
   port: 6789
   protocol: TCP
   securityModel: INSECURE
@@ -56,5 +57,6 @@ kind: TCPMapping
 metadata:
   name: tcp-echo
 spec:
+  ambassador_id: [(env('SLOT'))]
   port: 6789
   service: tcp-echo:8080

@@ -2,12 +2,12 @@
 # Port of KAT's tests/kat/t_gzip.py::GzipMinimumConfigTest.
 #
 # Needs its own Emissary because it sets the global `ambassador` Module, hence
-# the slot pin. Only one fixture at a time runs on slot1.
+# `slot: exclusive`. Which slot it lands on is decided at run time.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   labels:
-    slot: slot1
+    slot: exclusive
   name: gzip-minimum
 spec:
   steps:

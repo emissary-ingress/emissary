@@ -47,6 +47,7 @@ kind: Mapping
 metadata:
   name: grpc-echo
 spec:
+  ambassador_id: [(env('SLOT'))]
   hostname: "*"
   prefix: /echo.EchoService/
   rewrite: ""
