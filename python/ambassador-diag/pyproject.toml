@@ -1,7 +1,6 @@
 [project]
 name = "ambassador_diag"
 version = "4.0.0-dev"
-readme = "../README.md"
 dependencies = [
     "click",
     "flask",

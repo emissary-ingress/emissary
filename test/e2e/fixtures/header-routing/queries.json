@@ -1,0 +1,13 @@
+[
+  {
+    "url": "/header-routing/",
+    "method": "GET"
+  },
+  {
+    "url": "/header-routing/",
+    "method": "GET",
+    "headers": {
+      "X-Route": "target2"
+    }
+  }
+]

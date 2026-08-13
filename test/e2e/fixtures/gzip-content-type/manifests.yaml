@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tcp-echo
+  name: gzip-ct-echo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tcp-echo
+      app: gzip-ct-echo
   template:
     metadata:
       labels:
-        app: tcp-echo
+        app: gzip-ct-echo
     spec:
       containers:
         - name: kat-server
@@ -20,7 +20,7 @@ spec:
           command: ["/work/kat-server"]
           env:
             - name: BACKEND
-              value: tcp-echo
+              value: gzip-ct-echo
           ports:
             - containerPort: 8080
               name: http
@@ -29,34 +29,39 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tcp-echo
+  name: gzip-ct-echo
 spec:
   selector:
-    app: tcp-echo
+    app: gzip-ct-echo
   ports:
     - name: http
       port: 8080
       targetPort: 8080
       protocol: TCP
 ---
+# kat-server never sets Content-Type, so Go sniffs the JSON body as
+# "text/plain; charset=utf-8". That is why listing text/plain here compresses
+# and listing application/json (see the gzip-unsupported-content-type fixture)
+# does not.
 apiVersion: getambassador.io/v3alpha1
-kind: Listener
+kind: Module
 metadata:
-  name: tcp-listener
+  name: ambassador
 spec:
   ambassador_id: [(env('SLOT'))]
-  port: 6789
-  protocol: TCP
-  securityModel: INSECURE
-  hostBinding:
-    namespace:
-      from: ALL
+  config:
+    gzip:
+      min_content_length: 32
+      window_bits: 15
+      content_type:
+        - text/plain
 ---
 apiVersion: getambassador.io/v3alpha1
-kind: TCPMapping
+kind: Mapping
 metadata:
-  name: tcp-echo
+  name: gzip-ct-target
 spec:
   ambassador_id: [(env('SLOT'))]
-  port: 6789
-  service: tcp-echo:8080
+  hostname: "*"
+  prefix: /target/
+  service: gzip-ct-echo:8080

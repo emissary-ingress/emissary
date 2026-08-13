@@ -1,0 +1,9 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "Accept-Encoding": "gzip"
+    }
+  }
+]
