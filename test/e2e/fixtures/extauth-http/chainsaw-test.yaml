@@ -1,0 +1,64 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationTestV1.
+#
+# `exclusive` because AuthService is global to an Emissary instance, and this
+# creates two of them.
+#
+# Header casing: kat-server lowercases the *request* headers it echoes back but
+# leaves *response* headers canonical. So a check on what auth received reads
+# `.json.request.headers["x-bar"]`, while a check on what the client got reads
+# `.headers["X-Bar"]`. Both appear below.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: extauth-http
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 3m
+            content: |
+              auth='(.json.backend == "auth1" or .json.backend == "auth2")'
+              ../../probe.sh queries.json \
+                '[0] went to an auth service'    "(.[0].result | ${auth})" \
+                '[0] auth saw the prefixed path' '.[0].result.json.request.url.path == "/extauth/target/0"' \
+                '[0] auth saw xfp http'          '.[0].result.json.request.headers["x-forwarded-proto"] == ["http"]' \
+                '[0] auth saw content-length'    '.[0].result.json.request.headers["content-length"] == ["0"]' \
+                '[0] auth saw x-forwarded-for'   '(.[0].result.json.request.headers | has("x-forwarded-for"))' \
+                '[0] auth saw user-agent'        '(.[0].result.json.request.headers | has("user-agent"))' \
+                '[0] Baz was not forwarded'      '(.[0].result.json.request.headers | has("baz") | not)' \
+                '[0] client got 401'             '.[0].result.status == 401' \
+                '[0] Server is envoy'            '.[0].result.headers["Server"] == ["envoy"]' \
+                '[1] went to an auth service'    "(.[1].result | ${auth})" \
+                '[1] auth asked for 302'         '.[1].result.json.request.headers["kat-req-http-requested-status"] == ["302"]' \
+                '[1] auth echoed location'       '.[1].result.json.request.headers["location"] == ["foo"]' \
+                '[1] client got 302'             '.[1].result.status == 302' \
+                '[1] Location came back'         '.[1].result.headers["Location"] == ["foo"]' \
+                '[2] went to an auth service'    "(.[2].result | ${auth})" \
+                '[2] auth saw x-foo'             '.[2].result.json.request.headers["x-foo"] == ["foo"]' \
+                '[2] client got 401'             '.[2].result.status == 401' \
+                '[2] whitelisted X-Foo returned' '.[2].result.headers["X-Foo"] == ["foo"]' \
+                '[3] went to an auth service'    "(.[3].result | ${auth})" \
+                '[3] auth saw x-bar'             '.[3].result.json.request.headers["x-bar"] == ["bar"]' \
+                '[3] client got 401'             '.[3].result.status == 401' \
+                '[3] X-Bar NOT returned'         '(.[3].result.headers | has("X-Bar") | not)' \
+                '[4] auth success routed on'     '.[4].result.json.backend == "target"' \
+                '[4] target saw authorization'   '.[4].result.json.request.headers["authorization"] == ["foo-11111"]' \
+                '[4] client got 200'             '.[4].result.status == 200' \
+                '[4] Authorization returned'     '.[4].result.headers["Authorization"] == ["foo-11111"]' \
+                '[4] linkerd header added'       '(.[4].result.json.request.headers.extauth[0] | fromjson | .request.headers["l5d-dst-override"]) == ["extauth:80"]' \
+                '[5] auth success routed on'     '.[5].result.json.backend == "target"' \
+                '[5] client got 200'             '.[5].result.status == 200' \
+                '[5] extauth header present'     '(.[5].result.json.request.headers.extauth[0] | length) > 0' \
+                '[5] envoy forced xfp to http'   '(.[5].result.json.request.headers.extauth[0] | fromjson | .request.headers["x-forwarded-proto"]) == ["http"]' \
+                '[6] bypass_auth hit target'     '.[6].result.json.backend == "target"' \
+                '[6] bypass_auth skipped auth'   "(.[6].result | ${auth} | not)" \
+                '[6] client got 200'             '.[6].result.status == 200' \
+                '[7] status_on_error is 503'     '.[7].result.status == 503' \
+                'all 20 hit an auth service'     "([.[8:28][].result | ${auth}] | all)" \
+                'both auth services got traffic' '([.[8:28][].result.json.backend] | (index("auth1") != null) and (index("auth2") != null))'

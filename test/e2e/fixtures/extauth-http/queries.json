@@ -1,0 +1,208 @@
+[
+  {
+    "url": "/target/0",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "401",
+      "Baz": "baz",
+      "Request-Header": "Baz"
+    }
+  },
+  {
+    "url": "/target/1",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "302",
+      "location": "foo",
+      "kat-req-http-requested-header": "location"
+    }
+  },
+  {
+    "url": "/target/2",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "401",
+      "X-Foo": "foo",
+      "kat-req-http-requested-header": "X-Foo"
+    }
+  },
+  {
+    "url": "/target/3",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "401",
+      "X-Bar": "bar",
+      "kat-req-http-requested-header": "X-Bar"
+    }
+  },
+  {
+    "url": "/target/4",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "200",
+      "Authorization": "foo-11111",
+      "kat-req-http-requested-header": "Authorization"
+    }
+  },
+  {
+    "url": "/target/5",
+    "method": "GET",
+    "headers": {
+      "X-Forwarded-Proto": "https"
+    }
+  },
+  {
+    "url": "/target/unauthed/6",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "200"
+    }
+  },
+  {
+    "url": "/target/7",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "500"
+    }
+  },
+  {
+    "url": "/target/8",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/9",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/10",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/11",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/12",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/13",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/14",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/15",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/16",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/17",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/18",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/19",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/20",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/21",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/22",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/23",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/24",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/25",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/26",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  },
+  {
+    "url": "/target/27",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "403"
+    }
+  }
+]
