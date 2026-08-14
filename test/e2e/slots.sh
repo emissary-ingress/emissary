@@ -8,44 +8,15 @@
 #   slots.sh check <fixtures-dir>
 #   slots.sh run <chainsaw-bin> <config> <fixtures-dir>
 #
-# A "slot" is a pre-baked, isolated Emissary install. Most of the KAT suite
-# can't share one Emissary because a Module / AuthService / TracingService
-# configures the whole instance, so two such tests on one Emissary would
-# clobber each other.
-#
-# Isolation is by AMBASSADOR_ID, not namespace: an Emissary only acts on CRDs
-# whose `ambassador_id` matches its own, and a CRD that omits the field
-# defaults to "default". So a slot is just another helm release of the
-# shipped chart with env.AMBASSADOR_ID set -- which also makes the chart stamp
-# the matching ambassador_id onto its default Listeners.
-#
-# Both `make e2e/...` and .github/workflows/test-images.yaml call this, so the
-# slot list and its port math have exactly one definition.
+# A slot is an isolated Emissary install, scoped by AMBASSADOR_ID. Called by
+# both `make e2e/...` and test-images.yaml. See test/e2e/README.md.
 set -euo pipefail
 
-# <name>:<port-base>. A slot owns <base>+0 (http), +1 (https), +2 (tcp), with a
-# 4-port stride. k3d fixes published ports at cluster-creation time and the
-# cluster reserves 8100-8159, so 15 slots fit before the range has to widen
-# *and* the cluster be recreated.
-#
-# Slots are deliberately anonymous. Nothing distinguishes one from another
-# except its ports -- all the config (Module, AuthService, ...) comes from the
-# fixture's own CRDs at runtime, so any pinned fixture could run on any slot.
-# Naming them after what they test would encode a property they don't have.
-# Genuine presets (an Emissary differing in container env, e.g. one with
-# AMBASSADOR_SINGLE_NAMESPACE or LUA_SCRIPTS_ENABLED) do differ from each other
-# and should get real names when they arrive: `single-namespace:8156`.
-#
-# Sizing: at ~28s per fixture, N slots clear the slot-pinned backlog in
-# (count/N * 28)s. Returns flatten past N=8, where the `default` shard becomes
-# the constraint instead. The ceiling is runner CPU, not ports -- the chart
-# requests 200m per Emissary and a standard 4-vCPU runner leaves room for
-# roughly 16, so 8-12 is the practical band.
+# <name>:<port-base>; a slot owns <base>+0 http, +1 https, +2 tcp. k3d fixes
+# published ports at cluster-creation time, so the 8100-8159 block it reserves
+# caps this at 15 slots.
 SLOTS="${E2E_SLOTS:-slot1:8100 slot2:8104 slot3:8108 slot4:8112 slot5:8116 slot6:8120 slot7:8124 slot8:8128}"
 
-# `default` is the plain install on 80/443/6789 with no AMBASSADOR_ID. It picks
-# up CRDs that set no ambassador_id, so fixtures needing no global config
-# target it and can overlap freely -- hence a parallelism well above 1.
 NAMESPACE="${E2E_NAMESPACE:-emissary}"
 GATEWAY_URL="${E2E_GATEWAY_URL:-http://localhost}"
 DEFAULT_PARALLEL="${E2E_DEFAULT_PARALLEL:-8}"
@@ -61,32 +32,9 @@ cmd_install() {
     local repo="${2:?missing image repo}"
     local tag="${3:?missing image tag}"
 
-    # Two overrides keep a slot from colliding with the base release:
-    #
-    # module.enabled=false -- the chart otherwise ships a Module named
-    # `ambassador` carrying this slot's ambassador_id. Emissary keys its
-    # module store by name alone, so that one would collide with the Module a
-    # fixture creates: Config.safe_store renames the loser to
-    # `ambassador.<namespace>` and get_module("ambassador") then returns
-    # whichever won the race, silently dropping the fixture's config.
-    #
-    # ingressClassResource.name -- IngressClass is cluster-scoped and the chart
-    # names it from a fixed value, so a second release dies with "cannot be
-    # imported into the current release". It is the chart's only cluster-scoped
-    # resource that isn't already release-scoped. The template stamps
-    # getambassador.io/ambassador-id onto it, so a per-slot name stays usable
-    # by any future Ingress fixture.
-    #
-    # NOTE: `helm template` hides the IngressClass unless you pass
-    # `--api-versions networking.k8s.io/v1/IngressClass`, because the template
-    # is gated on .Capabilities. Verifying a slot render without that flag
-    # will not show this collision.
-
-    # Installs run concurrently. They're independent helm releases into separate
-    # namespaces, and each spends nearly all its ~35s blocked in `--wait`, so
-    # serialising them made setup the most expensive step in the job (141s for
-    # four, against 32s to actually run the fixtures) and made every extra slot
-    # cost another 35s. Output is buffered per slot so the logs stay readable.
+    # module.enabled=false and a per-slot ingressClassResource.name both avoid
+    # colliding with the base release; see README.md. Installs run concurrently,
+    # with output buffered per slot.
     local logdir pids=() names=()
     logdir="$(mktemp -d)"
 
@@ -153,26 +101,16 @@ cmd_uninstall() {
     done
 }
 
-# Fixtures declare only *whether* they need an isolated Emissary, never which
-# one. `slot: exclusive` means the fixture sets global config (a Module, an
-# AuthService, ...) and must own an Emissary for its duration; `slot: shared`
-# means it does not and can overlap freely on the base install.
-#
-# Which slot an exclusive fixture lands on is decided here at run time, so
-# nothing in the fixture names a slot -- there is no bookkeeping to keep
-# straight and no way for two fixtures to collide on a hand-picked number.
+# Fixtures declare whether they need isolation, not which slot; see README.md.
 VALID_KINDS=" shared exclusive "
 
-# Read a fixture's declared kind, and its Test name. Kept as two separate reads
-# rather than one packed line: an empty kind is exactly the case the guard below
-# needs to report, and every delimiter `read` would split on either collapses an
-# empty leading field or could appear in a value.
+# Two reads rather than one packed line: `read` collapses an empty leading
+# field, which is exactly the missing-label case the guard below reports.
 slot_kind() { sed -n 's/^ *slot: *//p' "$1" | head -n1; }
 slot_name() { sed -n 's/^ *name: *//p' "$1" | head -n1; }
 
-# Every fixture must declare a kind we recognise. Without this a typo means no
-# shard picks the fixture up and it is skipped in silence -- a green suite that
-# tested nothing.
+# A fixture with a bad label matches no shard and is skipped in silence, so
+# reject it loudly instead.
 cmd_check() {
     local fixtures="${1:?usage: slots.sh check <fixtures-dir>}"
     local bad=0 t kind name shared=0 exclusive=0
@@ -190,10 +128,8 @@ cmd_check() {
             echo "error: $t has no metadata.name; the runner needs it to target the fixture" >&2
             bad=1
         elif [[ ! "$name" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
-            # Exclusive shards target fixtures by name through a generated
-            # regex, so a name containing regex metacharacters would be
-            # mis-matched. Reject rather than escape: k8s names are already
-            # restricted to this shape.
+            # Names go into a generated regex; reject metacharacters rather
+            # than escape them.
             echo "error: $t name '${name}' must match ^[a-z0-9][a-z0-9-]*\$" >&2
             bad=1
         else
@@ -208,24 +144,11 @@ cmd_check() {
     echo "+ slot labels ok (${shared} shared, ${exclusive} exclusive)"
 }
 
-# One chainsaw process per shard, all concurrent:
-#
-#   shared     -- every `slot: shared` fixture, on the base Emissary, run
-#                 --parallel N because they add no global config.
-#   slot1..N   -- the `slot: exclusive` fixtures, dealt round-robin across the
-#                 available slots and each shard run --parallel 1, so a slot
-#                 hosts one fixture at a time.
-#
-# Exclusive shards target their fixtures by name via --include-test-regex,
-# which chainsaw feeds to Go's -run and matches against `chainsaw/<name>`.
-# That is what lets assignment be dynamic: the fixture says only that it needs
-# isolation, and this decides where.
-#
-# Each shard exports SLOT, which fixtures interpolate into `ambassador_id` as
-# (env('SLOT')). An Emissary with AMBASSADOR_ID unset self-identifies as
-# "default", so the shared shard's SLOT=default matches the base install.
-#
-# Output is buffered per shard so the logs don't interleave.
+# One chainsaw process per shard, all concurrent: `shared` runs every shared
+# fixture at --parallel N on the base Emissary, and each slot shard runs its
+# dealt exclusive fixtures at --parallel 1. Shards select by name via
+# --include-test-regex, which chainsaw feeds to Go's -run as `chainsaw/<name>`.
+# Each exports SLOT for the fixture's ambassador_id. See README.md.
 cmd_run() {
     local chainsaw="${1:?usage: slots.sh run <chainsaw-bin> <config> <fixtures-dir>}"
     local config="${2:?missing config}"

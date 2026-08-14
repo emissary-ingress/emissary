@@ -1,12 +1,9 @@
 ---
 # Port of KAT's tests/kat/t_basics.py::ServerNameTest.
 #
-# The subject is the Module's `server_name` reaching the `Server` response
-# header. KAT also asserted the exact redirect code (301), but that is
-# incidental to what is being tested and is not stable: this returns 301 on the
-# GitHub runners and 307 on a local k3d cluster, deterministically in each.
-# Asserting any 3xx keeps the test honest about its subject without encoding an
-# environment-specific detail.
+# Subject is the Module's `server_name` in the `Server` header. KAT asserted
+# the exact redirect code too, but that is 301 on CI and 307 on local k3d, so
+# any 3xx is asserted instead.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:

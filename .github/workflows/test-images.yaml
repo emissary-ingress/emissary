@@ -170,10 +170,6 @@ jobs:
         run: |
           kubectl get nodes
           kubectl get ns
-          # No label selector: app.kubernetes.io/name is derived from the release
-          # name, so slot pods are name=emissary-slotN and selecting on
-          # emissary-ingress matches nothing there. Each namespace holds exactly
-          # one Emissary release, so describe and log everything in it.
           for ns in emissary $(${{ github.workspace }}/test/e2e/slots.sh list | awk '{print "emissary-"$1}'); do
             echo "==================== namespace: $ns ===================="
             kubectl -n "$ns" get all || true

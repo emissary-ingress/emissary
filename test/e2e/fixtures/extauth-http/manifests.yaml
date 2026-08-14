@@ -1,13 +1,9 @@
 ---
 # Port of KAT's tests/kat/t_extauth.py::AuthenticationTestV1.
 #
-# Three kat-server backends: one plain upstream target, and two auth services.
-# The auth services are kat-server with INCLUDE_EXTAUTH_HEADER=yes, which makes
-# it echo back a JSON document describing what it received in an `extauth`
-# response header. That is how the test inspects what Envoy sent to auth.
-#
-# Two AuthServices share the same path_prefix on purpose, so Envoy load-balances
-# across them; the test checks both get traffic.
+# One plain target plus two auth services: kat-server with
+# INCLUDE_EXTAUTH_HEADER=yes echoes back what it received in an `extauth`
+# header. Both AuthServices share a path_prefix so Envoy load-balances them.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

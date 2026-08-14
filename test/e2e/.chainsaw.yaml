@@ -12,23 +12,13 @@ spec:
         generateName: e2e-
   execution:
     failFast: false
-    # Overridden per shard by `make e2e/run`, which passes --parallel: the
-    # `default` slot's tests overlap freely, while each pinned slot runs
-    # serially because its tests take turns owning that Emissary's global
-    # config. This value only applies when chainsaw is invoked directly.
+    # Overridden per shard by `make e2e/run`; applies only to direct invocation.
     parallel: 1
   cleanup:
     skipDelete: false
-  # Diagnostics dumped when a test fails. These run for every fixture, and a
-  # test-level `catch` appends to them rather than replacing them, so a fixture
-  # only needs its own `catch` for something genuinely unusual.
-  #
-  # Everything here is namespace-scoped to the failing test's own namespace,
-  # except the Emissary logs. Which slot a fixture is pinned to isn't knowable
-  # from here, so the script walks every Emissary namespace. That is slightly
-  # noisier than the per-fixture `kubectl -n emissary-slotN` it replaces, but
-  # it cannot silently point at the wrong slot -- which a copy-pasted fixture
-  # very easily could.
+  # Runs for every failing fixture; a test-level `catch` appends to this rather
+  # than replacing it. The script walks every Emissary namespace because which
+  # slot a fixture landed on isn't knowable here.
   error:
     catch:
       - describe:
@@ -53,15 +43,6 @@ spec:
           kind: Listener
       - script:
           content: |
-            # No label selector: every release-independent label the chart sets
-            # is unusable here. `app.kubernetes.io/name` is derived from the
-            # release name, so slot pods are `name=emissary-slotN` and selecting
-            # on `emissary-ingress` silently matches nothing in exactly the
-            # namespaces an exclusive fixture's failure needs logs from.
-            # `helm.sh/chart` embeds the version, `managed-by=Helm` is not
-            # Emissary-specific, and `product=aes` is a legacy name we do not
-            # want to depend on. Each of these namespaces holds exactly one
-            # Emissary release, so just log every pod in it and name them.
             for ns in $(kubectl get ns -o name | sed 's|namespace/||' | grep '^emissary'); do
               for pod in $(kubectl -n "${ns}" get pods -o name 2>/dev/null); do
                 echo "==================== logs: ${ns}/${pod#pod/} ===================="

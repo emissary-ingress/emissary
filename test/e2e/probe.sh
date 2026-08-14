@@ -5,30 +5,18 @@
 #   probe.sh <queries.json> <jq-expr>
 #   probe.sh <queries.json> <label> <jq-expr> [<label> <jq-expr> ...]
 #
-# queries.json is a normal kat-client input file. Relative URLs ("/foo/") are
-# prefixed with $PROBE_BASE (default $GATEWAY_URL); absolute ones are left
-# alone, so TLS/alternate-port fixtures can spell out their own scheme+host.
+# queries.json is a kat-client input file; relative URLs are prefixed with
+# $PROBE_BASE (default $GATEWAY_URL). Each <jq-expr> is evaluated against the
+# kat-client output array and replaces KAT's Python check(). Use the labelled
+# form for more than a couple of assertions so failures name themselves.
 #
-# Each <jq-expr> is evaluated against the kat-client output array. This is the
-# replacement for KAT's Python `check()`: `expected=404` becomes
-# `.[0].result.status == 404`, and `r.backend.name == ...` becomes
-# `.[0].result.json.backend == "..."`.
-#
-# Prefer the labelled form once a fixture has more than a couple of assertions.
-# A single expression ANDing 69 clauses together -- which is what porting
-# t_extauth.py faithfully would mean -- returns one bit on failure and tells you
-# nothing about which clause broke. Labelled assertions are evaluated
-# individually and the failing ones are named.
-#
-# Note the header casing asymmetry when writing expressions. kat-server
-# lowercases the *request* headers it echoes back but leaves *response* headers
-# canonical, so:
+# Header casing is asymmetric: kat-server lowercases the *request* headers it
+# echoes back but leaves *response* headers canonical.
 #
 #   .[0].result.json.request.headers["x-bar"]   # request  -> lowercase
 #   .[0].result.headers["X-Bar"]                # response -> canonical
 #
-# ponytail: retry loop lives here, not in each fixture. Envoy config
-# propagation is async and chainsaw does not retry `script` steps.
+# The retry loop lives here because chainsaw does not retry `script` steps.
 set -uo pipefail
 
 usage() {
@@ -90,8 +78,7 @@ done
          "${#failed[@]}/${total} assertions still failing"
     for n in "${failed[@]}"; do
         echo "  FAIL  ${labels[n]}"
-        # Collapse the expression onto one line; they are often written across
-        # several in YAML and are easier to match against the fixture this way.
+        # One line, so it greps back to the fixture.
         echo "        $(tr -s ' \n' ' ' <<<"${exprs[n]}" | sed 's/^ //;s/ $//')"
     done
     echo "response summary:"

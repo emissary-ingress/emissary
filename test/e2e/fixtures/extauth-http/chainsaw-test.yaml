@@ -1,13 +1,9 @@
 ---
 # Port of KAT's tests/kat/t_extauth.py::AuthenticationTestV1.
 #
-# `exclusive` because AuthService is global to an Emissary instance, and this
-# creates two of them.
-#
-# Header casing: kat-server lowercases the *request* headers it echoes back but
-# leaves *response* headers canonical. So a check on what auth received reads
-# `.json.request.headers["x-bar"]`, while a check on what the client got reads
-# `.headers["X-Bar"]`. Both appear below.
+# `exclusive` because it creates two AuthServices, which are instance-global.
+# Request-header checks read `.json.request.headers[...]` (lowercased by
+# kat-server); response-header checks read `.headers[...]` (canonical).
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
