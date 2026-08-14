@@ -53,14 +53,20 @@ spec:
           kind: Listener
       - script:
           content: |
-            # `product=aes` rather than `app.kubernetes.io/name=emissary-ingress`:
-            # the chart derives that name from the release, so slot pods are
-            # labelled `name=emissary-slotN` and the obvious selector silently
-            # matches nothing in exactly the namespaces an exclusive fixture
-            # failure needs logs from. `product` is release-independent.
+            # No label selector: every release-independent label the chart sets
+            # is unusable here. `app.kubernetes.io/name` is derived from the
+            # release name, so slot pods are `name=emissary-slotN` and selecting
+            # on `emissary-ingress` silently matches nothing in exactly the
+            # namespaces an exclusive fixture's failure needs logs from.
+            # `helm.sh/chart` embeds the version, `managed-by=Helm` is not
+            # Emissary-specific, and `product=aes` is a legacy name we do not
+            # want to depend on. Each of these namespaces holds exactly one
+            # Emissary release, so just log every pod in it and name them.
             for ns in $(kubectl get ns -o name | sed 's|namespace/||' | grep '^emissary'); do
-              echo "==================== emissary logs: ${ns} ===================="
-              kubectl -n "${ns}" logs -l product=aes --tail=100 || true
+              for pod in $(kubectl -n "${ns}" get pods -o name 2>/dev/null); do
+                echo "==================== logs: ${ns}/${pod#pod/} ===================="
+                kubectl -n "${ns}" logs "${pod}" --all-containers --tail=100 || true
+              done
             done
   timeouts:
     apply: 30s

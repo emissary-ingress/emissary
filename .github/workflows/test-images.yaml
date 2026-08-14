@@ -170,14 +170,18 @@ jobs:
         run: |
           kubectl get nodes
           kubectl get ns
-          # product=aes, not app.kubernetes.io/name=emissary-ingress: the chart
-          # derives that name from the release name, so slot pods are labelled
-          # name=emissary-slotN and that selector matches nothing there.
+          # No label selector: app.kubernetes.io/name is derived from the release
+          # name, so slot pods are name=emissary-slotN and selecting on
+          # emissary-ingress matches nothing there. Each namespace holds exactly
+          # one Emissary release, so describe and log everything in it.
           for ns in emissary $(${{ github.workspace }}/test/e2e/slots.sh list | awk '{print "emissary-"$1}'); do
             echo "==================== namespace: $ns ===================="
             kubectl -n "$ns" get all || true
-            kubectl -n "$ns" describe pod -l product=aes || true
-            kubectl -n "$ns" logs -l product=aes --tail=500 || true
+            kubectl -n "$ns" describe pods || true
+            for pod in $(kubectl -n "$ns" get pods -o name 2>/dev/null); do
+              echo "-------------------- logs: $ns/${pod#pod/} --------------------"
+              kubectl -n "$ns" logs "$pod" --all-containers --tail=500 || true
+            done
           done
 
       - name: Cleanup k3d cluster
