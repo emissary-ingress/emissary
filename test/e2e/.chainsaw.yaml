@@ -53,9 +53,14 @@ spec:
           kind: Listener
       - script:
           content: |
+            # `product=aes` rather than `app.kubernetes.io/name=emissary-ingress`:
+            # the chart derives that name from the release, so slot pods are
+            # labelled `name=emissary-slotN` and the obvious selector silently
+            # matches nothing in exactly the namespaces an exclusive fixture
+            # failure needs logs from. `product` is release-independent.
             for ns in $(kubectl get ns -o name | sed 's|namespace/||' | grep '^emissary'); do
               echo "==================== emissary logs: ${ns} ===================="
-              kubectl -n "${ns}" logs -l app.kubernetes.io/name=emissary-ingress --tail=100 || true
+              kubectl -n "${ns}" logs -l product=aes --tail=100 || true
             done
   timeouts:
     apply: 30s
