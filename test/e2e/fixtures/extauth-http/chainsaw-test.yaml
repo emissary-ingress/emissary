@@ -1,0 +1,102 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationTestV1.
+#
+# `exclusive` because it creates two AuthServices, which are instance-global.
+# Request-header checks read `.json.request.headers[...]` (lowercased by
+# kat-server); response-header checks read `.headers[...]` (canonical).
+#
+# One step per concern, matching how KAT's check() was grouped. Each step has
+# its own queries file, so jq indices are relative to that file rather than to
+# KAT's single 28-query list; the mapping is noted on each step.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: extauth-http
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    # KAT queries [0]-[3]
+    - name: request headers to and from auth
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              auth='(.json.backend == "auth1" or .json.backend == "auth2")'
+              ../../probe.sh queries-headers.json \
+                'query 0 went to an auth service' "(.[0].result | ${auth})" \
+                'auth saw the prefixed path'      '.[0].result.json.request.url.path == "/extauth/target/0"' \
+                'auth saw xfp http'               '.[0].result.json.request.headers["x-forwarded-proto"] == ["http"]' \
+                'auth saw content-length'         '.[0].result.json.request.headers["content-length"] == ["0"]' \
+                'auth saw x-forwarded-for'        '(.[0].result.json.request.headers | has("x-forwarded-for"))' \
+                'auth saw user-agent'             '(.[0].result.json.request.headers | has("user-agent"))' \
+                'Baz was not forwarded'           '(.[0].result.json.request.headers | has("baz") | not)' \
+                'client got 401'                  '.[0].result.status == 401' \
+                'Server is envoy'                 '.[0].result.headers["Server"] == ["envoy"]' \
+                'query 1 went to an auth service' "(.[1].result | ${auth})" \
+                'auth asked for 302'              '.[1].result.json.request.headers["kat-req-http-requested-status"] == ["302"]' \
+                'auth echoed location'            '.[1].result.json.request.headers["location"] == ["foo"]' \
+                'client got 302'                  '.[1].result.status == 302' \
+                'Location came back'              '.[1].result.headers["Location"] == ["foo"]' \
+                'query 2 went to an auth service' "(.[2].result | ${auth})" \
+                'auth saw x-foo'                  '.[2].result.json.request.headers["x-foo"] == ["foo"]' \
+                'client got 401 for x-foo'        '.[2].result.status == 401' \
+                'whitelisted X-Foo returned'      '.[2].result.headers["X-Foo"] == ["foo"]' \
+                'query 3 went to an auth service' "(.[3].result | ${auth})" \
+                'auth saw x-bar'                  '.[3].result.json.request.headers["x-bar"] == ["bar"]' \
+                'client got 401 for x-bar'        '.[3].result.status == 401' \
+                'non-whitelisted X-Bar dropped'   '(.[3].result.headers | has("X-Bar") | not)'
+
+    # KAT queries [4]-[5]
+    - name: auth success routes upstream
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries-auth-success.json \
+                'routed to the target'            '.[0].result.json.backend == "target"' \
+                'target saw authorization'        '.[0].result.json.request.headers["authorization"] == ["foo-11111"]' \
+                'client got 200'                  '.[0].result.status == 200' \
+                'Authorization returned'          '.[0].result.headers["Authorization"] == ["foo-11111"]' \
+                'linkerd header added'            '(.[0].result.json.request.headers.extauth[0] | fromjson | .request.headers["l5d-dst-override"]) == ["extauth:80"]' \
+                'xfp query routed to target'      '.[1].result.json.backend == "target"' \
+                'xfp query got 200'               '.[1].result.status == 200' \
+                'extauth header present'          '(.[1].result.json.request.headers.extauth[0] | length) > 0' \
+                'envoy forced xfp to http'        '(.[1].result.json.request.headers.extauth[0] | fromjson | .request.headers["x-forwarded-proto"]) == ["http"]'
+
+    # KAT query [6]
+    - name: bypass_auth skips auth entirely
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              auth='(.json.backend == "auth1" or .json.backend == "auth2")'
+              ../../probe.sh queries-bypass.json \
+                'hit the target'                  '.[0].result.json.backend == "target"' \
+                'never reached an auth service'   "(.[0].result | ${auth} | not)" \
+                'client got 200'                  '.[0].result.status == 200'
+
+    # KAT query [7]
+    - name: status_on_error when auth fails
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries-status-on-error.json \
+                'client got the configured 503'   '.[0].result.status == 503'
+
+    # KAT queries [8]-[27]
+    - name: load balancing across auth services
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              auth='(.json.backend == "auth1" or .json.backend == "auth2")'
+              ../../probe.sh queries-load-balancing.json \
+                'all 20 hit an auth service'      "([.[].result | ${auth}] | all)" \
+                'both auth services got traffic'  '([.[].result.json.backend] | (index("auth1") != null) and (index("auth2") != null))'

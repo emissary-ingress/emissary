@@ -1,5 +1,9 @@
 ---
 # Port of KAT's tests/kat/t_basics.py::ServerNameTest.
+#
+# Subject is the Module's `server_name` in the `Server` header. KAT asserted
+# the exact redirect code too, but that is 301 on CI and 307 on local k3d, so
+# any 3xx is asserted instead.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
@@ -16,6 +20,6 @@ spec:
             timeout: 2m
             content: |
               ../../probe.sh queries.json '
-                .[0].result.status == 301 and
+                (.[0].result.status >= 300 and .[0].result.status < 400) and
                 .[0].result.headers["Server"][0] == "test-server"
               '
