@@ -1,0 +1,39 @@
+---
+# Port of KAT's tests/kat/t_ratelimit.py::RateLimitV1Test.
+#
+# `exclusive` because a RateLimitService is instance-global.
+#
+# KAT's check() only looked at query [2]; the status assertions on [0] and [1]
+# came from each Query's `expected`. Both are assertions here.
+#
+# Response headers are canonical-cased (`.result.headers["Hello"]`), unlike the
+# request headers kat-server echoes back lowercased.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: ratelimit-grpc
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: rate limit allows and rejects per descriptor
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'no descriptor headers, so no rate limiting' '.[0].result.status == 200' \
+                'reached the target'                         '.[0].result.json.backend == "target"' \
+                'rls allowed the request'                    '.[1].result.status == 200' \
+                'allowed request reached the target'         '.[1].result.json.backend == "target"' \
+                'rls rejected the request'                   '.[2].result.status == 429' \
+                'the 429 body came from the rls'              '.[2].result.json.backend == "rls"' \
+                'rls appended Hello'                         '.[2].result.headers["Hello"] == ["Foo"]' \
+                'rls appended Hi'                            '.[2].result.headers["Hi"] == ["Baz"]' \
+                'rls overrode the content type'              '.[2].result.headers["Content-Type"] == ["application/json"]' \
+                'rls answered over v3'                       '.[2].result.headers["Kat-Resp-Rls-Protocol-Version"] == ["v3"]'
