@@ -10,7 +10,13 @@ from ambassador.config import Config
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import EmptySecretHandler
-from tests.utils import Compile, default_http3_listener_manifest, econf_compile, logger
+from tests.utils import (
+    Compile,
+    default_http3_listener_manifest,
+    default_listener_manifests,
+    econf_compile,
+    logger,
+)
 
 
 def _ensure_alt_svc_header_injected(listener, expectedAltSvc):
@@ -311,6 +317,40 @@ spec:
         assert len(udp_filter_chains) == 1
 
         _verify_no_added_response_headers(udp_listener)
+
+    @pytest.mark.compilertest
+    def test_traced_listeners_are_inbound(self):
+        yaml = (
+            default_listener_manifests()
+            + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+metadata:
+  name: otel-tracing
+  namespace: ambassador
+spec:
+  service: otel-collector.opentelemetry.svc.cluster.local:4317
+  driver: opentelemetry
+  config:
+    service_name: emissary-ingress
+"""
+        )
+
+        econf = econf_compile(yaml)
+        traced_listeners = []
+
+        for listener in econf["static_resources"]["listeners"]:
+            if any(
+                "tracing" in filter_chain["filters"][0]["typed_config"]
+                for filter_chain in listener["filter_chains"]
+            ):
+                traced_listeners.append(listener)
+
+        assert len(traced_listeners) == 2
+
+        for listener in traced_listeners:
+            assert listener["traffic_direction"] == "INBOUND"
 
     @pytest.mark.compilertest
     def test_listener_filterchain_vhost_generation(self):

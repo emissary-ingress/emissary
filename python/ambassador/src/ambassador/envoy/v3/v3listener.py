@@ -588,7 +588,7 @@ class V3Listener:
             base_http_config["generate_request_id"] = True
 
             base_http_config["tracing"] = {}
-            self.traffic_direction = "OUTBOUND"
+            self.traffic_direction = "INBOUND"
 
             custom_tags = self.config.ir.tracing.get("custom_tags", [])
             if custom_tags:
