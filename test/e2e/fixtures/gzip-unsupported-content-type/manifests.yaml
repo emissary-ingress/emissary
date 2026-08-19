@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grpc-echo
+  name: gzip-unsup-echo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grpc-echo
+      app: gzip-unsup-echo
   template:
     metadata:
       labels:
-        app: grpc-echo
+        app: gzip-unsup-echo
     spec:
       containers:
         - name: kat-server
@@ -20,36 +20,45 @@ spec:
           command: ["/work/kat-server"]
           env:
             - name: BACKEND
-              value: grpc-echo
-            - name: KAT_BACKEND_TYPE
-              value: grpc_echo
+              value: gzip-unsup-echo
           ports:
             - containerPort: 8080
-              name: grpc
+              name: http
               protocol: TCP
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: grpc-echo
+  name: gzip-unsup-echo
 spec:
   selector:
-    app: grpc-echo
+    app: gzip-unsup-echo
   ports:
-    - name: grpc
+    - name: http
       port: 8080
       targetPort: 8080
       protocol: TCP
-      appProtocol: grpc
+---
+# application/json is deliberately the wrong type: kat-server's body sniffs as
+# text/plain, so nothing matches and the response comes back uncompressed.
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    gzip:
+      min_content_length: 32
+      content_type:
+        - application/json
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: grpc-echo
+  name: gzip-unsup-target
 spec:
   ambassador_id: [(env('SLOT'))]
   hostname: "*"
-  prefix: /echo.EchoService/
-  rewrite: ""
-  grpc: true
-  service: grpc-echo:8080
+  prefix: /target/
+  service: gzip-unsup-echo:8080

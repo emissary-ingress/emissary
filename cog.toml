@@ -1,0 +1,3 @@
+# Ignore merges and fixups
+ignore_merge_commits = true
+ignore_fixup_commits = true
