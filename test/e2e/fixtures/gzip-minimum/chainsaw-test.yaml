@@ -1,0 +1,24 @@
+---
+# Port of KAT's tests/kat/t_gzip.py::GzipMinimumConfigTest.
+#
+# Needs its own Emissary because it sets the global `ambassador` Module, hence
+# `slot: exclusive`. Which slot it lands on is decided at run time.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: gzip-minimum
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json '
+                .[0].result.status == 200 and
+                .[0].result.headers["Content-Encoding"][0] == "gzip"
+              '

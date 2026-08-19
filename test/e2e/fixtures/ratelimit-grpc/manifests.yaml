@@ -1,0 +1,121 @@
+---
+# Port of KAT's tests/kat/t_ratelimit.py::RateLimitV1Test.
+#
+# One plain target plus a gRPC rate limit service: kat-server in `grpc_rls`
+# mode decides per request based on the `kat-req-rls-allow` header, and
+# appends whatever `kat-req-rls-headers-append` asks for to the 429 it
+# returns.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rls
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rls
+  template:
+    metadata:
+      labels:
+        app: rls
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: rls
+            - name: KAT_BACKEND_TYPE
+              value: grpc_rls
+            # Must match the RateLimitService's protocol_version; kat-server
+            # echoes it back in Kat-Resp-Rls-Protocol-Version.
+            - name: GRPC_RLS_PROTOCOL_VERSION
+              value: v3
+          ports:
+            - containerPort: 8080
+---
+# Port 80, not 8080: a RateLimitService's `service` with no port defaults to 80.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rls
+spec:
+  selector:
+    app: rls
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: RateLimitService
+metadata:
+  name: rls
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service: (join('.', ['rls', $namespace]))
+  timeout_ms: 500
+  protocol_version: v3
+---
+# The `ambassador` key is the rate limit domain. Both headers are
+# omit_if_not_present, so a request carrying neither produces no descriptor at
+# all and never reaches the rate limit service.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: target:8080
+  labels:
+    ambassador:
+      - request_label_group:
+          - request_headers:
+              key: kat-req-rls-allow
+              header_name: kat-req-rls-allow
+              omit_if_not_present: true
+          - request_headers:
+              key: kat-req-rls-headers-append
+              header_name: kat-req-rls-headers-append
+              omit_if_not_present: true

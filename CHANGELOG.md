@@ -6,7 +6,32 @@
 and ingress controller. It is a CNCF Incubating project, formerly known
 as the Ambassador API Gateway.
 
+### Quickstart
+
+Emissary v4 supports both AMD64 and ARM64 architectures. To install
+Emissary v4 using Helm, follow the instructions in the [Emissary
+Quickstart](https://emissary-ingress.dev/docs/4.0/quick-start/).
+
+Emissary provides two Helm charts:
+
+- `ghcr.io/emissary-ingress/emissary-crds-chart` is the chart for
+  Emissary's CRDs.
+
+- `ghcr.io/emissary-ingress/emissary-ingress` is the chart for
+  Emissary itself.
+
+The Emissary project recommends using Helm to install Emissary. If you
+need YAML instead, use `helm template` to generate the YAML manifests
+from the Helm charts.
+
 ## Emissary v4 Release Notes
+
+## [TBD] TBD
+[TBD]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...TBD
+
+- Fix: Completely disable the Ambassador Labs `error_response_overrides` mechanism;
+  you'll now see an error posted if you try to use it. (This shouldn't affect anyone
+  running Emissary.)
 
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0

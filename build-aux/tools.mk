@@ -124,6 +124,14 @@ $(tools.bindir)/k3d: $(tools.mk)
 	curl -s --fail -L https://github.com/rancher/k3d/releases/download/v$(K3D_VERSION)/k3d-$(GOHOSTOS)-$(GOHOSTARCH) -o $@
 	chmod a+x $@
 
+tools/chainsaw   = $(tools.bindir)/chainsaw
+CHAINSAW_VERSION = 0.2.14
+$(tools.bindir)/chainsaw: $(tools.mk)
+	mkdir -p $(@D)
+	curl -s --fail -L https://github.com/kyverno/chainsaw/releases/download/v$(CHAINSAW_VERSION)/chainsaw_$(GOHOSTOS)_$(GOHOSTARCH).tar.gz \
+	    | tar -xz -C $(@D) chainsaw
+	chmod a+x $@
+
 # PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
 # invalid Python if you name an Enum member the same as a Python keyword.
 tools/protoc    = $(tools.bindir)/protoc
