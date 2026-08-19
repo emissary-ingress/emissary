@@ -1,0 +1,22 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET"
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-rls-allow": "true",
+      "kat-req-rls-headers-append": "no header"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-rls-allow": "over my dead body",
+      "kat-req-rls-headers-append": "Hello=Foo; Hi=Baz"
+    }
+  }
+]
