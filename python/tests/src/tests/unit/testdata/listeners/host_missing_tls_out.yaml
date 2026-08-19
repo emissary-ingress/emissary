@@ -22,7 +22,11 @@ listeners:
                     path: "/dev/fd/1"
               http_filters:
                 - name: envoy.filters.http.cors
+                  typed_config:
+                    '@type': type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
                 - name: envoy.filters.http.router
+                  typed_config:
+                    '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
               http_protocol_options:
                 accept_http_10: false
               normalize_path: true
@@ -177,7 +181,11 @@ listeners:
                     path: "/dev/fd/1"
               http_filters:
                 - name: envoy.filters.http.cors
+                  typed_config:
+                    '@type': type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
                 - name: envoy.filters.http.router
+                  typed_config:
+                    '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
               http_protocol_options:
                 accept_http_10: false
               normalize_path: true
@@ -309,6 +317,8 @@ listeners:
         name: httphost-shared
     listener_filters:
       - name: envoy.filters.listener.tls_inspector
+        typed_config:
+          '@type': type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
     name: listener-8443
     traffic_direction: UNSPECIFIED
   - address:
@@ -332,6 +342,8 @@ listeners:
                         name: ":path"
                     pass_through_mode: False
                 - name: envoy.filters.http.router
+                  typed_config:
+                    '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
               route_config:
                 name: local_route
               stat_prefix: ready_http

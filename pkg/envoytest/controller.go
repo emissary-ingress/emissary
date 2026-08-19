@@ -3,7 +3,9 @@ package envoytest
 import (
 	// standard library
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 
 	// third-party libraries
@@ -83,6 +85,11 @@ func NewEnvoyController(address string) *EnvoyController {
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
 func (e *EnvoyController) Configure(ctx context.Context, node, version string, snapshot ecp_v3_cache.ResourceSnapshot) (*status.Status, error) {
+	if bs, err := json.MarshalIndent(snapshot, "", "  "); err != nil {
+		dlog.Errorf(ctx, "failed to marshal snapshot: %v", err)
+	} else if err := os.WriteFile(fmt.Sprintf("/tmp/envoy-snapshot-%s.json", version), bs, 0o644); err != nil {
+		dlog.Errorf(ctx, "failed to write snapshot to disk: %v", err)
+	}
 
 	err := e.configCache.SetSnapshot(ctx, node, snapshot)
 	if err != nil {
