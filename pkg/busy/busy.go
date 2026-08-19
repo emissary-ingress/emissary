@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 
 	//nolint:depguard // This is one of the few places where it is approrpiate to not go through
 	// to initialize dlog.
@@ -67,6 +68,14 @@ func GetLogLevel() logrus.Level {
 	return logrusLogger.GetLevel()
 }
 
+func isGracefulShutdownError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := err.Error()
+	return strings.Contains(errStr, "received signal")
+}
+
 // Main should be called from your actual main() function.
 func Main(binName, humanName string, version string, cmds map[string]Command) {
 	name := filepath.Base(os.Args[0])
@@ -84,7 +93,11 @@ func Main(binName, humanName string, version string, cmds map[string]Command) {
 	if cmd, cmdOk := cmds[name]; cmdOk {
 		cmd.Setup(ctx)
 		if err := cmd.Run(ctx, version, os.Args[1:]...); err != nil {
-			dlog.Errorf(ctx, "shut down with error error: %v", err)
+			if isGracefulShutdownError(err) {
+				dlog.Infof(ctx, "shut down gracefully: %v", err)
+				os.Exit(0)
+			}
+			dlog.Errorf(ctx, "shut down with error: %v", err)
 			os.Exit(1)
 		}
 	} else {
