@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grpc-echo
+  name: server-name-echo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grpc-echo
+      app: server-name-echo
   template:
     metadata:
       labels:
-        app: grpc-echo
+        app: server-name-echo
     spec:
       containers:
         - name: kat-server
@@ -20,36 +20,42 @@ spec:
           command: ["/work/kat-server"]
           env:
             - name: BACKEND
-              value: grpc-echo
-            - name: KAT_BACKEND_TYPE
-              value: grpc_echo
+              value: server-name-echo
           ports:
             - containerPort: 8080
-              name: grpc
+              name: http
               protocol: TCP
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: grpc-echo
+  name: server-name-echo
 spec:
   selector:
-    app: grpc-echo
+    app: server-name-echo
   ports:
-    - name: grpc
+    - name: http
       port: 8080
       targetPort: 8080
       protocol: TCP
-      appProtocol: grpc
 ---
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    server_name: "test-server"
+---
+# Prefix has no trailing slash on purpose: requesting /server-name/ makes
+# Envoy emit its own 301, which is the response the Server header is read off.
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: grpc-echo
+  name: server-name-target
 spec:
   ambassador_id: [(env('SLOT'))]
   hostname: "*"
-  prefix: /echo.EchoService/
-  rewrite: ""
-  grpc: true
-  service: grpc-echo:8080
+  prefix: /server-name
+  service: server-name-echo:8080

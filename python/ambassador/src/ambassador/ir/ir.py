@@ -45,7 +45,6 @@ from .irauth import IRAuth
 from .irbasemapping import IRBaseMapping
 from .irbasemappinggroup import IRBaseMappingGroup
 from .ircluster import IRCluster
-from .irerrorresponse import IRErrorResponse
 from .irfilter import IRFilter
 from .irhost import HostFactory, IRHost
 from .irlistener import IRListener, ListenerFactory
@@ -414,15 +413,12 @@ class IR:
         if self.ratelimit:
             self.save_filter(self.ratelimit, already_saved=True)
 
-        # ...and the error response filter...
-        self.save_filter(
-            IRErrorResponse(
-                self,
-                aconf,
-                self.ambassador_module.get("error_response_overrides", None),
-                referenced_by_obj=self.ambassador_module,
+        # error_response_overrides is not supported in Emissary 4.
+        if "error_response_overrides" in self.ambassador_module:
+            self.post_error(
+                "error_response_overrides is not supported in Emissary 4 and will be ignored",
+                resource=self.ambassador_module,
             )
-        )
 
         # ...and, finally, the barely-configurable router filter.
         router_config = {}

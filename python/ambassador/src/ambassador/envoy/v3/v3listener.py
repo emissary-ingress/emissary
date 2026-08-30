@@ -512,9 +512,9 @@ class V3Listener:
 
             # V3HTTPFilter can return None to indicate that the filter config
             # should be omitted from the final envoy config. This is the
-            # uncommon case, but it can happen if a filter waits utnil the
+            # uncommon case, but it can happen if a filter waits until the
             # v3config is generated before deciding if it needs to be
-            # instantiated. See IRErrorResponse for an example.
+            # instantiated.
             if v3hf:
                 base_http_config["http_filters"].append(v3hf)
 

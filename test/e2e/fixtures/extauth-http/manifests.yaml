@@ -1,0 +1,187 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationTestV1.
+#
+# One plain target plus two auth services: kat-server with
+# INCLUDE_EXTAUTH_HEADER=yes echoes back what it received in an `extauth`
+# header. Both AuthServices share a path_prefix so Envoy load-balances them.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth1
+  template:
+    metadata:
+      labels:
+        app: auth1
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: auth1
+            - name: INCLUDE_EXTAUTH_HEADER
+              value: "yes"
+          ports:
+            - containerPort: 8080
+---
+# Port 80, not 8080: an AuthService's `auth_service` with no port defaults to 80.
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth1
+spec:
+  selector:
+    app: auth1
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth2
+  template:
+    metadata:
+      labels:
+        app: auth2
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: auth2
+            - name: INCLUDE_EXTAUTH_HEADER
+              value: "yes"
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth2
+spec:
+  selector:
+    app: auth2
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name: auth1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  auth_service: (join('.', ['auth1', $namespace]))
+  proto: http
+  path_prefix: "/extauth"
+  timeout_ms: 5000
+  allowed_request_headers:
+    - X-Foo
+    - X-Bar
+    - Kat-Req-Http-Requested-Status
+    - Kat-Req-Http-Requested-Header
+    - Location
+  allowed_authorization_headers:
+    - X-Foo
+    - Extauth
+  status_on_error:
+    code: 503
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name: auth2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  auth_service: (join('.', ['auth2', $namespace]))
+  proto: http
+  path_prefix: "/extauth"
+  timeout_ms: 5000
+  add_linkerd_headers: true
+  allowed_request_headers:
+    - X-Foo
+    - X-Bar
+    - Kat-Req-Http-Requested-Status
+    - Kat-Req-Http-Requested-Header
+    - Location
+  allowed_authorization_headers:
+    - X-Foo
+    - Extauth
+  status_on_error:
+    code: 503
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: target:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target-unauthed
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/unauthed/
+  service: target:8080
+  bypass_auth: true
