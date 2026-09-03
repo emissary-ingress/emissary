@@ -1,0 +1,58 @@
+apiVersion: chainsaw.kyverno.io/v1alpha2
+kind: Configuration
+metadata:
+  name: emissary-e2e
+spec:
+  # Each test gets a fresh, randomly-named namespace. Emissary watches all
+  # namespaces, so Mappings/Listeners/TCPMappings created in these namespaces
+  # are picked up automatically by the cluster-wide Emissary install.
+  namespace:
+    template:
+      metadata:
+        generateName: e2e-
+  execution:
+    failFast: false
+    # Overridden per shard by `make e2e/run`; applies only to direct invocation.
+    parallel: 1
+  cleanup:
+    skipDelete: false
+  # Runs for every failing fixture; a test-level `catch` appends to this rather
+  # than replacing it. The script walks every Emissary namespace because which
+  # slot a fixture landed on isn't knowable here.
+  error:
+    catch:
+      - describe:
+          apiVersion: v1
+          kind: Pod
+      - podLogs:
+          tail: 200
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: Mapping
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: Module
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: TCPMapping
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: Host
+      - get:
+          apiVersion: getambassador.io/v3alpha1
+          kind: Listener
+      - script:
+          content: |
+            for ns in $(kubectl get ns -o name | sed 's|namespace/||' | grep '^emissary'); do
+              for pod in $(kubectl -n "${ns}" get pods -o name 2>/dev/null); do
+                echo "==================== logs: ${ns}/${pod#pod/} ===================="
+                kubectl -n "${ns}" logs "${pod}" --all-containers --tail=100 || true
+              done
+            done
+  timeouts:
+    apply: 30s
+    assert: 2m
+    cleanup: 1m
+    delete: 1m
+    error: 30s
+    exec: 2m

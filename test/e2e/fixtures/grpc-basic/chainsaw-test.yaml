@@ -1,0 +1,19 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: grpc-basic
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json '
+                .[0].result.status == 200 and
+                .[0].result.headers["Grpc-Status"][0] == "0"
+              '

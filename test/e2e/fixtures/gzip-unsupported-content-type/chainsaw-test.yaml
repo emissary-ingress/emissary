@@ -1,0 +1,27 @@
+---
+# Port of KAT's tests/kat/t_gzip.py::GzipNotSupportedContentTypeTest.
+#
+# This one asserts an *absence*, so it needs the route to actually be live
+# first -- otherwise a 404 from an unconfigured Emissary would satisfy
+# "no Content-Encoding header" and the test would pass for the wrong reason.
+# Hence the status check ANDed in front.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: gzip-unsupported-content-type
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json '
+                .[0].result.status == 200 and
+                .[0].result.json.backend == "gzip-unsup-echo" and
+                (.[0].result.headers | has("Content-Encoding") | not)
+              '

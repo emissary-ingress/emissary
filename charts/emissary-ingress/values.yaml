@@ -2,11 +2,11 @@
 defaultImageRepository: "ghcr.io/emissary-ingress/emissary"
 
 # Override the generated chart name. Defaults to .Chart.Name.
-nameOverride: ''
+nameOverride: ""
 # Override the generated release name. Defaults to .Release.Name.
-fullnameOverride: ''
+fullnameOverride: ""
 # Override the generated release namespace. Defaults to .Release.Namespace.
-namespaceOverride: ''
+namespaceOverride: ""
 
 # Number of Ambassador replicas
 replicaCount: 3
@@ -33,9 +33,9 @@ canary:
   # If a value is supplied, then the canary deployment will use the following image for Ambassador instead of using the image from the main deployment
   image:
     # Controls the image repository for the canary deployment.
-    repository: ''
+    repository: ""
     # Controls the tag for the canary deployments image.repository. Uses the repository from the main deployment if the canary.image.repository is not set.
-    tag: ''
+    tag: ""
   # Environment variables to be used for the canary deployment, see `envRaw` for usage example
   envRaw: {}
 
@@ -48,25 +48,24 @@ ingressClassResource:
 
 # Enable autoscaling using HorizontalPodAutoscaler
 # daemonSet: true, autoscaling will be disabled
-autoscaling:  # +doc-gen:break
+autoscaling: # +doc-gen:break
   enabled: false
   minReplicas: 2
   maxReplicas: 5
   metrics:
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 100
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 300
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 100
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 300
   behavior: {}
-
 
 podDisruptionBudget: {}
 
@@ -110,11 +109,11 @@ imagePullSecrets: []
 security:
   # Security Context for all containers in the pod.
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core
-  podSecurityContext:  # +doc-gen:break
+  podSecurityContext: # +doc-gen:break
     runAsUser: 8888
   # Security Context for the Ambassador container specifically
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core
-  containerSecurityContext:  # +doc-gen:break
+  containerSecurityContext: # +doc-gen:break
     allowPrivilegeEscalation: false
   #
   # Please note that PodSecurityPolicy has been deprecated as of Kubernetes v1.21 and will be removed in Kubernetes v1.25.
@@ -174,25 +173,27 @@ service:
   # Note that target http ports need to match your ambassador configurations service_port
   # https://www.getambassador.io/reference/modules/#the-ambassador-module
   ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-      # protocol: TCP
-      # nodePort: 30080
-      # hostPort: 80
-  - name: https
-    port: 443
-    targetPort: 8443
-      # protocol: TCP
-      # nodePort: 30443
-      # hostPort: 443
-    # TCPMapping_Port
+    - name: http
+      port: 80
+      targetPort:
+        8080
+        # protocol: TCP
+        # nodePort: 30080
+        # hostPort: 80
+    - name: https
+      port: 443
+      targetPort:
+        8443
+        # protocol: TCP
+        # nodePort: 30443
+        # hostPort: 443
+      # TCPMapping_Port
       # port: 2222
       # targetPort: 2222
       # protocol: TCP
       # nodePort: 30222
   # For test purposes, do not use.
-  portsRaw: ''
+  portsRaw: ""
 
   externalTrafficPolicy:
 
@@ -251,7 +252,7 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name:
   # Extra YAML to include at the end of the ServiceAccount
-  extra: ''
+  extra: ""
 
 deploymentStrategy:
   type: RollingUpdate
@@ -281,13 +282,13 @@ initContainers: []
 sidecarContainers: []
 
 # Liveness probe for emissary pods
-livenessProbe:  # +doc-gen:break
+livenessProbe: # +doc-gen:break
   initialDelaySeconds: 30
   periodSeconds: 3
   failureThreshold: 3
 
 # Readiness probe for emissary pods
-readinessProbe:  # +doc-gen:break
+readinessProbe: # +doc-gen:break
   initialDelaySeconds: 30
   periodSeconds: 3
   failureThreshold: 3
@@ -310,7 +311,6 @@ podLabels: {}
 # prometheus.io/port: "9102"
 podAnnotations: {}
 
-
 # Additional labels for ambassador DaemonSet/Deployment
 deploymentLabels: {}
 
@@ -320,7 +320,7 @@ deploymentLabels: {}
 deploymentAnnotations: {}
 
 # CPU/memory resource requests/limits
-resources:  # +doc-gen:break
+resources: # +doc-gen:break
   # Recommended resource requests and limits for Ambassador
   limits:
     memory: 600Mi
@@ -329,7 +329,7 @@ resources:  # +doc-gen:break
     memory: 300Mi
 
 # The name of the priorityClass for the ambassador DaemonSet/Deployment
-priorityClassName: ''
+priorityClassName: ""
 
 # NodeSelector for ambassador pods
 nodeSelector: {}
@@ -343,7 +343,7 @@ affinity: {}
 topologySpreadConstraints: []
 
 # Config thats mounted to `/ambassador/ambassador-config`
-ambassadorConfig: ''
+ambassadorConfig: ""
 
 # Prometheus Operator ServiceMonitor configuration
 # See documentation: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitor
@@ -361,7 +361,7 @@ metrics:
 # Configuration for a Consul Resolver
 #   address: consul-server.default.svc.cluster.local:8500
 #   datacenter: dc1
-resolvers:  # +doc-gen:break
+resolvers: # +doc-gen:break
   endpoint:
     create: false
     name: endpoint
@@ -389,7 +389,7 @@ module:
 #
 # Ambassador now exposes the /metrics endpoint in Envoy.
 # See https://www.getambassador.io/user-guide/monitoring#deployment for more information on how to use the /metrics endpoint
-prometheusExporter:  # +doc-gen:break
+prometheusExporter: # +doc-gen:break
   enabled: false
   repository: prom/statsd-exporter
   tag: v0.8.1
@@ -419,8 +419,7 @@ prometheusExporter:  # +doc-gen:break
 # securityContext:
 #   runAsUser: 8888
 
-
-deploymentTool: ''
+deploymentTool: ""
 
 # configure docker to pull from private registry
 docker: {}
@@ -432,15 +431,46 @@ createNamespace: false
 createDefaultListeners: false
 
 # Configure a 'lifecycle' section for the main pod
-lifecycle:  # +doc-gen:break
+lifecycle: # +doc-gen:break
   # Example block that works well if the main container is running behind a load balancer that
   # is slow to deregister pods - e.g. with IP-type registration in an AWS TargetGroup:
-  # lifecycle:
-  #   preStop:
-  #     exec:
-  #       command:
-  #         - "sh"
-  #         - "-c"
-  #         - >
-  #           curl -XPOST localhost:8001/healthcheck/fail;
-  #           /bin/sleep 45;
+  # Also, if you're giving more than 30 seconds, set the following, to higher valyes to avoid k8s terminating the pod too early
+  # terminationGracePeriodSeconds: 660
+  # progressDeadlines:
+  #   ambassador: 900
+
+  # preStop:
+  #   exec:
+  #     command:
+  #       # The python is actually the python3 included in the image, it's just called python despite convention
+  #       - "python"
+  #       - "-c"
+  #       - |
+  #         import urllib.request, time, json
+
+  #         # Step 1: Start graceful drain of inbound listeners
+  #         urllib.request.urlopen(
+  #             urllib.request.Request(
+  #                 "http://localhost:8001/drain_listeners?graceful&inboundonly",
+  #                 method="POST"
+  #             )
+  #         ).read()
+
+  #         # Step 2: Poll for active connections until drained or timeout
+  #         deadline = time.time() + 630
+  #         while time.time() < deadline:
+  #             time.sleep(5)
+  #             try:
+  #                 resp = urllib.request.urlopen(
+  #                     "http://localhost:8001/stats?filter=downstream_cx_active&format=json"
+  #                 ).read()
+  #                 # Check if connections have drained
+  #                 data = json.loads(resp)
+  #                 active = sum(
+  #                     s.get("value", 0) for s in data.get("stats", [])
+  #                     if "downstream_cx_active" in s.get("name", "")
+  #                 )
+  #                 if active == 0:
+  #                     break
+  #             except:
+  #                 break
