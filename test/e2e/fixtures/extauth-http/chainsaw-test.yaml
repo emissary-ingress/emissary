@@ -19,6 +19,8 @@ spec:
     - name: apply
       try:
         - apply:
+            file: ../../backends/target.yaml
+        - apply:
             file: manifests.yaml
 
     # KAT queries [0]-[3]

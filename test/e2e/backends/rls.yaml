@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rls
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rls
+  template:
+    metadata:
+      labels:
+        app: rls
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: rls
+            - name: KAT_BACKEND_TYPE
+              value: grpc_rls
+            # Must match the RateLimitService's protocol_version; kat-server
+            # echoes it back in Kat-Resp-Rls-Protocol-Version.
+            - name: GRPC_RLS_PROTOCOL_VERSION
+              value: v3
+          ports:
+            - containerPort: 8080
+---
+# Port 80, not 8080: a RateLimitService's `service` with no port defaults to 80.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rls
+spec:
+  selector:
+    app: rls
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

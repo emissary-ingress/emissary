@@ -11,6 +11,8 @@ spec:
     - name: apply-and-probe
       try:
         - apply:
+            file: ../../backends/http-echo.yaml
+        - apply:
             file: manifests.yaml
         - script:
             timeout: 2m

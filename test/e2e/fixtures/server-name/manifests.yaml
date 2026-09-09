@@ -1,44 +1,4 @@
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: server-name-echo
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: server-name-echo
-  template:
-    metadata:
-      labels:
-        app: server-name-echo
-    spec:
-      containers:
-        - name: kat-server
-          image: (env('KAT_SERVER_IMAGE'))
-          imagePullPolicy: IfNotPresent
-          command: ["/work/kat-server"]
-          env:
-            - name: BACKEND
-              value: server-name-echo
-          ports:
-            - containerPort: 8080
-              name: http
-              protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: server-name-echo
-spec:
-  selector:
-    app: server-name-echo
-  ports:
-    - name: http
-      port: 8080
-      targetPort: 8080
-      protocol: TCP
----
 apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
@@ -58,4 +18,4 @@ spec:
   ambassador_id: [(env('SLOT'))]
   hostname: "*"
   prefix: /server-name
-  service: server-name-echo:8080
+  service: http-echo:8080

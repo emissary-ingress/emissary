@@ -19,6 +19,10 @@ spec:
     - name: apply
       try:
         - apply:
+            file: ../../backends/target.yaml
+        - apply:
+            file: ../../backends/rls.yaml
+        - apply:
             file: manifests.yaml
 
     - name: rate limit allows and rejects per descriptor

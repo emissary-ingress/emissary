@@ -17,16 +17,58 @@ test/e2e/
 ├── helm-values.yaml            # values for the Emissary helm install
 ├── slots.sh                    # slot installs + sharded runner (see below)
 ├── probe.sh                    # shared retry + assert helper (see below)
+├── backends/                   # shared kat-server Deployment+Service shapes (see below)
 └── fixtures/
     └── <fixture-name>/
         ├── chainsaw-test.yaml  # the Test resource (apply + probe)
-        ├── manifests.yaml      # Deployments/Services/Mappings for the scenario
+        ├── manifests.yaml      # Mappings/Modules/etc. for the scenario, plus any backend
+        │                       # Deployment+Service that isn't in backends/
         └── queries.json        # kat-client query set for the probe
 ```
 
 Each test gets a fresh, randomly-named namespace (`generateName: e2e-`).
 Emissary watches all namespaces, so Mappings/Listeners/TCPMappings created in
 those test namespaces are picked up automatically.
+
+## Shared backends
+
+Most fixtures need nothing more exotic than a kat-server Deployment+Service to
+route a Mapping at. `backends/` holds those shapes once, and a fixture pulls
+in the one it needs with an extra `apply` step:
+
+```yaml
+try:
+  - apply:
+      file: ../../backends/http-echo.yaml
+  - apply:
+      file: manifests.yaml
+```
+
+Chainsaw resolves `apply.file` relative to the directory containing the
+`chainsaw-test.yaml` that references it, not relative to the process's working
+directory, so a relative path can climb out of `fixtures/<name>/` to reach a
+shared file, and the resources it creates land in that test's own ephemeral
+namespace like everything else the test applies.
+
+A backend file's Deployment and Service both use a fixed `metadata.name`,
+because `apply` has no equivalent of a helm value to parameterize it per
+fixture. That means a fixture can only pull in a shared backend if its probe
+either doesn't assert on `.json.backend` at all, or asserts on exactly the
+name the shared file uses. A fixture that needs a backend name the library
+doesn't provide, or needs more than one distinctly-named backend of the same
+shape (`header-routing`'s `hr-target1`/`hr-target2`, `extauth-http`'s
+`auth1`/`auth2`), keeps that backend's Deployment+Service inline in its own
+`manifests.yaml` alongside the Mappings/Modules/AuthServices/etc. that always
+stay fixture-local.
+
+Current shapes:
+
+| File                    | `BACKEND` / name | Used by                                    |
+|--------------------------|-------------------|---------------------------------------------|
+| `backends/http-echo.yaml` | `http-echo`      | `http-basic`, `gzip-content-type`, `gzip-minimum`, `server-name` |
+| `backends/target.yaml`    | `target`         | `extauth-http`, `ratelimit-grpc`            |
+| `backends/grpc-echo.yaml` | `grpc-echo` (`KAT_BACKEND_TYPE=grpc_echo`) | `grpc-basic`     |
+| `backends/rls.yaml`       | `rls` (`KAT_BACKEND_TYPE=grpc_rls`)        | `ratelimit-grpc` |
 
 ## Slots
 
@@ -260,9 +302,13 @@ individual steps inside each `chainsaw-test.yaml`.
 ## Adding a new fixture
 
 1. Create `test/e2e/fixtures/<name>/`.
-2. Put the resources you want in `manifests.yaml` (Deployment, Service,
-   Mapping, whatever the scenario needs). For the locally-built kat-server
-   image, and on every Emissary CRD, use:
+2. Check `backends/` first: if the scenario just needs a plain kat-server
+   behind a Mapping and your probe doesn't assert a specific `.json.backend`
+   name (or is happy asserting the shared file's name), add an `apply` step
+   for it instead of writing a new Deployment+Service. Otherwise, put the
+   resources you want in `manifests.yaml` (Deployment, Service, Mapping,
+   whatever the scenario needs). For the locally-built kat-server image, and
+   on every Emissary CRD, use:
    ```yaml
    image: (env('KAT_SERVER_IMAGE'))
    ...
