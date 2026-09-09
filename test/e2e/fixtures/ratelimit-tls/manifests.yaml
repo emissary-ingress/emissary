@@ -74,24 +74,6 @@ spec:
               value: v3
           ports:
             - containerPort: 8080
-          # kat-server's own baked-in cert for its 8443 listener is generated
-          # with a CA certificate profile, so it carries only the CertSign/
-          # CRLSign key usage bits and none of the signing bits a TLS server
-          # leaf certificate needs. Envoy's BoringSSL enforces that at
-          # handshake time and aborts the connection outright, so this mounts
-          # the ratelimit.datawire.io cert (a real leaf cert) over the
-          # baked-in files instead of relying on them.
-          volumeMounts:
-            - name: ratelimit-tls-secret
-              mountPath: /work/server.crt
-              subPath: tls.crt
-            - name: ratelimit-tls-secret
-              mountPath: /work/server.key
-              subPath: tls.key
-      volumes:
-        - name: ratelimit-tls-secret
-          secret:
-            secretName: ratelimit-tls-secret
 ---
 # Port 443, not 8443: a RateLimitService's `service` with no port defaults to
 # 443 once a `tls` context is attached (80 otherwise). kat-server always runs

@@ -3,7 +3,15 @@
 FROM docker.io/smallstep/step-cli:latest AS step-cli
 
 WORKDIR /certs
-RUN step certificate create kat.server.local /certs/server.crt /certs/server.key --profile root-ca --no-password --insecure
+# kat-server terminates TLS on 8443 with this cert, so it has to be a server
+# leaf: `self-signed` sets Digital Signature key usage and serverAuth EKU,
+# which Envoy's BoringSSL requires at handshake time regardless of whether the
+# peer verifies the chain. `--subtle` is what step wants before it will issue a
+# self-signed leaf, and `--not-after` is needed because that profile defaults
+# to a 24-hour lifetime.
+RUN step certificate create kat.server.local /certs/server.crt /certs/server.key \
+    --profile self-signed --subtle --san kat.server.local \
+    --not-after 87600h --no-password --insecure
 
 FROM gcr.io/distroless/cc-debian12 as final
 # Repeat after every FROM line, sigh.
