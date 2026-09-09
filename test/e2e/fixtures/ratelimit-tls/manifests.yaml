@@ -1,0 +1,215 @@
+---
+# Port of KAT's tests/kat/t_ratelimit.py::RateLimitV1WithTLSTest.
+#
+# Same target and gRPC rate limit service as ratelimit-grpc: kat-server in
+# `grpc_rls` mode decides per request based on the `kat-req-rls-allow` header,
+# and appends whatever `kat-req-rls-headers-append` asks for to the 429 it
+# returns. The TLS here is on Emissary's upstream connection to the rls
+# service, not on the downstream listener, so there is no HTTPS gateway URL
+# involved and the queries are identical to ratelimit-grpc's.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rls
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rls
+  template:
+    metadata:
+      labels:
+        app: rls
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: rls
+            - name: KAT_BACKEND_TYPE
+              value: grpc_rls
+            # Must match the RateLimitService's protocol_version; kat-server
+            # echoes it back in Kat-Resp-Rls-Protocol-Version.
+            - name: GRPC_RLS_PROTOCOL_VERSION
+              value: v3
+          ports:
+            - containerPort: 8080
+          # kat-server's own baked-in cert for its 8443 listener is generated
+          # with a CA certificate profile, so it carries only the CertSign/
+          # CRLSign key usage bits and none of the signing bits a TLS server
+          # leaf certificate needs. Envoy's BoringSSL enforces that at
+          # handshake time and aborts the connection outright, so this mounts
+          # the ratelimit.datawire.io cert (a real leaf cert) over the
+          # baked-in files instead of relying on them.
+          volumeMounts:
+            - name: ratelimit-tls-secret
+              mountPath: /work/server.crt
+              subPath: tls.crt
+            - name: ratelimit-tls-secret
+              mountPath: /work/server.key
+              subPath: tls.key
+      volumes:
+        - name: ratelimit-tls-secret
+          secret:
+            secretName: ratelimit-tls-secret
+---
+# Port 443, not 8443: a RateLimitService's `service` with no port defaults to
+# 443 once a `tls` context is attached (80 otherwise). kat-server always runs
+# a second, TLS-terminating listener on 8443 alongside its plain one on 8080,
+# so this Service only needs to point at it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rls
+spec:
+  selector:
+    app: rls
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+---
+# The cert is signed for "ratelimit.datawire.io" and is valid until Nov 2099.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ratelimit-tls-secret
+type: kubernetes.io/tls
+stringData:
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIID2TCCAsGgAwIBAgIQQpF1nlgplwb7vHTwMs4uQTANBgkqhkiG9w0BAQsFADB7
+    MQswCQYDVQQGEwJVUzELMAkGA1UECBMCTUExDzANBgNVBAcTBkJvc3RvbjEYMBYG
+    A1UEChMPQW1iYXNzYWRvciBMYWJzMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEeMBwG
+    A1UEAxMVcmF0ZWxpbWl0LmRhdGF3aXJlLmlvMCAXDTIxMTExMDEzMTIwMFoYDzIw
+    OTkxMTEwMTMxMjAwWjB7MQswCQYDVQQGEwJVUzELMAkGA1UECBMCTUExDzANBgNV
+    BAcTBkJvc3RvbjEYMBYGA1UEChMPQW1iYXNzYWRvciBMYWJzMRQwEgYDVQQLEwtF
+    bmdpbmVlcmluZzEeMBwGA1UEAxMVcmF0ZWxpbWl0LmRhdGF3aXJlLmlvMIIBIjAN
+    BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAm8eSIuGhS+RYY8StWy9xZdEoVcmw
+    LF4rk/KBhl6hdaUX6uejvoYjHxEBuo2gHmP8aFZGDpWK77/cZMzdB0LgcEubjTIL
+    xw25lO5nKbJCNF265poybeuGzf0Jzxayt9QRQydqdIH6eSxsZgXPMbnvlm53vjvQ
+    pQMEUFrjbImnu60AfrBTz6XUpWVsZ1WLCHXjRcXu68Vi1zPGd0O3vxRwecEV9Jss
+    4Y16opU1ZyN1qDcjytfx0AvHUzqcNBpLqd8qsFAAcO0JNCMJEkZ25Lhb9ndCc3M3
+    tTJlW4WRxKAjyxRB1OTJ6M5QGS6LE/+rJlv42sgzroTUvd1hvuGYSDfh9wIDAQAB
+    o1cwVTAOBgNVHQ8BAf8EBAMCAaIwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0T
+    AQH/BAIwADAgBgNVHREEGTAXghVyYXRlbGltaXQuZGF0YXdpcmUuaW8wDQYJKoZI
+    hvcNAQELBQADggEBAADJDcx+Lmrp6vgrdLUXYYjpi8bdj5IZNKvHt8JCSZIwvS5h
+    YbZ/RDAIxT/xCHN0pPXVtkPWXcxl4XAwQAQLjdMRsxJ8qJ0TKrN/tL6WzMDwEhTB
+    JMyGQIp1HR0ptnI3mffuEp5B6j+Bmb0lIoGFLjq5gwQPF9FnR5ickODOagMRrh5b
+    ykzOYp4XijYygEmad+IW6Mt1a6ZcsuWSdVKGMnWi7ZmWrrfdiFSKZGp76JYAygLR
+    OrfKfDMreRV3+F+BMJ3Z8YG6OwXcwHgKTQovIrfW9Rs/lKq5bsAF/liesa8hd/2K
+    NQFpksYLHrpdMyiZykhh6dyrdpnZ5GURY6nrxr8=
+    -----END CERTIFICATE-----
+  tls.key: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCbx5Ii4aFL5Fhj
+    xK1bL3Fl0ShVybAsXiuT8oGGXqF1pRfq56O+hiMfEQG6jaAeY/xoVkYOlYrvv9xk
+    zN0HQuBwS5uNMgvHDbmU7mcpskI0XbrmmjJt64bN/QnPFrK31BFDJ2p0gfp5LGxm
+    Bc8xue+Wbne+O9ClAwRQWuNsiae7rQB+sFPPpdSlZWxnVYsIdeNFxe7rxWLXM8Z3
+    Q7e/FHB5wRX0myzhjXqilTVnI3WoNyPK1/HQC8dTOpw0Gkup3yqwUABw7Qk0IwkS
+    RnbkuFv2d0Jzcze1MmVbhZHEoCPLFEHU5MnozlAZLosT/6smW/jayDOuhNS93WG+
+    4ZhIN+H3AgMBAAECggEAPPYD36eZVdglqOFKD9GImFYZ6Tx0t2AgwJRZkKpOl/nD
+    2tbMMt5ONzWSDh2nJ81r9K6yWrm1ta3Iwx+SbWmD6B4GYOJRTpO16KzE7UHHe7Ok
+    VOLJ0k8loU2g/Yv940dXfAacN7y3tpymTOSAGQ8QzbcsH+NLeo+sK//tWMejvqLQ
+    LdyJZ8KtfiJlJFkpLh0IxdPz8/nZf8ldnHynlAAf6ZKZ09dxhHbcCSdD37Ow24qv
+    AQ53Oqn2TjDKK26rLTy11c3jT/sXLIjsFOA8Jd9p+HICBDSIHcjuijDMP0g0jMc0
+    escud139Ix1p11VykegU89HgwlOjMDVvozYTPDMM6QKBgQDGNm5IIAxEXez7ybML
+    HS+Y0IN6zt2dt9uW+/bqvCYIJmrZJUR5u43BoVvWMupLZ/r+diDyIoSl4ZS0yEHG
+    tOmlmucPZEktg7UxezcpRwIKnoZ97di4D9YPTg77ebP3OiLC08DVkXQEBc2hSnuY
+    9iY7NAPaBSAjdrQ76DTAahyJOQKBgQDJMifuL8GZLMZrpbjYBCrOkcfQQuDbmank
+    oQs1lb9g+ha+bhe0pELEEc5Uv5HNroYyI+dffhUF8T7OwkPyuTLgr+WnZkNkT0yu
+    ZFVwx/b96VYsgYFmpzY7a3RBxn+iByqCjZ0aGiY7UKqvRqaVlgseoZpiu7DtyiL3
+    L9TC4gq0rwKBgA9lvQ1nR+yrqzQoB/uOCduCHySUG00cMje5XQYBFac+bMBvj7Ex
+    K6LmCP9Ltz2iVzIbNRX6LnnAW0/r2og4F4pgzSA59yFNAO9WFgPj2zm99M6lgldS
+    C5vmwW0xmBRVdMvTrUAp62xAkye7ZHyOaovgz4fJLCT1HK0mrapg09SpAoGANMNt
+    i16E1AnVA3gTkLsPCttaXnibhZu33ViKmwPpi6IqgshWeS42wDq3NKyErT8evFmE
+    HRvwoX1R7mEt9qKxABHBFXSRKeZOAtIXQht+37nouoVADU6+vzh/5ZwL7s8YS+Kd
+    l7HR4u5VxN+vYj1WLzNMTKZSURoYr2Cg2Hb1PcsCgYAfEAy1r1cf+v3Y3fql1ka5
+    Hcj1XI1pD9msFGV+ipBqUMRSjZwe3owiY065ZKxf57naG+KwZ+bjkPTsW/2NAQ8S
+    PhuKUWfI8FYJfImzKlXV6NghAxZUKvzWnyHV10w/qEE+3NvdSXyj/9eTNpkAbmXW
+    IT0KrQbTnETnPL4jomup+w==
+    -----END PRIVATE KEY-----
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: ratelimit-tls-context
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: ratelimit-tls-secret
+  alpn_protocols: h2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: RateLimitService
+metadata:
+  name: rls
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service: (join('.', ['rls', $namespace]))
+  timeout_ms: 500
+  protocol_version: v3
+  tls: ratelimit-tls-context
+---
+# The `ambassador` key is the rate limit domain. Both headers are
+# omit_if_not_present, so a request carrying neither produces no descriptor at
+# all and never reaches the rate limit service.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: target:8080
+  labels:
+    ambassador:
+      - request_label_group:
+          - request_headers:
+              key: kat-req-rls-allow
+              header_name: kat-req-rls-allow
+              omit_if_not_present: true
+          - request_headers:
+              key: kat-req-rls-headers-append
+              header_name: kat-req-rls-headers-append
+              omit_if_not_present: true

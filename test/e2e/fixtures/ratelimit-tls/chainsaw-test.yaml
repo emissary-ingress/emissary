@@ -1,0 +1,38 @@
+---
+# Port of KAT's tests/kat/t_ratelimit.py::RateLimitV1WithTLSTest.
+#
+# `exclusive` because a RateLimitService is instance-global.
+#
+# This is ratelimit-grpc plus a Secret and a TLSContext attached to the
+# RateLimitService's `tls` field. That TLS is on Emissary's upstream
+# connection to the rls service, so the queries and their assertions are
+# unchanged from ratelimit-grpc; only manifests.yaml differs.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: ratelimit-tls
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: rate limit allows and rejects per descriptor over a TLS upstream
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'no descriptor headers, so no rate limiting' '.[0].result.status == 200' \
+                'reached the target'                         '.[0].result.json.backend == "target"' \
+                'rls allowed the request'                    '.[1].result.status == 200' \
+                'allowed request reached the target'         '.[1].result.json.backend == "target"' \
+                'rls rejected the request'                    '.[2].result.status == 429' \
+                'the 429 body came from the rls'              '.[2].result.json.backend == "rls"' \
+                'rls appended Hello'                          '.[2].result.headers["Hello"] == ["Foo"]' \
+                'rls appended Hi'                              '.[2].result.headers["Hi"] == ["Baz"]' \
+                'rls overrode the content type'                '.[2].result.headers["Content-Type"] == ["application/json"]' \
+                'rls answered over v3'                         '.[2].result.headers["Kat-Resp-Rls-Protocol-Version"] == ["v3"]'
