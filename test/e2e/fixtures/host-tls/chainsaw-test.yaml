@@ -1,0 +1,63 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDSingle.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# The Secret is a leaf serving cert for the downstream listener, generated
+# per run rather than committed: a default `openssl req -x509` cert is a CA
+# and BoringSSL rejects it at handshake time (see docker/kat-server/Dockerfile
+# for the same fix on the upstream side). It carries a SAN for "localhost",
+# which is what the client actually connects to; the Host's own `hostname` is
+# "*" for reasons explained in manifests.yaml.
+#
+# The KAT test issues two queries, one over https and one over http, so it
+# needs two query files and two probe steps: PROBE_BASE picks the scheme,
+# and queries.json can't hardcode either since the slot's port varies at run
+# time.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-tls
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=localhost \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:localhost \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-tls-secret \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: https reaches the target
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'client got 200 over https'       '.[0].result.status == 200' \
+                'reached the target'               '.[0].result.json.backend == "target"'
+
+    - name: http redirects to https
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'client got redirected to tls'    '.[0].result.status == 301'
