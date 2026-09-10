@@ -1,0 +1,38 @@
+---
+# Port of KAT's tests/kat/t_ratelimit.py::RateLimitVerTest, `v2` variant only.
+#
+# `exclusive` because a RateLimitService is instance-global.
+#
+# KAT's RateLimitVerTest also has `v3` and `default` (omitted) variants, but
+# `v3` is already covered by ratelimit-grpc and `default` fails identically
+# to `v2` (see manifests.yaml), so this only ports the one distinct outcome:
+# an invalid protocol_version drops the rate-limit filter entirely, and every
+# query passes straight through with none of the rls response headers.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: ratelimit-protocol-invalid
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: invalid protocol_version drops the rate limit filter entirely
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'no descriptor headers, request reaches the target' '.[0].result.status == 200' \
+                'request 0 reached the target'                      '.[0].result.json.backend == "target"' \
+                'allow header ignored, request reaches the target'  '.[1].result.status == 200' \
+                'request 1 reached the target'                      '.[1].result.json.backend == "target"' \
+                'reject header ignored too'                         '.[2].result.status == 200' \
+                'request 2 reached the target, not the rls'         '.[2].result.json.backend == "target"' \
+                'no Hello header, since the rls was never called'    '(.[2].result.headers | has("Hello") | not)' \
+                'no Hi header, since the rls was never called'       '(.[2].result.headers | has("Hi") | not)' \
+                'no rls protocol-version header, same reason'        '(.[2].result.headers | has("Kat-Resp-Rls-Protocol-Version") | not)'
