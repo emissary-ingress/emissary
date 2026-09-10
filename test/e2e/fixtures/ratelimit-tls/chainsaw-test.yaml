@@ -6,7 +6,13 @@
 # This is ratelimit-grpc plus a Secret and a TLSContext attached to the
 # RateLimitService's `tls` field. That TLS is on Emissary's upstream
 # connection to the rls service, so the queries and their assertions are
-# unchanged from ratelimit-grpc; only manifests.yaml differs.
+# unchanged from ratelimit-grpc.
+#
+# The cert is generated per run rather than kept in the repo. It has to be a
+# real server leaf: Envoy's BoringSSL checks key usage during the handshake,
+# so a default `openssl req -x509` cert (which is a CA) makes the upstream
+# connection fail, and a TLSContext whose secret will not resolve is dropped
+# from the config entirely, leaving `tls:` pointing at nothing.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
@@ -15,6 +21,22 @@ metadata:
   name: ratelimit-tls
 spec:
   steps:
+    - name: generate the upstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=ratelimit.datawire.io \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth,clientAuth \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls ratelimit-tls-secret \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
     - name: apply
       try:
         - apply:
