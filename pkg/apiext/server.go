@@ -53,6 +53,7 @@ type WebhookServer struct {
 	namespace            string
 	serviceSettings      types.NamespacedName
 	caSecretSettings     types.NamespacedName
+	webhookHostname      string
 	httpPort             int
 	httpsPort            int
 
@@ -86,6 +87,12 @@ func NewWebhookServer(logger *zap.Logger, serviceName string, options ...Webhook
 		Namespace: server.namespace,
 		Name:      serviceName,
 	}
+
+	// This is the hostname that the Kubernetes apiserver will use as the SNI ServerName
+	// when it dials us through our Service to deliver a CRD conversion request; it is
+	// derived entirely from well-known values (our Service's name/namespace), so we don't
+	// need to wait for an incoming request to know what server certificate to generate.
+	server.webhookHostname = fmt.Sprintf("%s.%s.svc", server.serviceSettings.Name, server.serviceSettings.Namespace)
 
 	return server
 }
@@ -167,12 +174,16 @@ func (s *WebhookServer) Run(ctx context.Context, scheme *runtime.Scheme) error {
 		return mgr.Start(gctx)
 	})
 
-	// we will wait until we have successfully obtained a CA root certificate
-	// before we start the web servers, to ensure we don't become ready too early
+	// We will wait until we have successfully obtained a CA root certificate, and used it
+	// to eagerly generate our webhook server certificate, before we start the web servers.
+	// This ensures we don't become ready too early: if we waited to lazily generate the
+	// server certificate on the first incoming TLS handshake, that handshake would be
+	// competing with certificate generation for time against the apiserver's webhook call
+	// timeout, and could time out under load.
 	runImmediately := true
 	pollInterval := 1 * time.Second
 	if err := wait.PollUntilContextCancel(gctx, pollInterval, runImmediately, s.ready); err != nil {
-		return fmt.Errorf("apiext server unable to obtain a root ca during startup")
+		return fmt.Errorf("apiext server unable to prepare a root ca and server certificate during startup")
 	}
 
 	grp.Go(func() error {
@@ -186,8 +197,22 @@ func (s *WebhookServer) Run(ctx context.Context, scheme *runtime.Scheme) error {
 	return grp.Wait()
 }
 
+// ready reports whether the webhook server is prepared to start serving traffic: we need a
+// CA root certificate, and we need to have eagerly generated (and cached) the server
+// certificate for our well-known webhook hostname, so that the apiserver's first TLS
+// handshake with us doesn't pay the cost of certificate generation.
 func (s *WebhookServer) ready(_ context.Context) (done bool, err error) {
-	return s.certificateAuthority.Ready(), nil
+	if !s.certificateAuthority.Ready() {
+		return false, nil
+	}
+
+	if _, err := s.certificateAuthority.GetCertificate(&tls.ClientHelloInfo{ServerName: s.webhookHostname}); err != nil {
+		s.logger.Error("unable to eagerly generate webhook server certificate",
+			zap.String("serverName", s.webhookHostname), zap.Error(err))
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // serveHTTPS starts listening for incoming https request and handles ConversionWebhookRequuests.
