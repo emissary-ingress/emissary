@@ -200,7 +200,11 @@ func (a *Accumulator) Listen(ctx context.Context, rawUpdateCh <-chan rawUpdate, 
 	var synced bool
 
 	sendUpdate := func() {
-		a.changed <- struct{}{}
+		select {
+		case a.changed <- struct{}{}:
+		case <-ctx.Done():
+			return
+		}
 		changeStatus = dispatched
 		lastChangeSent = time.Now()
 	}
