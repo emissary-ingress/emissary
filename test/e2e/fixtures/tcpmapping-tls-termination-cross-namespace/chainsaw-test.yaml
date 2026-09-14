@@ -1,0 +1,58 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingTLSTerminationCrossNamespaceTest.
+#
+# Same as tcpmapping-tls-termination-basic, except the Secret and
+# TLSContext providing the downstream cert live in their own literal
+# namespace rather than the test's generated one. A TLSContext's "hosts"
+# match against a TCPMapping's "host" by name alone, with no namespace
+# involved, so this proves that still works across namespaces.
+#
+# The other namespace is applied in its own step, ahead of the
+# cert-generation script that needs it to exist, so chainsaw's built-in
+# cleanup (which only tracks resources its own apply created) tears it down
+# afterward; see tcpmapping-tls-origination-context-cross-namespace for the
+# same reasoning.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-tls-termination-cross-namespace
+spec:
+  steps:
+    - name: create the other namespace
+      try:
+        - apply:
+            file: namespace.yaml
+
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=term-xns.example.com \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:term-xns.example.com \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls tlsserver-cert \
+                -n tcpmapping-tls-termination-cross-namespace-other \
+                --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: TLS terminates at Emissary and the backend sees cleartext
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="${GATEWAY_TCP_URL/http:/https:}" ../../probe.sh queries.json \
+                'reached the target'            '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'terminated before the backend' '.[0].result.json.request.tls.enabled == false'

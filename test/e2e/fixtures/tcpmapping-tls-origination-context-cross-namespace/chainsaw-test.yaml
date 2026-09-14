@@ -6,7 +6,7 @@
 # existing users, so this pins the behavior down. No explicit namespace
 # teardown step is needed: chainsaw's built-in cleanup deletes every
 # resource a step's `apply` created, including a Namespace object, the same
-# as it does for tcpmapping-cross-namespace -- but only for a namespace
+# as it does for tcpmapping-cross-namespace, but only for a namespace
 # chainsaw itself created. The other namespace has to exist before the cert
 # script can put a Secret in it, so it's applied here first and separately,
 # rather than left to a raw kubectl call inside the script step; a resource

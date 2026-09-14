@@ -1,0 +1,52 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingTLSTerminationBasicTest.
+#
+# KAT parameterizes this class across a TLSContext-provided cert and a
+# Host-provided one; only the TLSContext variant is ported here, for a
+# one-fixture-per-class mapping to the KAT source.
+#
+# GATEWAY_TCP_URL is an "http://" URL; swapping the scheme to "https:" is
+# enough to speak TLS to the same port, since probe.sh's PROBE_BASE only
+# gets used as a plain string prefix for relative URLs.
+#
+# The downstream cert is generated at runtime rather than committed: it has
+# to be a real server leaf with a SAN matching the TCPMapping's "host" (see
+# host-tls for why a default `openssl req -x509` CA cert won't do).
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-tls-termination-basic
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=term-basic.example.com \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:term-basic.example.com \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls tlsserver-cert \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: TLS terminates at Emissary and the backend sees cleartext
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="${GATEWAY_TCP_URL/http:/https:}" ../../probe.sh queries.json \
+                'reached the target'        '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'terminated before the backend' '.[0].result.json.request.tls.enabled == false'
