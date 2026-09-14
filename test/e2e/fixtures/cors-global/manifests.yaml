@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cors-global-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cors-global-echo
+  template:
+    metadata:
+      labels:
+        app: cors-global-echo
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: cors-global-echo
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cors-global-echo
+spec:
+  selector:
+    app: cors-global-echo
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+# The Module is global to one Emissary instance, hence `slot: exclusive`.
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    cors:
+      origins:
+        - http://foo.example.com
+      methods:
+        - POST
+        - GET
+        - OPTIONS
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: foo
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /foo/
+  service: cors-global-echo:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: bar
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /bar/
+  service: cors-global-echo:8080
+  cors:
+    origins:
+      - http://bar.example.com
+    methods:
+      - POST
+      - GET
+      - OPTIONS
