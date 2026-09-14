@@ -19,6 +19,7 @@ SLOTS="${E2E_SLOTS:-slot1:8100 slot2:8104 slot3:8108 slot4:8112 slot5:8116 slot6
 
 NAMESPACE="${E2E_NAMESPACE:-emissary}"
 GATEWAY_URL="${E2E_GATEWAY_URL:-http://localhost}"
+GATEWAY_HTTPS_URL="${E2E_GATEWAY_HTTPS_URL:-https://localhost}"
 DEFAULT_PARALLEL="${E2E_DEFAULT_PARALLEL:-8}"
 
 cmd_list() {
@@ -179,10 +180,10 @@ cmd_run() {
     logdir="$(mktemp -d)"
 
     run_shard() {
-        local shard="$1" slot="$2" url="$3" tcp_url="$4" parallel="$5"
-        shift 5
+        local shard="$1" slot="$2" url="$3" https_url="$4" tcp_url="$5" parallel="$6"
+        shift 6
         set +e
-        SLOT="$slot" GATEWAY_URL="$url" GATEWAY_TCP_URL="$tcp_url" \
+        SLOT="$slot" GATEWAY_URL="$url" GATEWAY_HTTPS_URL="$https_url" GATEWAY_TCP_URL="$tcp_url" \
             "$chainsaw" test \
                 --config "$config" \
                 --parallel "$parallel" \
@@ -192,7 +193,7 @@ cmd_run() {
         set -e
     }
 
-    run_shard shared default "$GATEWAY_URL" "${GATEWAY_URL}:6789" "$DEFAULT_PARALLEL" \
+    run_shard shared default "$GATEWAY_URL" "$GATEWAY_HTTPS_URL" "${GATEWAY_URL}:6789" "$DEFAULT_PARALLEL" \
         --selector "slot=shared" &
     pids+=("$!"); shards+=(shared)
 
@@ -201,7 +202,7 @@ cmd_run() {
         # empty regex would select every test rather than none.
         [[ -n "${assigned[i]}" ]] || continue
         local name="${slot_names[i]}" base="${slot_bases[i]}"
-        run_shard "$name" "$name" "${GATEWAY_URL}:${base}" "${GATEWAY_URL}:$((base + 2))" 1 \
+        run_shard "$name" "$name" "${GATEWAY_URL}:${base}" "${GATEWAY_HTTPS_URL}:$((base + 1))" "${GATEWAY_URL}:$((base + 2))" 1 \
             --include-test-regex "chainsaw/(${assigned[i]#|})\$" &
         pids+=("$!"); shards+=("$name")
     done
