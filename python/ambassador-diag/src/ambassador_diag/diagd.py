@@ -138,6 +138,57 @@ ambassador_targets = {
     "module": "https://www.getambassador.io/reference/configuration#modules",
 }
 
+
+# These startup errors remain useful in logs, but they should no longer make the
+# diagnostics UI look unhealthy by default.
+_SUPPRESSED_DIAGNOSTICS_ERROR_PREFIXES = (
+    "Ambassador could not find core CRD definitions.",
+    "Ambassador could not find Resolver type CRD definitions.",
+    "Ambassador could not find the Host CRD definition.",
+    "Ambassador could not find the LogService CRD definition.",
+    "Ambassador could not find the DevPortal CRD definition.",
+)
+
+_SUPPRESSED_MISSING_TLS_NOTICE = (
+    "No TLS termination and no fallback cert -- defaulting to cleartext-only."
+)
+
+
+def _diagnostics_config(ir: Optional[IR]) -> Dict[str, Any]:
+    if not ir:
+        return {}
+
+    amod = getattr(ir, "ambassador_module", None)
+    if not amod:
+        return {}
+
+    diagnostics = getattr(amod, "diagnostics", None)
+    if isinstance(diagnostics, dict):
+        return diagnostics
+
+    return {}
+
+
+def _diagnostics_flag(ir: Optional[IR], key: str, default: bool = False) -> bool:
+    value = _diagnostics_config(ir).get(key, default)
+
+    if isinstance(value, bool):
+        return value
+
+    return parse_bool(str(value))
+
+
+def _suppress_diagnostics_error(err_text: str) -> bool:
+    return err_text.startswith(_SUPPRESSED_DIAGNOSTICS_ERROR_PREFIXES)
+
+
+def _suppress_missing_tls_warning(ir: Optional[IR]) -> bool:
+    return _diagnostics_flag(ir, "missing_tls_ok")
+
+
+def _suppress_diagnostics_notice(ir: Optional[IR], notice_text: str) -> bool:
+    return _suppress_missing_tls_warning(ir) and (notice_text == _SUPPRESSED_MISSING_TLS_NOTICE)
+
 # envoy_targets = {
 #     'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
 #     'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
@@ -1097,7 +1148,12 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
             err_key = ""
 
         for err in err_list:
-            errors.append((err_key, err["error"]))
+            err_text = err["error"]
+
+            if _suppress_diagnostics_error(err_text):
+                continue
+
+            errors.append((err_key, err_text))
 
     dnotices = ddict.pop("notices", {})
 
@@ -1107,6 +1163,9 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     for notice_key, notice_list in dnotices.items():
         for notice in notice_list:
+            if _suppress_diagnostics_notice(app.ir, notice):
+                continue
+
             app.notices.post({"level": "NOTICE", "message": "%s: %s" % (notice_key, notice)})
 
     ddict["errors"] = errors
@@ -1859,6 +1918,8 @@ class AmbassadorEventWatcher(threading.Thread):
         if not ir:
             ir = app.ir
 
+        missing_tls_ok = _suppress_missing_tls_warning(ir)
+
         if not ir:
             chime_failures["no config loaded"] = True
             env_good = False
@@ -1872,9 +1933,12 @@ class AmbassadorEventWatcher(threading.Thread):
                         err_key = ""
 
                     for err in err_list:
-                        error_count += 1
                         err_text = err["error"]
 
+                        if _suppress_diagnostics_error(err_text):
+                            continue
+
+                        error_count += 1
                         self.app.logger.info(f"error {err_key} {err_text}")
 
                         if err_text.find("CRD") >= 0:
@@ -1922,6 +1986,8 @@ class AmbassadorEventWatcher(threading.Thread):
                 "TLS",
                 f'{tls_count} TLSContext{" is" if (tls_count == 1) else "s are"} active',
             )
+        elif missing_tls_ok:
+            env_status.OK("TLS", "No TLSContexts are active, but diagnostics.missing_tls_ok allows that")
         else:
             chime_failures["no TLS contexts"] = True
             env_status.failure("TLS", "No TLSContexts are active")
