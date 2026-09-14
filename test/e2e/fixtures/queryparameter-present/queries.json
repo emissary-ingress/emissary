@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/queryparameter-present/?test_param=true",
+    "method": "GET"
+  },
+  {
+    "url": "/queryparameter-present/",
+    "method": "GET"
+  }
+]

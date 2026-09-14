@@ -1,0 +1,14 @@
+[
+  {
+    "url": "/queryparameter-routing-regex/?test_param=hello",
+    "method": "GET"
+  },
+  {
+    "url": "/queryparameter-routing-regex/",
+    "method": "GET"
+  },
+  {
+    "url": "/queryparameter-routing-regex/?test_param=HeLlO",
+    "method": "GET"
+  }
+]

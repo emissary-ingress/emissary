@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/queryparameter-routing/",
+    "method": "GET"
+  },
+  {
+    "url": "/queryparameter-routing/?test_param=target2",
+    "method": "GET"
+  }
+]

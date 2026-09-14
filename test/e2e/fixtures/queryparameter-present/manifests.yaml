@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qpr-present-target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qpr-present-target
+  template:
+    metadata:
+      labels:
+        app: qpr-present-target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: qpr-present-target
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qpr-present-target
+spec:
+  selector:
+    app: qpr-present-target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: queryparameter-present-target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /queryparameter-present/
+  service: qpr-present-target:8080
+  regex_query_parameters:
+    test_param: ".*"
