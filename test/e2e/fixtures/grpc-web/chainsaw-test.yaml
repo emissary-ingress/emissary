@@ -1,0 +1,24 @@
+---
+# Port of KAT's tests/kat/t_grpc_web.py::AcceptanceGrpcWebTest.
+#
+# enable_grpc_web is a Module setting, hence `slot: exclusive`. kat-client
+# decodes the grpc-web-text body and lifts its trailers into result.headers,
+# so Grpc-Status reads the same way as the plain gRPC fixture.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: grpc-web
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'requested status 0 comes back' '.[0].result.headers["Grpc-Status"] == ["0"]' \
+                'requested status 7 comes back' '.[1].result.headers["Grpc-Status"] == ["7"]'
