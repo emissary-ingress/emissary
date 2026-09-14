@@ -36,6 +36,14 @@ cmd_install() {
     # module.enabled=false and a per-slot ingressClassResource.name both avoid
     # colliding with the base release; see README.md. Installs run concurrently,
     # with output buffered per slot.
+    #
+    # Leaving a slot with no Module also decides something fixtures rely on:
+    # the chart's Module sets `diagnostics.enabled: false`, so without it a slot
+    # falls back to Emissary's default and serves /ambassador/v0/diag/ and the
+    # check_ready and check_alive endpoints on its normal http port. The base
+    # release keeps the chart Module and answers 404 there, so a fixture
+    # asserting on those endpoints has to be `slot: exclusive`. Setting a Module
+    # here would take that away.
     local logdir pids=() names=()
     logdir="$(mktemp -d)"
 
