@@ -1,0 +1,53 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingSNISharedContextTest.
+#
+# KAT parameterizes this class across a TLSContext-provided cert and a
+# Host-provided one; only the TLSContext variant is ported here, for a
+# one-fixture-per-class mapping to the KAT source.
+#
+# One TLSContext, one cert with two SANs, and two TCPMappings that each
+# pick a different backend by "host": the point is that a single shared
+# TLSContext can back more than one TCPMapping's SNI match.
+#
+# GATEWAY_TCP_URL is an "http://" URL; swapping the scheme is enough to
+# speak TLS to the same port, same as tcpmapping-tls-termination-basic.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-sni-shared-context
+spec:
+  steps:
+    - name: generate the shared downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=a.sni-shared.example.com \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:a.sni-shared.example.com,DNS:b.sni-shared.example.com \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls tlsserver-cert \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: SNI on a shared TLSContext routes each host to its own backend
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="${GATEWAY_TCP_URL/http:/https:}" ../../probe.sh queries.json \
+                'host a reached target-a'         '.[0].result.status == 200 and .[0].result.json.backend == "target-a"' \
+                'host a terminated before the backend' '.[0].result.json.request.tls.enabled == false' \
+                'host b reached target-b'         '.[1].result.status == 200 and .[1].result.json.backend == "target-b"' \
+                'host b terminated before the backend' '.[1].result.json.request.tls.enabled == false'
