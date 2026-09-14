@@ -1,0 +1,32 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingWeightTest.
+#
+# KAT's check() sends 1000 requests and asserts the 70/30 split lands within
+# a margin. A single probe.sh run can't assert a distribution reliably: it
+# fires one batch of requests per attempt and retries the whole batch on any
+# assertion failure, so a ratio assertion would be a coin flip on which
+# attempt happens to land inside the margin, not a real check of the
+# feature. What's actually deterministic with a large-enough batch is that
+# every request succeeds and that both weighted backends get used at all;
+# with 40 requests split 70/30 the chance of either side getting zero is
+# astronomically small, so that's what's asserted here. The exact ratio is
+# deliberately not asserted.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-weight
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="${GATEWAY_TCP_URL}" ../../probe.sh queries.json \
+                'every request succeeded'      'all(.[]; .result.status == 200)' \
+                'the 70-weighted backend was used' 'any(.[]; .result.json.backend == "tgt70")' \
+                'the 30-weighted backend was used' 'any(.[]; .result.json.backend == "tgt30")'
