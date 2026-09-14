@@ -1,0 +1,22 @@
+---
+# Port of KAT's tests/kat/t_request_header.py::XRequestIdHeaderPreserveTest.
+#
+# preserve_external_request_id is a Module setting, hence `slot: exclusive`.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: request-header-preserve-id
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'status is 200'          '.[0].result.status == 200' \
+                'x-request-id preserved' '.[0].result.json.request.headers["x-request-id"] == ["hello"]'
