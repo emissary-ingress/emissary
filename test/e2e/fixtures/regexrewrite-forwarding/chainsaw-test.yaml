@@ -1,0 +1,32 @@
+---
+# Port of KAT's tests/kat/t_regexrewrite_forwarding.py::RegexRewriteForwardingTest.
+#
+# KAT:      queries() yields three Query objects, check() asserts on
+#           results[N].backend.request.url.path and the
+#           x-envoy-original-path header Envoy adds when a rewrite fires.
+# Chainsaw: queries.json holds the same three queries, and the jq expression
+#           below is the check(). Request headers come back lowercased from
+#           kat-server, so the header key is "x-envoy-original-path".
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: regexrewrite-forwarding
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'non-matching path reaches the target'   '.[0].result.status == 200 and .[0].result.json.backend == "rrf-target"' \
+                'non-matching path is unrewritten'       '.[0].result.json.request.url.path == "/regexrewrite-forwarding/bar"' \
+                'original path header on the non-match'  '.[0].result.json.request.headers["x-envoy-original-path"] == ["/regexrewrite-forwarding/bar"]' \
+                'matching path reaches the target'       '.[1].result.status == 200 and .[1].result.json.backend == "rrf-target"' \
+                'matching path is rewritten'             '.[1].result.json.request.url.path == "/baz/regexrewrite-forwarding"' \
+                'original path header on the rewrite'    '.[1].result.json.request.headers["x-envoy-original-path"] == ["/regexrewrite-forwarding/baz"]' \
+                'prefix mismatch is a 404'                '.[2].result.status == 404'

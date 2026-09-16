@@ -1,0 +1,28 @@
+---
+# Port of KAT's tests/kat/t_queryparameter_routing.py::QueryParameterRoutingWithRegexTest.
+#
+# KAT:      queries() yields three Query objects; only the first is expected
+#           to reach the backend, the other two fail the regex_query_parameters
+#           match (missing param, and wrong case).
+# Chainsaw: queries.json holds the same three queries, and the jq expression
+#           below is the check().
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: queryparameter-routing-regex
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'lowercase param matches the regex'   '.[0].result.status == 200' \
+                'and reaches the target'               '.[0].result.json.backend == "qpr-regex-target"' \
+                'missing param does not match'         '.[1].result.status == 404' \
+                'wrong-case param does not match'      '.[2].result.status == 404'

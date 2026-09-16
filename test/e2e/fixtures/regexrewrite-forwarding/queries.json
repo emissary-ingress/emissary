@@ -1,0 +1,14 @@
+[
+  {
+    "url": "/regexrewrite-forwarding/bar",
+    "method": "GET"
+  },
+  {
+    "url": "/regexrewrite-forwarding/baz",
+    "method": "GET"
+  },
+  {
+    "url": "/xregexrewrite-forwarding/",
+    "method": "GET"
+  }
+]

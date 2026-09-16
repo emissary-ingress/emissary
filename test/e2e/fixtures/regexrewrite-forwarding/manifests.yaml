@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rrf-target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rrf-target
+  template:
+    metadata:
+      labels:
+        app: rrf-target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: rrf-target
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rrf-target
+spec:
+  selector:
+    app: rrf-target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: regexrewrite-forwarding-target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /regexrewrite-forwarding/
+  service: rrf-target:8080
+  regex_rewrite:
+    pattern: "/regexrewrite-forwarding/baz"
+    substitution: "/baz/regexrewrite-forwarding"
