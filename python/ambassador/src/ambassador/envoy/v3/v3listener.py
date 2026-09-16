@@ -719,10 +719,30 @@ class V3Listener:
                     continue
 
                 # First up, which clusters do we need to talk to?
-                clusters = [
-                    {"name": mapping.cluster.envoy_name, "weight": mapping._weight}
-                    for mapping in irgroup.mappings
-                ]
+                #
+                # IRBaseMappingGroup hands us cumulative weights, rising to 100
+                # on the last mapping, because that is the form an HTTP route's
+                # runtime_fraction needs. tcp_proxy instead splits traffic by
+                # each cluster's share of the total, so the shares have to be
+                # differenced back out of those running totals. Envoy rejects a
+                # weight below 1, so a mapping left with no share of its own is
+                # dropped rather than sent as a zero.
+                clusters = []
+                consumed = 0
+
+                for mapping in irgroup.mappings:
+                    cumulative = mapping._weight
+                    weight = cumulative - consumed
+                    consumed = cumulative
+
+                    if weight < 1:
+                        self.config.ir.logger.debug(
+                            "TCPMapping %s has no weight of its own, not routing to it",
+                            mapping.name,
+                        )
+                        continue
+
+                    clusters.append({"name": mapping.cluster.envoy_name, "weight": weight})
 
                 # From that, we can sort out a basic tcp_proxy filter config.
                 tcp_filter = {
