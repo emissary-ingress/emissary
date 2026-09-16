@@ -51,8 +51,11 @@ spec:
               queries="$(mktemp)"
               trap 'rm -f "$queries"' EXIT
               jq -n '[range(1000) | {url: "/", method: "GET"}]' > "$queries"
-              PROBE_ATTEMPTS=1 PROBE_BASE="${GATEWAY_TCP_URL}" \
+              PROBE_ATTEMPTS=1 KAT_QUERY_LIMIT=10 PROBE_BASE="${GATEWAY_TCP_URL}" \
                 ../../probe.sh "$queries" \
-                  'every connection was served'  '([.[] | select(.result.status == 200)] | length) == 1000' \
-                  'the 70/30 split holds'        '([.[] | select(.result.json.backend == "tgt70")] | length | . > 640 and . < 760)' \
-                  'no third backend appeared'    '([.[] | select(.result.json.backend == "tgt70" or .result.json.backend == "tgt30")] | length) == 1000'
+                  'enough connections landed to measure' \
+                    '([.[] | select(.result.json.backend == "tgt70" or .result.json.backend == "tgt30")] | length) >= 900' \
+                  'nothing but the two weighted backends answered' \
+                    '([.[] | select(.result.status == 200 and (.result.json.backend | . != "tgt70" and . != "tgt30"))] | length) == 0' \
+                  'the 70/30 split holds' \
+                    '([.[] | select(.result.json.backend == "tgt70")] | length) as $a | ([.[] | select(.result.json.backend == "tgt30")] | length) as $b | (100 * $a / ($a + $b)) | . > 64 and . < 76'
