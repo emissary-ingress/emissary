@@ -184,6 +184,16 @@ spec:
         emissary-ingress.dev/control-plane-ns: {{ .Values.emissary.namespace }}
     spec:
       serviceAccountName: emissary-apiext
+{{- $selector := .Values.apiext.nodeSelector }}
+{{- if $selector }}
+      nodeSelector:
+        {{- toYaml $selector | nindent 8 }}
+{{- end }}
+{{- $tolerations := .Values.apiext.tolerations }}
+{{- if $tolerations }}
+      tolerations:
+        {{- toYaml $tolerations | nindent 8 }}
+{{- end }}
       containers:
         - name: emissary-apiext
           image: {{ .Values.apiext.repository | default .Values.defaultImageRepository }}:{{ .Values.apiext.tag | default .Chart.AppVersion }}

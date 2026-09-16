@@ -18,3 +18,7 @@ apiext:
   # set to override image tag for apiext Docker image
   tag: ""
   pullPolicy: IfNotPresent
+
+  # Optional scheduling controls for the apiext Deployment.
+  nodeSelector: {}
+  tolerations: []
