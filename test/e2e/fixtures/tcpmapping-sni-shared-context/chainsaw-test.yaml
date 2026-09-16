@@ -9,8 +9,9 @@
 # pick a different backend by "host": the point is that a single shared
 # TLSContext can back more than one TCPMapping's SNI match.
 #
-# GATEWAY_TCP_URL is an "http://" URL; swapping the scheme is enough to
-# speak TLS to the same port, same as tcpmapping-tls-termination-basic.
+# GATEWAY_TCP_URL is an "http://" URL; re-spelling the scheme is enough to
+# speak TLS to the same port, same as tcpmapping-tls-termination-basic. The
+# swap uses POSIX prefix removal because script steps run under /bin/sh.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
@@ -46,7 +47,7 @@ spec:
         - script:
             timeout: 2m
             content: |
-              PROBE_BASE="${GATEWAY_TCP_URL/http:/https:}" ../../probe.sh queries.json \
+              PROBE_BASE="https://${GATEWAY_TCP_URL#http://}" ../../probe.sh queries.json \
                 'host a reached target-a'         '.[0].result.status == 200 and .[0].result.json.backend == "target-a"' \
                 'host a terminated before the backend' '.[0].result.json.request.tls.enabled == false' \
                 'host b reached target-b'         '.[1].result.status == 200 and .[1].result.json.backend == "target-b"' \

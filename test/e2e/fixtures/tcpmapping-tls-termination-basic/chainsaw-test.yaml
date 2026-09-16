@@ -5,9 +5,11 @@
 # Host-provided one; only the TLSContext variant is ported here, for a
 # one-fixture-per-class mapping to the KAT source.
 #
-# GATEWAY_TCP_URL is an "http://" URL; swapping the scheme to "https:" is
-# enough to speak TLS to the same port, since probe.sh's PROBE_BASE only
-# gets used as a plain string prefix for relative URLs.
+# GATEWAY_TCP_URL is an "http://" URL, and probe.sh only uses PROBE_BASE as a
+# plain string prefix for relative URLs, so re-spelling the scheme is all it
+# takes to speak TLS to the same port. Script steps run under /bin/sh, which
+# is dash on the CI runners, so the swap uses POSIX prefix removal rather than
+# bash pattern substitution.
 #
 # The downstream cert is generated at runtime rather than committed: it has
 # to be a real server leaf with a SAN matching the TCPMapping's "host" (see
@@ -47,6 +49,6 @@ spec:
         - script:
             timeout: 2m
             content: |
-              PROBE_BASE="${GATEWAY_TCP_URL/http:/https:}" ../../probe.sh queries.json \
+              PROBE_BASE="https://${GATEWAY_TCP_URL#http://}" ../../probe.sh queries.json \
                 'reached the target'        '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
                 'terminated before the backend' '.[0].result.json.request.tls.enabled == false'

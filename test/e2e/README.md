@@ -131,6 +131,13 @@ passes. Fixtures need no `bindings` at all: `script` steps inherit the process
 environment, and manifests call `(env('KAT_SERVER_IMAGE'))` and
 `(env('SLOT'))` directly.
 
+> Chainsaw runs a `script` step's `content` with `/bin/sh`, so keep it POSIX.
+> That is bash on a Mac and dash on the CI runners, which means a bashism can
+> pass locally and then fail only in CI with `Bad substitution`. Use
+> `"https://${GATEWAY_TCP_URL#http://}"`, not `"${GATEWAY_TCP_URL/http:/https:}"`.
+> `probe.sh` itself has a bash shebang and can use bash freely; this applies to
+> the inline `content` a fixture writes.
+
 ## The probe helper
 
 `probe.sh <queries.json> <jq-expr>` is the whole assertion mechanism:

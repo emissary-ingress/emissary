@@ -53,6 +53,6 @@ spec:
         - script:
             timeout: 2m
             content: |
-              PROBE_BASE="${GATEWAY_TCP_URL/http:/https:}" ../../probe.sh queries.json \
+              PROBE_BASE="https://${GATEWAY_TCP_URL#http://}" ../../probe.sh queries.json \
                 'reached the target'            '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
                 'terminated before the backend' '.[0].result.json.request.tls.enabled == false'
