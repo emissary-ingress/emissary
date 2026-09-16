@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_request_header.py::SuppressEnvoyHeadersTest.
+#
+# suppress_envoy_headers is a Module setting, hence `slot: exclusive`. The
+# absence checks are paired with a status check so a route that never
+# resolved wouldn't be mistaken for headers correctly suppressed.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: request-header-suppress-envoy-headers
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'status is 200'              '.[0].result.status == 200' \
+                'reached the backend'        '.[0].result.json.backend == "request-header-suppress-envoy-headers-echo"' \
+                'no timeout header'          '(.[0].result.json.request.headers | has("x-envoy-expected-rq-timeout-ms") | not)' \
+                'no original path header'    '(.[0].result.json.request.headers | has("x-envoy-original-path") | not)'

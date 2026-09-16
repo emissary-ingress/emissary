@@ -1,0 +1,23 @@
+---
+# Port of KAT's tests/kat/t_headerswithunderscoresaction.py::AllowHeadersWithUnderscoresTest.
+#
+# No Module is set here, so this exercises Envoy's default
+# headers_with_underscores_action (ALLOW). No global config, so shared.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: headers-underscores-allow
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'status is 200'   '.[0].result.status == 200' \
+                'header arrived'  '.[0].result.json.request.headers["t_underscore"] == ["foo"]'

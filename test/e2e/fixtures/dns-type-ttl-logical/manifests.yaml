@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-type-ttl-logical-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns-type-ttl-logical-echo
+  template:
+    metadata:
+      labels:
+        app: dns-type-ttl-logical-echo
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: dns-type-ttl-logical-echo
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns-type-ttl-logical-echo
+spec:
+  selector:
+    app: dns-type-ttl-logical-echo
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: dns-type-ttl-logical
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /dns-type-ttl-logical/
+  service: dns-type-ttl-logical-echo:8080
+  respect_dns_ttl: true
+  dns_type: logical_dns

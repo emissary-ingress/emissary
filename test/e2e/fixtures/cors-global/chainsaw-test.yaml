@@ -1,0 +1,28 @@
+---
+# Port of KAT's tests/kat/t_cors.py::GlobalCORSTest.
+#
+# Despite the class name, the cors block here lives under the Module's
+# `config`, i.e. instance-global default CORS policy that the /bar/ Mapping
+# then overrides per-route. That Module is why this is `slot: exclusive`.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: cors-global
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                '[0] no origin, no ACAO'         '.[0].result.json.backend == "cors-global-echo" and (.[0].result.headers | has("Access-Control-Allow-Origin") | not)' \
+                '[1] matching origin gets ACAO'  '.[1].result.headers["Access-Control-Allow-Origin"] == ["http://foo.example.com"]' \
+                '[2] wrong origin, no ACAO'      '.[2].result.json.backend == "cors-global-echo" and (.[2].result.headers | has("Access-Control-Allow-Origin") | not)' \
+                '[3] no origin, no ACAO'         '.[3].result.json.backend == "cors-global-echo" and (.[3].result.headers | has("Access-Control-Allow-Origin") | not)' \
+                '[4] matching origin gets ACAO'  '.[4].result.headers["Access-Control-Allow-Origin"] == ["http://bar.example.com"]' \
+                '[5] wrong origin, no ACAO'      '.[5].result.json.backend == "cors-global-echo" and (.[5].result.headers | has("Access-Control-Allow-Origin") | not)'
