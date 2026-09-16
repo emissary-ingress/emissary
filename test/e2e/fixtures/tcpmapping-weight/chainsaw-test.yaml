@@ -12,13 +12,22 @@
 # Envoy has the weighted config; only then does the second step take its
 # single sample, with PROBE_ATTEMPTS=1 so there is no second roll.
 #
-# 1000 connections with a +/-60 margin leaves a correct 70/30 passing 99.996%
-# of the time while a 60/40 regression passes 0.4% and 50/50 never does. Finer
-# drift such as 65/35 is not detected; that would need either a much larger
-# sample or a genuinely flaky margin, and neither is worth it here. Each query
-# gets its own http.Transport in kat-client, so these really are 1000
-# independent connections rather than a few pooled ones, which is what makes
-# the binomial margin above the right one.
+# The split is judged as a proportion of the connections that reached a
+# backend, never as a count out of the 1000 requested. Some connections are
+# lost under load, more so on a CI runner than locally, and a count-based
+# window silently treats that loss as if it were a shift in the ratio: at one
+# point a run lost 95 connections, the tgt70 count fell from 769 to 690, and
+# 690 sat inside a window centred on 700, so a wrong split read as correct.
+#
+# The floor is there so the proportion is measured on a sample big enough to
+# mean something. Above 600 landed connections a 64 to 76 percent window passes
+# a correct 70/30 at least 99.8% of the time, while a 60/40 regression passes
+# under 2%. Finer drift such as 65/35 is not detected, which would need a much
+# larger sample or a genuinely flaky window, and neither is worth it here.
+#
+# Each query gets its own http.Transport in kat-client, so these are
+# independent connections rather than a few pooled ones, which is what makes a
+# binomial window the right tool.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
@@ -51,10 +60,10 @@ spec:
               queries="$(mktemp)"
               trap 'rm -f "$queries"' EXIT
               jq -n '[range(1000) | {url: "/", method: "GET"}]' > "$queries"
-              PROBE_ATTEMPTS=1 KAT_QUERY_LIMIT=10 PROBE_BASE="${GATEWAY_TCP_URL}" \
+              PROBE_ATTEMPTS=1 PROBE_BASE="${GATEWAY_TCP_URL}" \
                 ../../probe.sh "$queries" \
                   'enough connections landed to measure' \
-                    '([.[] | select(.result.json.backend == "tgt70" or .result.json.backend == "tgt30")] | length) >= 900' \
+                    '([.[] | select(.result.json.backend == "tgt70" or .result.json.backend == "tgt30")] | length) >= 600' \
                   'nothing but the two weighted backends answered' \
                     '([.[] | select(.result.status == 200 and (.result.json.backend | . != "tgt70" and . != "tgt30"))] | length) == 0' \
                   'the 70/30 split holds' \
