@@ -1,0 +1,127 @@
+---
+# Port of KAT's tests/kat/t_ratelimit.py::RateLimitVerTest, `v2` variant only.
+#
+# Same target and gRPC rate limit service as ratelimit-grpc. The
+# RateLimitService here asks for `protocol_version: v2`, which
+# python/ambassador/src/ambassador/ir/irratelimit.py rejects outright (v2 is
+# also what an omitted protocol_version defaults to, so leaving the field out
+# entirely fails identically): IRRateLimit.setup() posts an error and returns
+# False, so the rate-limit filter never gets built at all. Every request then
+# passes straight through to the target regardless of the
+# kat-req-rls-allow/kat-req-rls-headers-append headers it carries, and the
+# rls backend is never contacted.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rls
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rls
+  template:
+    metadata:
+      labels:
+        app: rls
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: rls
+            - name: KAT_BACKEND_TYPE
+              value: grpc_rls
+            - name: GRPC_RLS_PROTOCOL_VERSION
+              value: v3
+          ports:
+            - containerPort: 8080
+---
+# Port 80, not 8080: a RateLimitService's `service` with no port defaults to
+# 80. This Service and the rls Deployment above are only here for parity with
+# a working RateLimitService config; the invalid protocol_version means
+# nothing ever calls them.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rls
+spec:
+  selector:
+    app: rls
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: RateLimitService
+metadata:
+  name: rls
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service: (join('.', ['rls', $namespace]))
+  timeout_ms: 500
+  protocol_version: v2
+---
+# The `ambassador` key is the rate limit domain. Both headers are
+# omit_if_not_present, so a request carrying neither produces no descriptor at
+# all and never reaches the rate limit service, same as ratelimit-grpc.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: target:8080
+  labels:
+    ambassador:
+      - request_label_group:
+          - request_headers:
+              key: kat-req-rls-allow
+              header_name: kat-req-rls-allow
+              omit_if_not_present: true
+          - request_headers:
+              key: kat-req-rls-headers-append
+              header_name: kat-req-rls-headers-append
+              omit_if_not_present: true

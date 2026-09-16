@@ -145,7 +145,11 @@ environment, and manifests call `(env('KAT_SERVER_IMAGE'))` and
 - `queries.json` is a plain [kat-client][] input file. URLs starting with `/`
   are prefixed with `$PROBE_BASE` (defaults to `$GATEWAY_URL`); absolute URLs
   are left alone, so TLS and alternate-port fixtures spell out their own
-  scheme and host.
+  scheme and host. A fixture that wants to probe the downstream HTTPS
+  listener sets `PROBE_BASE="$GATEWAY_HTTPS_URL"` in its `script` step;
+  `slots.sh` and `e2e.mk` export `GATEWAY_HTTPS_URL` alongside `GATEWAY_URL`
+  and `GATEWAY_TCP_URL`, pointing at the slot's `+1` port (see the port table
+  above).
 - The `jq` expression is evaluated against kat-client's output array. It maps
   directly onto the old KAT Python assertions: `Query(..., expected=404)`
   becomes `.[0].result.status == 404`, and `r.backend.name == "x"` becomes
@@ -249,6 +253,7 @@ All have sensible defaults; override on the command line as needed:
 | `E2E_NAMESPACE`      | `emissary`             | namespace for the Emissary install       |
 | `E2E_CRD_NAMESPACE`  | `emissary-system`      | namespace for the CRDs chart             |
 | `E2E_GATEWAY_URL`    | `http://localhost`     | host the probes target (slot ports are appended) |
+| `E2E_GATEWAY_HTTPS_URL` | `https://localhost` | https counterpart of `E2E_GATEWAY_URL`, for fixtures that probe the downstream TLS listener |
 | `E2E_LOCAL_VERSION`  | `v4.0.0-local`         | short chart VERSION (dirty trees produce strings longer than k8s' 63-char label limit) |
 | `E2E_SLOTS`          | `slot1:8100 ... slot8:8128` | `<name>:<port-base>` list of isolated Emissary installs |
 | `E2E_DEFAULT_PARALLEL` | `8`                  | how many `shared` fixtures run at once |

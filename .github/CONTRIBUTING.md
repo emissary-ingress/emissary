@@ -278,6 +278,16 @@ When submitting a Pull Request (PR) here are a set of guidelines to follow:
 
 8. Submit a Pull Request from your fork targeting upstream `emissary/master`.
 
+> [!IMPORTANT]
+> If you are submitting a bug fix, your PR **must** include a reproducible test case that demonstrates the bug and a test case that demonstrates the fix.
+> Additionally, your PR **must** include a test that guards against regressions (i.e., a test that will fail if the bug is re-introduced in the future).
+>
+> The strictness with which these requirement are enforced *may* vary for well-known or long-standing contributors at the descresion of the maintainers,
+> but **will not** be waived for first-time or "batch" contributors.
+>
+> Transparently, this *is* a way to improve the depth and breadth of `emissary`'s test suite while guarding the maintainer's time and bandwidth given the
+> scale at which A.I.-driven contributions are often made.
+
 Thanks for your contribution! One of the [Maintainers](../Community/MAINTAINERS.md) will review your PR and discuss any changes that need to be made.
 
 ### Pull Request Review Process

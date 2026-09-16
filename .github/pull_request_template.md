@@ -46,6 +46,11 @@ A few sentences describing what testing you've done, e.g., manual tests, automat
   - We should lean on the bulk of code being covered by unit tests, but...
   - ... an end-to-end test should cover the integration points
 
+- [ ] **I am submitting a bug fix.**
+  - [ ] I have included a reproducible test case that demonstrates the bug.
+  - [ ] I have included a test case that demonstrates the fix.
+  - [ ] I have included a test that guards against regressions (i.e., a test that will fail if the bug is re-introduced in the future).
+
 - [ ] **I updated `CONTRIBUTING.md` with any special dev tricks I had to use to work on this code efficiently.**
 
 - [ ] **The changes in this PR have been reviewed for security concerns and adherence to security best practices.**

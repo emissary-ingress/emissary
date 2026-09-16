@@ -13,6 +13,7 @@ E2E_CLUSTER       ?= emissary-e2e
 E2E_NAMESPACE     ?= emissary
 E2E_CRD_NAMESPACE ?= emissary-system
 E2E_GATEWAY_URL   ?= http://localhost
+E2E_GATEWAY_HTTPS_URL ?= https://localhost
 E2E_COMPONENTS    ?= apiext emissary kat-client kat-server test-auth test-shadow test-stats
 
 # Slots (isolated Emissary installs for tests that set global config) are
@@ -118,6 +119,7 @@ e2e/run: $(tools/kat-client) $(tools/chainsaw)
 	KAT_SERVER_IMAGE="ghcr.io/emissary-ingress/kat-server:$$tag" \
 	E2E_NAMESPACE=$(E2E_NAMESPACE) \
 	E2E_GATEWAY_URL=$(E2E_GATEWAY_URL) \
+	E2E_GATEWAY_HTTPS_URL=$(E2E_GATEWAY_HTTPS_URL) \
 	    $(E2E_SLOTS_SH) run \
 	        $(tools/chainsaw) \
 	        $(OSS_HOME)/test/e2e/.chainsaw.yaml \
@@ -139,13 +141,13 @@ e2e/run/%: $(tools/kat-client) $(tools/chainsaw)
 	fi
 	@tag="$$(head -n1 $(E2E_VERSION_FILE))-$(ARCH)"; \
 	kind="$$(sed -n 's/^ *slot: *//p' $(OSS_HOME)/test/e2e/fixtures/$*/chainsaw-test.yaml | head -n1)"; \
-	url="$(E2E_GATEWAY_URL)"; tcp_url="$(E2E_GATEWAY_URL):6789"; slot=default; \
+	url="$(E2E_GATEWAY_URL)"; https_url="$(E2E_GATEWAY_HTTPS_URL)"; tcp_url="$(E2E_GATEWAY_URL):6789"; slot=default; \
 	if test "$$kind" = "exclusive"; then \
 	    want="$${E2E_SLOT:-}"; \
 	    while read -r name base; do \
 	        if test -z "$$want" -o "$$name" = "$$want"; then \
 	            slot="$$name"; \
-	            url="$(E2E_GATEWAY_URL):$$base"; tcp_url="$(E2E_GATEWAY_URL):$$((base+2))"; \
+	            url="$(E2E_GATEWAY_URL):$$base"; https_url="$(E2E_GATEWAY_HTTPS_URL):$$((base+1))"; tcp_url="$(E2E_GATEWAY_URL):$$((base+2))"; \
 	            break; \
 	        fi; \
 	    done <<<"$$($(E2E_SLOTS_SH) list)"; \
@@ -155,6 +157,7 @@ e2e/run/%: $(tools/kat-client) $(tools/chainsaw)
 	KAT_CLIENT=$(tools/kat-client) \
 	KAT_SERVER_IMAGE="ghcr.io/emissary-ingress/kat-server:$$tag" \
 	GATEWAY_URL="$$url" \
+	GATEWAY_HTTPS_URL="$$https_url" \
 	GATEWAY_TCP_URL="$$tcp_url" \
 	    $(tools/chainsaw) test \
 	        --config $(OSS_HOME)/test/e2e/.chainsaw.yaml \
