@@ -30,12 +30,18 @@ Ambassador uses several TCP ports while running. All but one of them are in the 
 | 8001 | `envoy`                               | Internal stats, logging, etc.; not exposed outside pod                                                             |
 | 8002 | `entrypoint/watcher`                  | Internal `watt` snapshot access; not exposed outside pod                                                           |
 | 8003 | `entrypoint/ambex`                    | Internal `ambex` snapshot access; not exposed outside pod                                                          |
-| 8004 | `diagd`                               | Internal `diagd` access when `AMBASSADOR_FAST_RECONFIGURE` is set; not exposed outside pod                         |
 | 8005 | `entrypoint/external_snapshot_server` | Exposes configuration snapshots for integration with other tools                                                   |
 | 8006 | `envoy`                               | Default ready listener port                                                                                        |
 | 8080 | `envoy`                               | Default HTTP service port                                                                                          |
 | 8443 | `envoy`                               | Default HTTPS service port                                                                                         |
-| 8877 | `diagd`                               | Direct access to diagnostics UI; provided by `busyambassador entrypoint` when `AMBASSADOR_FAST_RECONFIGURE` is set |
+| 8877 | `entrypoint/healthchecks`             | Health checks, plus a reverse proxy to `diagd` for the diagnostics UI                                              |
+
+`diagd` itself does not listen on a TCP port at all: it listens on the Unix-domain socket named by
+`AMBASSADOR_DIAGD_SOCKET` (default `$AMBASSADOR_CONFIG_BASE_DIR/diagd.sock`). This is what keeps
+`diagd`'s internal API -- most importantly `POST /_internal/v0/watt`, which submits a new
+configuration snapshot -- unreachable from off-pod. Binding to 127.0.0.1 would _not_ be sufficient,
+because `kubectl port-forward` makes off-pod traffic appear to originate from 127.0.0.1. For the
+same reason, the health check server on 8877 refuses to proxy `/_internal/` to `diagd`.
 
 ### The Ambassador Configuration
 

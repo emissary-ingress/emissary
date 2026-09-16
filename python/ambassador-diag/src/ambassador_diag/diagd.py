@@ -676,8 +676,16 @@ def _is_local_request() -> bool:
     """
     Determine if this request originated with localhost.
 
-    We rely on healthcheck_server.go setting the X-Ambassador-Diag-IP header for us
-    (and we rely on it overwriting anything that's already there!).
+    We rely on the caller setting the X-Ambassador-Diag-IP header for us. The only
+    things that set it are entrypoint's notify.go, which only ever speaks to us over
+    our Unix-domain socket, and healthcheck_server.go, which _deletes_ any header the
+    client supplied before deciding whether to set it itself.
+
+    This is deliberately not the whole story for the /_internal/ endpoints: the real
+    protection for those is that healthcheck_server.go refuses to proxy /_internal/
+    at all, so the only way to reach them is over our Unix-domain socket. That matters
+    because `kubectl port-forward` makes off-pod traffic look like it came from
+    127.0.0.1, so "the request looks local" cannot mean "the request is on-pod".
 
     It might be possible to consider the environment variables SERVER_NAME and
     SERVER_PORT instead, as those are allegedly required by WSGI... but attempting
@@ -2185,6 +2193,11 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 )
 @click.option("--host", type=str, help="Interface on which to listen")
 @click.option("--port", type=int, default=-1, help="Port on which to listen", show_default=True)
+@click.option(
+    "--socket-path",
+    type=click.Path(),
+    help="Unix-domain socket on which to listen, instead of a TCP port",
+)
 @click.option("--notices", type=click.Path(), help="Optional file to read for local notices")
 @click.option(
     "--validation-retries",
@@ -2219,6 +2232,7 @@ def main(
     workers=None,
     port=-1,
     host="",
+    socket_path=None,
     notices=None,
     validation_retries=5,
     allow_fs_commands=False,
@@ -2260,6 +2274,7 @@ def main(
         ads_path = "/tmp/ads.json"
 
         port = 9998
+        socket_path = None
 
         allow_fs_commands = True
         report_action_keys = True
@@ -2293,11 +2308,25 @@ def main(
         workers = number_of_workers()
 
     gunicorn_config = {
-        "bind": "%s:%s" % (host, port),
         # 'workers': 1,
         "threads": workers,
         "control_socket_disable": True,
     }
+
+    if socket_path:
+        # Listening on a Unix-domain socket is how we keep diagd's internal API --
+        # in particular the WATT snapshot endpoint -- off the network entirely.
+        # Binding to 127.0.0.1 is _not_ good enough: `kubectl port-forward` makes
+        # off-pod traffic look like it originated on the loopback interface.
+        #
+        # Make sure the directory exists, and that gunicorn creates the socket
+        # rw------- so that only our own uid can talk to it.
+        os.makedirs(os.path.dirname(os.path.abspath(socket_path)), mode=0o755, exist_ok=True)
+
+        gunicorn_config["bind"] = "unix:%s" % socket_path
+        gunicorn_config["umask"] = 0o177
+    else:
+        gunicorn_config["bind"] = "%s:%s" % (host, port)
 
     app.logger.info(
         "thread count %d, listening on %s" % (gunicorn_config["threads"], gunicorn_config["bind"])
