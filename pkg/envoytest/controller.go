@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"sync/atomic"
 
 	// third-party libraries
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -43,8 +44,11 @@ type EnvoyController struct {
 	results     map[string]*errorInfo // Maps config version to error info related to that config
 	outstanding map[string]ackInfo    // Maps response nonce to config version and typeURL
 
-	// logCtx gets set when .Run() starts.
-	logCtx context.Context
+	// logCtx gets set when .Run() starts. The ecLogger callbacks have no context of
+	// their own, so we capture this one for them to use; it is stored and loaded
+	// atomically because the callbacks can fire on a different goroutine than the
+	// one running .Run().
+	logCtx atomic.Pointer[context.Context]
 }
 
 // ackInfo is used to correlate the nonce supplied in discovery responses to the error detail
@@ -185,7 +189,7 @@ func (e *EnvoyController) waitFor(ctx context.Context, version string, typeURL s
 // Run the ADS server.
 func (e *EnvoyController) Run(ctx context.Context) error {
 	// The callbacks don't have access to a context, so we'll capture this one for them to use.
-	e.logCtx = ctx
+	e.logCtx.Store(&ctx)
 
 	srv := ecp_v3_server.NewServer(ctx,
 		e.configCache,      // config
@@ -308,22 +312,31 @@ type ecLogger struct {
 
 var _ ecp_log.Logger = ecLogger{}
 
+// logCtx returns the context captured by EnvoyController.Run, or context.Background if Run
+// hasn't started yet.
+func (ecl ecLogger) logCtx() context.Context {
+	if ctx := ecl.ec.logCtx.Load(); ctx != nil {
+		return *ctx
+	}
+	return context.Background()
+}
+
 // Debugf implements ecp_log.Logger.
 func (ecl ecLogger) Debugf(format string, args ...interface{}) {
-	dlog.Debugf(ecl.ec.logCtx, format, args...)
+	dlog.Debugf(ecl.logCtx(), format, args...)
 }
 
 // Infof implements ecp_log.Logger.
 func (ecl ecLogger) Infof(format string, args ...interface{}) {
-	dlog.Infof(ecl.ec.logCtx, format, args...)
+	dlog.Infof(ecl.logCtx(), format, args...)
 }
 
 // Warnf implements ecp_log.Logger.
 func (ecl ecLogger) Warnf(format string, args ...interface{}) {
-	dlog.Warnf(ecl.ec.logCtx, format, args...)
+	dlog.Warnf(ecl.logCtx(), format, args...)
 }
 
 // Errorf implements ecp_log.Logger.
 func (ecl ecLogger) Errorf(format string, args ...interface{}) {
-	dlog.Errorf(ecl.ec.logCtx, format, args...)
+	dlog.Errorf(ecl.logCtx(), format, args...)
 }
