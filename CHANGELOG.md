@@ -33,6 +33,11 @@ from the Helm charts.
   you'll now see an error posted if you try to use it. (This shouldn't affect anyone
   running Emissary.)
 
+- Fix: Weighted `TCPMapping`s now divide traffic in the ratio they are configured with.
+  Their weights were reaching Envoy as running totals rather than as each cluster's own
+  share, so a pair weighted 70 and 30 actually split about 77/23. If you had tuned
+  weights around the old behaviour, your split will change.
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
