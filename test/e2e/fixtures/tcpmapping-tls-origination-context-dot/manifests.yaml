@@ -1,0 +1,76 @@
+---
+# Same shape as tcpmapping-tls-origination-context, except the TLSContext's
+# name itself contains a dot, which is legal in a Kubernetes object name and
+# is exactly the KAT scenario this ports: a name with a "." was once
+# mis-handled when TCPMapping.spec.tls resolved it.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: tcp-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  protocol: TCP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tcpmapping-tls-origination-context-dot.tlsclient
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: tlsclient-cert
+  sni: my-hilarious-name
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  service: target:443
+  tls: tcpmapping-tls-origination-context-dot.tlsclient

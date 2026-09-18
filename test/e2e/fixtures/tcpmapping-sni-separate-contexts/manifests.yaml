@@ -1,0 +1,136 @@
+---
+# Two TLSContexts, each with a single "hosts" entry and its own cert,
+# attached to the same Listener: unlike tcpmapping-sni-shared-context,
+# nothing is shared here except the port.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target-a
+  template:
+    metadata:
+      labels:
+        app: target-a
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target-a
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target-a
+spec:
+  selector:
+    app: target-a
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target-b
+  template:
+    metadata:
+      labels:
+        app: target-b
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target-b
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target-b
+spec:
+  selector:
+    app: target-b
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: tls-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  protocol: TLS
+  securityModel: SECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tlsserver-a
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: tlsserver-cert-a
+  hosts:
+    - a.sni-separate.example.com
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tlsserver-b
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: tlsserver-cert-b
+  hosts:
+    - b.sni-separate.example.com
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: target-a
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  host: a.sni-separate.example.com
+  service: target-a:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: target-b
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  host: b.sni-separate.example.com
+  service: target-b:8080

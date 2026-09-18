@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+# protocol TLS (rather than TCP, as the other TCPMapping fixtures use) is
+# what makes Envoy actually terminate the handshake here instead of just
+# passing the encrypted bytes straight through.
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: tls-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  protocol: TLS
+  securityModel: SECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tlsserver
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: tlsserver-cert
+  hosts:
+    - term-basic.example.com
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  host: term-basic.example.com
+  service: target:8080

@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingCrossNamespaceTest.
+#
+# The target backend lives in its own literal namespace rather than the
+# test's generated one, so the TCPMapping's `service` has to spell out the
+# namespace. No explicit teardown step is needed for it: chainsaw's built-in
+# cleanup deletes every resource a step applied, in reverse order, and that
+# includes a Namespace object exactly like any other kind.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-cross-namespace
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="${GATEWAY_TCP_URL}" ../../probe.sh queries.json \
+                'reached the target in the other namespace' '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'no TLS on the way in'                       '.[0].result.json.request.tls.enabled == false'

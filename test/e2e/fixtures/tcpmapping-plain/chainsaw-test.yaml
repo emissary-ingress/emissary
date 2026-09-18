@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingBasicTest.
+#
+# `exclusive` because a TCPMapping binds the slot's TCP listener port; the
+# already-merged tcpmapping-basic fixture stays `shared` and owns the base
+# install's port 6789, so this scenario gets its own name and its own slot
+# rather than colliding with it.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-plain
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              # TCPMappings bind the slot's TCP edge port, not its HTTP one.
+              PROBE_BASE="${GATEWAY_TCP_URL}" ../../probe.sh queries.json \
+                'reached the target'          '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'no TLS on the way in'         '.[0].result.json.request.tls.enabled == false'
