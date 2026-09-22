@@ -1,0 +1,11 @@
+[
+  {
+    "url": "/",
+    "method": "GET",
+    "headers": {
+      "Host": "term-basic.example.com"
+    },
+    "sni": true,
+    "insecure": true
+  }
+]

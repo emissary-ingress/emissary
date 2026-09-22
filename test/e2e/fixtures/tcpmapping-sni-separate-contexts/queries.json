@@ -1,0 +1,20 @@
+[
+  {
+    "url": "/",
+    "method": "GET",
+    "headers": {
+      "Host": "a.sni-separate.example.com"
+    },
+    "sni": true,
+    "insecure": true
+  },
+  {
+    "url": "/",
+    "method": "GET",
+    "headers": {
+      "Host": "b.sni-separate.example.com"
+    },
+    "sni": true,
+    "insecure": true
+  }
+]
