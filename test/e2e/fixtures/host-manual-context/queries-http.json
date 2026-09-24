@@ -1,0 +1,9 @@
+[
+  {
+    "url": "/target/cleartext",
+    "method": "GET",
+    "headers": {
+      "Host": "localhost"
+    }
+  }
+]

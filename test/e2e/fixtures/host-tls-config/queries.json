@@ -1,0 +1,23 @@
+[
+  {
+    "url": "/target/tls-1.2-1.3",
+    "method": "GET",
+    "insecure": true,
+    "minTLSv": "v1.2",
+    "maxTLSv": "v1.3"
+  },
+  {
+    "url": "/target/tls-1.0-1.0",
+    "method": "GET",
+    "insecure": true,
+    "minTLSv": "v1.0",
+    "maxTLSv": "v1.0"
+  },
+  {
+    "url": "/target/tls-1.3-1.3",
+    "method": "GET",
+    "insecure": true,
+    "minTLSv": "v1.3",
+    "maxTLSv": "v1.3"
+  }
+]
