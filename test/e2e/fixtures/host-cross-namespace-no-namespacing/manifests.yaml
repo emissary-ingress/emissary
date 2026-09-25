@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: host-cross-namespace-no-namespacing-other
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+---
+# hostname is literal, not "*": the queries below send a "Host" header of
+# "tls-context-host-1" with "sni": true, which makes both the ":authority"
+# and the TLS ServerName that value (see cmd/kat-client/client.go around
+# line 808), independent of the slot's port.
+#
+# tlsSecret.namespace points at a namespace other than this Host's own. That
+# is the thing under test: Emissary's implicit per-Host TLSContext has to
+# resolve a cross-namespace secret reference correctly regardless of the
+# chart's (deprecated) tls_secret_namespacing setting, which this fixture
+# leaves at its default.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-cross-namespace-no-namespacing
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host: host-cross-namespace-no-namespacing
+  tlsSecret:
+    name: host-cross-namespace-no-namespacing-secret
+    namespace: host-cross-namespace-no-namespacing-other
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+  labels:
+    host: host-cross-namespace-no-namespacing
+spec:
+  ambassador_id: [(env('SLOT'))]
+  prefix: /target/
+  service: target:8080
