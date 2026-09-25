@@ -1,0 +1,73 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDCrossNamespaceNoNamespacing.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global, and because it probes /ambassador/v0/diag/, which only
+# a numbered slot serves (see slots.sh). It also probes check_ready and
+# check_alive, which answer on any release.
+#
+# The point of this test is the Host's tlsSecret.namespace field: the
+# secret lives in a namespace other than the Host's own, and Emissary's
+# implicit per-Host TLSContext has to resolve that cross-namespace
+# reference regardless of the chart's tls_secret_namespacing setting, which
+# this fixture leaves at its default. The extra namespace is created by an
+# `apply` step, same as tcpmapping-cross-namespace, so chainsaw's built-in
+# teardown deletes it along with everything else.
+#
+# The secret can only be created after its namespace exists, so the order
+# here is reversed from host-tls and friends: manifests apply first, and
+# the cert-generation script runs second.
+#
+# The hostname is a literal that is neither "localhost" nor "*", so the
+# cert's CommonName is set to match it, and the leaf cert's CN is checked
+# against the query's Host header.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-cross-namespace-no-namespacing
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: generate the downstream cert in the other namespace
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tls-context-host-1 \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:tls-context-host-1 \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-cross-namespace-no-namespacing-secret \
+                -n host-cross-namespace-no-namespacing-other \
+                --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: https reaches the target with no config errors
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'no diag errors'                  '.[0].result.status == 200 and .[0].result.json == []' \
+                'reached the target'               '.[1].result.status == 200 and .[1].result.json.backend == "target"' \
+                'served the cross-namespace cert'  '.[1].result.tls[0].Subject.CommonName == "tls-context-host-1"' \
+                'check_ready answers on the slot'  '.[2].result.status == 200' \
+                'check_alive answers on the slot'  '.[3].result.status == 200'
+
+    - name: http redirects to https
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'client got redirected to tls'    '.[0].result.status == 301'
