@@ -27,6 +27,10 @@ jobs:
   test-images:
     name: Test ${{ matrix.arch }} Images
     runs-on: ${{ matrix.runner }}
+    # A green run takes about 7 minutes. The per-step limits below normally
+    # fire first, and still let the diagnostics and cleanup steps run. This
+    # ceiling only catches a hang in a step without its own limit.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -55,6 +59,7 @@ jobs:
           wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
       - name: Create k3d cluster
+        timeout-minutes: 5
         run: |
           # 8100-8159 is the slot port block (see test/e2e/slots.sh).
           # k3d fixes published ports at creation time, so it's reserved here.
@@ -83,6 +88,7 @@ jobs:
 
       - id: load-k3d-images
         name: Load Images into k3d cluster
+        timeout-minutes: 5
         run: |
           echo 'Loading images from:'
           ls ${{ github.workspace }}/artifacts/images/
@@ -126,6 +132,7 @@ jobs:
           kubectl -n emissary rollout status deploy/emissary-ingress --timeout=3m
 
       - name: Install Emissary Slots
+        timeout-minutes: 10
         env:
           VERSION: ${{ inputs.version }}
           ARCH: ${{ matrix.arch }}
@@ -154,6 +161,7 @@ jobs:
           chmod +x ${{ github.workspace }}/tools/bin/chainsaw
 
       - name: Run E2E Fixtures
+        timeout-minutes: 15
         env:
           E2E_GATEWAY_URL: http://localhost
           KAT_CLIENT: ${{ github.workspace }}/tools/bin/kat-client
@@ -167,6 +175,7 @@ jobs:
 
       - name: Dump Diagnostics on Failure
         if: failure()
+        timeout-minutes: 5
         run: |
           kubectl get nodes
           kubectl get ns

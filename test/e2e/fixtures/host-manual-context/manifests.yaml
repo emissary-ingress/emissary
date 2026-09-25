@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+---
+# Unlike host-tls, the hostname here is literal: the TLSContext below must
+# list it in `hosts` to be accepted. The queries send `Host: localhost`,
+# which gives a port-free ":authority" that a literal hostname does match.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-manual-context
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: localhost
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host: host-manual-context
+  tlsSecret:
+    name: host-manual-context-secret
+---
+# Never referenced from the Host. Emissary links it implicitly because its
+# name is the Host's name plus "-context".
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: host-manual-context-context
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hosts:
+    - localhost
+  secret: host-manual-context-secret
+  min_tls_version: v1.2
+  max_tls_version: v1.2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+  labels:
+    host: host-manual-context
+spec:
+  ambassador_id: [(env('SLOT'))]
+  prefix: /target/
+  service: target:8080

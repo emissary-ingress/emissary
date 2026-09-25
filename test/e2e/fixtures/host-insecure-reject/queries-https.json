@@ -1,0 +1,7 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET",
+    "insecure": true
+  }
+]
