@@ -1,0 +1,29 @@
+[
+  {
+    "url": "/foo/0-200",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "a.domain.com"
+    }
+  },
+  {
+    "url": "/foo/1-200",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "wc.domain.com"
+    }
+  },
+  {
+    "url": "/foo/2-200",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "127.0.0.1"
+    }
+  }
+]

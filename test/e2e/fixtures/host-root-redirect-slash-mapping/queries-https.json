@@ -1,0 +1,20 @@
+[
+  {
+    "url": "/",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/other",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  }
+]

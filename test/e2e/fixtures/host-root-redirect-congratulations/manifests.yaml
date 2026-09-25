@@ -1,0 +1,21 @@
+---
+# No backend, and no Mapping either: this Host declares a mappingSelector
+# but nothing satisfies it, so it ends up with no route at all. What is
+# under test is what Emissary answers with in that situation.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-root-redirect-congratulations
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      hostname: tls-context-host-1
+  tlsSecret:
+    name: host-root-redirect-congratulations-tls
+  requestPolicy:
+    insecure:
+      action: Redirect

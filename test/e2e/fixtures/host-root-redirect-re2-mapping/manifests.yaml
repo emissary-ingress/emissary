@@ -1,0 +1,71 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-root-redirect-re2-mapping
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      hostname: host-root-redirect-re2-mapping
+  tlsSecret:
+    name: host-root-redirect-re2-mapping-tls
+  requestPolicy:
+    insecure:
+      action: Redirect
+---
+# [[:word:]] is an RE2 character class that ECMAScript and Python regexes
+# reject, so this Mapping only works if the pattern reaches Envoy
+# unchanged. prefix_regex matches the whole path, not just its start, so
+# "/" and "/other" match while "/-other" (a leading "-" is not a word
+# character) does not.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+  labels:
+    hostname: host-root-redirect-re2-mapping
+spec:
+  ambassador_id: [(env('SLOT'))]
+  prefix: "/[[:word:]]*"
+  prefix_regex: true
+  service: target:8080
