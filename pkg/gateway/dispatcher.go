@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -58,6 +59,7 @@ type Dispatcher struct {
 	transforms map[string]func(kates.Object) (*CompiledConfig, error)
 	configs    map[string]*CompiledConfig
 
+	mutex           sync.Mutex
 	version         string
 	changeCount     int
 	snapshot        *ecp_v3_cache.Snapshot
@@ -110,6 +112,8 @@ func (d *Dispatcher) IsRegistered(kind string) bool {
 
 // Upsert processes the given kubernetes resource whether it is new or just updated.
 func (d *Dispatcher) Upsert(resource kates.Object) error {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	gvk := resource.GetObjectKind().GroupVersionKind()
 	xform, ok := d.transforms[gvk.Kind]
 	if !ok {
@@ -131,6 +135,8 @@ func (d *Dispatcher) Upsert(resource kates.Object) error {
 
 // Delete processes the deletion of the given kubernetes resource.
 func (d *Dispatcher) Delete(resource kates.Object) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	key := resourceKey(resource)
 	delete(d.configs, key)
 
@@ -139,6 +145,8 @@ func (d *Dispatcher) Delete(resource kates.Object) {
 }
 
 func (d *Dispatcher) DeleteKey(kind, namespace, name string) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	key := resourceKeyFromParts(kind, namespace, name)
 	delete(d.configs, key)
 	d.snapshot = nil
@@ -161,6 +169,8 @@ func (d *Dispatcher) UpsertYaml(manifests string) error {
 
 // GetErrors returns all compiled items with errors.
 func (d *Dispatcher) GetErrors() []*CompiledItem {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	var result []*CompiledItem
 	for _, config := range d.configs {
 		if config.Error != "" {
@@ -198,6 +208,8 @@ func (d *Dispatcher) GetErrors() []*CompiledItem {
 // GetSnapshot returns a version and a snapshot if the snapshot is consistent
 // Important: a nil snapshot can be returned so you must check to to make sure it exists
 func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v3_cache.Snapshot) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	if d.snapshot == nil {
 		d.buildSnapshot(ctx)
 	}
@@ -243,6 +255,8 @@ func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *v3
 // IsWatched is a temporary hack for dealing with the way endpoint data currenttly flows from
 // watcher -> ambex.n
 func (d *Dispatcher) IsWatched(namespace, name string) bool {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	key := fmt.Sprintf("%s:%s", namespace, name)
 	_, ok := d.endpointWatches[key]
 	return ok
