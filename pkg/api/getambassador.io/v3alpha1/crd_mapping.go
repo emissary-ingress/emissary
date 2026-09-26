@@ -292,6 +292,27 @@ type RetryPolicy struct {
 	RetryOn       string `json:"retry_on,omitempty"`
 	NumRetries    *int   `json:"num_retries,omitempty"`
 	PerTryTimeout string `json:"per_try_timeout,omitempty"`
+	// RetryBackOff configures the exponential back-off that is applied between retries. If it
+	// is not set, Envoy's defaults (a 25ms base interval and a 250ms maximum interval) are
+	// used.
+	RetryBackOff *RetryBackOff `json:"retry_back_off,omitempty"`
+}
+
+// RetryBackOff describes the exponential back-off that is applied between retries: the delay
+// before retry N is picked at random from `[0, min(base_interval*(2**N-1), max_interval))`.
+type RetryBackOff struct {
+	// BaseInterval is the interval that the exponential back-off is computed from; it must be
+	// greater than zero and less than or equal to `max_interval`. It is a duration in seconds,
+	// e.g. "0.025s" for 25 milliseconds.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Pattern="^[0-9]+(\\.[0-9]{1,9})?s$"
+	BaseInterval string `json:"base_interval,omitempty"`
+	// MaxInterval is the maximum interval between retries. If it is not set, it defaults to ten
+	// times `base_interval`. It is a duration in seconds, e.g. "1.5s" for 1500 milliseconds.
+	//
+	// +kubebuilder:validation:Pattern="^[0-9]+(\\.[0-9]{1,9})?s$"
+	MaxInterval string `json:"max_interval,omitempty"`
 }
 
 type LoadBalancer struct {

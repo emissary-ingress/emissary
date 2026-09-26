@@ -33,6 +33,14 @@ from the Helm charts.
   you'll now see an error posted if you try to use it. (This shouldn't affect anyone
   running Emissary.)
 
+- Feature: `retry_policy` (on both a `Mapping` and the `ambassador` `Module`) now
+  supports `retry_back_off`, which configures the exponential back-off that Envoy
+  applies between retries. `base_interval` is required and `max_interval` defaults
+  to ten times `base_interval`; both are a number of seconds, e.g. `"0.025s"`
+  ([#3921]).
+
+[#3921]: https://github.com/emissary-ingress/emissary/issues/3921
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 

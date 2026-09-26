@@ -2751,6 +2751,27 @@ spec:
                     type: integer
                   per_try_timeout:
                     type: string
+                  retry_back_off:
+                    description: RetryBackOff configures the exponential back-off
+                      that is applied between retries. If it is not set, Envoy's defaults
+                      (a 25ms base interval and a 250ms maximum interval) are used.
+                    properties:
+                      base_interval:
+                        description: BaseInterval is the interval that the exponential
+                          back-off is computed from; it must be greater than zero
+                          and less than or equal to `max_interval`. It is a duration
+                          in seconds, e.g. "0.025s" for 25 milliseconds.
+                        pattern: ^[0-9]+(\.[0-9]{1,9})?s$
+                        type: string
+                      max_interval:
+                        description: MaxInterval is the maximum interval between retries.
+                          If it is not set, it defaults to ten times `base_interval`.
+                          It is a duration in seconds, e.g. "1.5s" for 1500 milliseconds.
+                        pattern: ^[0-9]+(\.[0-9]{1,9})?s$
+                        type: string
+                    required:
+                    - base_interval
+                    type: object
                   retry_on:
                     enum:
                     - 5xx
@@ -3305,6 +3326,27 @@ spec:
                     type: integer
                   per_try_timeout:
                     type: string
+                  retry_back_off:
+                    description: RetryBackOff configures the exponential back-off
+                      that is applied between retries. If it is not set, Envoy's defaults
+                      (a 25ms base interval and a 250ms maximum interval) are used.
+                    properties:
+                      base_interval:
+                        description: BaseInterval is the interval that the exponential
+                          back-off is computed from; it must be greater than zero
+                          and less than or equal to `max_interval`. It is a duration
+                          in seconds, e.g. "0.025s" for 25 milliseconds.
+                        pattern: ^[0-9]+(\.[0-9]{1,9})?s$
+                        type: string
+                      max_interval:
+                        description: MaxInterval is the maximum interval between retries.
+                          If it is not set, it defaults to ten times `base_interval`.
+                          It is a duration in seconds, e.g. "1.5s" for 1500 milliseconds.
+                        pattern: ^[0-9]+(\.[0-9]{1,9})?s$
+                        type: string
+                    required:
+                    - base_interval
+                    type: object
                   retry_on:
                     enum:
                     - 5xx
@@ -4036,6 +4078,27 @@ spec:
                     type: integer
                   per_try_timeout:
                     type: string
+                  retry_back_off:
+                    description: RetryBackOff configures the exponential back-off
+                      that is applied between retries. If it is not set, Envoy's defaults
+                      (a 25ms base interval and a 250ms maximum interval) are used.
+                    properties:
+                      base_interval:
+                        description: BaseInterval is the interval that the exponential
+                          back-off is computed from; it must be greater than zero
+                          and less than or equal to `max_interval`. It is a duration
+                          in seconds, e.g. "0.025s" for 25 milliseconds.
+                        pattern: ^[0-9]+(\.[0-9]{1,9})?s$
+                        type: string
+                      max_interval:
+                        description: MaxInterval is the maximum interval between retries.
+                          If it is not set, it defaults to ten times `base_interval`.
+                          It is a duration in seconds, e.g. "1.5s" for 1500 milliseconds.
+                        pattern: ^[0-9]+(\.[0-9]{1,9})?s$
+                        type: string
+                    required:
+                    - base_interval
+                    type: object
                   retry_on:
                     enum:
                     - 5xx

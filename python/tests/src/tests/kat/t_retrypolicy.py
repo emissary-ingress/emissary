@@ -54,6 +54,28 @@ retry_policy:
                 """
 ---
 apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+name:  {self.name}-backoff
+hostname: "*"
+prefix: /{self.name}-backoff/
+service: {self.target.path.fqdn}
+timeout_ms: 3000
+retry_policy:
+  retry_on: "5xx"
+  num_retries: 4
+  retry_back_off:
+    base_interval: "0.025s"
+    max_interval: "0.25s"
+"""
+            ),
+        )
+
+        yield (
+            self,
+            self.format(
+                """
+---
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -90,6 +112,14 @@ config:
                 "Kat-Req-Http-Requested-Backend-Delay": "2000",
             },
             expected=504,
+        )
+
+        # Retrying with a back-off must still end up at the upstream's status once the retries
+        # are exhausted; the back-off here is small enough to stay inside timeout_ms.
+        yield Query(
+            self.url(self.name + "-backoff/"),
+            headers={"Kat-Req-Http-Requested-Status": "500"},
+            expected=500,
         )
 
     def get_timestamp(self, hdr):

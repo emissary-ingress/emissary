@@ -535,6 +535,9 @@
       prefix_regex: true
       retry_policy:
           num_retries: 15
+          retry_back_off:
+              base_interval: "0.025s"
+              max_interval: "0.25s"
           retry_on: "gateway-error"
       rewrite: ""
       service: "https://a"
