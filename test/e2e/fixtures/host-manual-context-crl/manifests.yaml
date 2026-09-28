@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+# hostname is the literal "ambassador.example.com": the queries send a
+# port-free "Host" header for both ":authority" and (with "sni: true") the
+# TLS ServerName, which is what a literal hostname needs to match.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-manual-context-crl
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: ambassador.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-manual-context-crl-server
+  mappingSelector:
+    matchLabels:
+      host: host-manual-context-crl
+---
+# Never referenced from the Host: Emissary links a TLSContext implicitly
+# when it is named "<host-name>-context" and its `hosts` list contains the
+# Host's hostname exactly. This is where cert_required, ca_secret and
+# crl_secret live.
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: host-manual-context-crl-context
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hosts:
+    - ambassador.example.com
+  secret: host-manual-context-crl-server
+  ca_secret: host-manual-context-crl-ca
+  cert_required: true
+  crl_secret: host-manual-context-crl-crl
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+  labels:
+    host: host-manual-context-crl
+spec:
+  ambassador_id: [(env('SLOT'))]
+  prefix: /
+  service: target:8080

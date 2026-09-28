@@ -1,0 +1,97 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDClientCertSameNamespace.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# mTLS needs a CA, a server leaf, a client cert signed by that CA, and a
+# second client cert signed by an unrelated CA, none of which may be
+# committed (a default `openssl req -x509` cert is a CA and BoringSSL
+# rejects it as a server leaf).
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-client-cert-same-namespace
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: certs and mtls probe
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+
+              # CA: signs the server leaf's peer (the "good" client cert).
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=host-client-cert-same-namespace-ca \
+                -addext basicConstraints=critical,CA:TRUE \
+                -addext keyUsage=critical,keyCertSign,cRLSign \
+                -keyout "$dir/ca.key" -out "$dir/ca.crt" 2>/dev/null
+
+              # Downstream server leaf, self-signed like every other fixture's cert.
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=ambassador.example.com \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:ambassador.example.com \
+                -keyout "$dir/server.key" -out "$dir/server.crt" 2>/dev/null
+
+              # "Good" client cert, signed by the CA above.
+              openssl req -newkey rsa:2048 -nodes -subj /CN=good-client \
+                -keyout "$dir/good.key" -out "$dir/good.csr" 2>/dev/null
+              printf '%s\n' \
+                'basicConstraints=critical,CA:FALSE' \
+                'keyUsage=critical,digitalSignature' \
+                'extendedKeyUsage=clientAuth' > "$dir/client.ext"
+              openssl x509 -req -in "$dir/good.csr" -CA "$dir/ca.crt" -CAkey "$dir/ca.key" \
+                -CAcreateserial -days 3650 -extfile "$dir/client.ext" \
+                -out "$dir/good.crt" 2>/dev/null
+
+              # "Wrong" client cert: self-signed, not signed by the CA the
+              # Host trusts, to check that the CA is actually enforced.
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=wrong-client \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature \
+                -addext extendedKeyUsage=clientAuth \
+                -keyout "$dir/wrong.key" -out "$dir/wrong.crt" 2>/dev/null
+
+              kubectl create secret tls host-client-cert-same-namespace-server \
+                -n "$NAMESPACE" --cert="$dir/server.crt" --key="$dir/server.key"
+              kubectl create secret generic host-client-cert-same-namespace-ca \
+                -n "$NAMESPACE" --from-file=tls.crt="$dir/ca.crt"
+
+              # insecure:true skips the client's verification of the
+              # server's own certificate chain; it has no bearing on
+              # Envoy's mTLS verification of the client certs, which is
+              # what these queries actually exercise.
+              jq -n \
+                --rawfile good_crt "$dir/good.crt" \
+                --rawfile good_key "$dir/good.key" \
+                --rawfile wrong_crt "$dir/wrong.crt" \
+                --rawfile wrong_key "$dir/wrong.key" \
+                '[
+                  {url: "/", headers: {Host: "ambassador.example.com"}, sni: true, insecure: true, client_cert: $good_crt, client_key: $good_key},
+                  {url: "/", headers: {Host: "ambassador.example.com"}, sni: true, insecure: true, maxTLSv: "v1.2"},
+                  {url: "/", headers: {Host: "ambassador.example.com"}, sni: true, insecure: true, minTLSv: "v1.3"},
+                  {url: "/", headers: {Host: "ambassador.example.com"}, sni: true, insecure: true, maxTLSv: "v1.2", client_cert: $wrong_crt, client_key: $wrong_key}
+                ]' > "$dir/queries.json"
+
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh "$dir/queries.json" \
+                'a CA-signed client cert reaches the target' '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'pre-1.3, missing cert is a generic handshake failure' '.[1].result.status == null' \
+                'no dedicated alert before TLS 1.3'            '.[1].result.error | test("handshake failure")' \
+                'TLS 1.3 refuses the missing cert'              '.[2].result.status == null' \
+                'with the dedicated certificate_required alert' '.[2].result.error | test("certificate required")' \
+                'a cert from the wrong CA is refused'           '.[3].result.status == null' \
+                'as a handshake failure, same as no cert at all' '.[3].result.error | test("handshake failure")'
