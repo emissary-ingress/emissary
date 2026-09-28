@@ -1,0 +1,26 @@
+[
+  {
+    "url": "/ambassador/v0/diag/?json=true&filter=errors",
+    "headers": {"Host": "tls-context-host-1"},
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target/",
+    "headers": {"Host": "tls-context-host-1"},
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/ambassador/v0/check_ready",
+    "headers": {"Host": "tls-context-host-1"},
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/ambassador/v0/check_alive",
+    "headers": {"Host": "tls-context-host-1"},
+    "insecure": true,
+    "sni": true
+  }
+]
