@@ -1,0 +1,23 @@
+[
+  {
+    "url": "/",
+    "method": "GET",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/other",
+    "method": "GET",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/-other",
+    "method": "GET",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  }
+]

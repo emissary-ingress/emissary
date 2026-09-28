@@ -1,0 +1,59 @@
+# Port of KAT's tests/kat/t_hosts.py::HostCRDRootRedirectRE2Mapping.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# The Mapping matches paths with an RE2-only pattern (see manifests.yaml).
+# Matching paths redirect on cleartext and reach the target over https. A
+# path the pattern rejects has no route and gets a 404.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-root-redirect-re2-mapping
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tls-context-host-1 \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:tls-context-host-1 \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-root-redirect-re2-mapping-tls \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: cleartext redirects on matched paths, 404s on the unmatched one
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'root path redirects'        '.[0].result.status == 301' \
+                'word-char path redirects'   '.[1].result.status == 301' \
+                'non-word-char path is 404'  '.[2].result.status == 404'
+
+    - name: https routes matched paths, 404s the unmatched one
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'root path reaches the target'       '.[0].result.status == 200' \
+                'root hits target backend'           '.[0].result.json.backend == "target"' \
+                'word-char path reaches the target'  '.[1].result.status == 200' \
+                'word-char hits target backend'      '.[1].result.json.backend == "target"' \
+                'non-word-char path is 404'          '.[2].result.status == 404'

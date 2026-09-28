@@ -1,0 +1,65 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDWildcards.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# Three Hosts share one cert and hostname precedence decides which one a
+# request lands on: an exact match, a suffix glob ("*.domain.com") and the
+# catch-all ("*"). The queries send a Host header naming each match target;
+# per client.go, "sni": true makes that header drive the TLS ServerName too,
+# so the handshake reaches the same Host its HTTP routing will land on.
+# Cert validation is skipped ("insecure": true) since all three Hosts point
+# at the same secret and which one answers is exactly what is under test,
+# not the cert's CN.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-wildcards
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=a.domain.com \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:a.domain.com,DNS:wc.domain.com,IP:127.0.0.1 \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-wildcards-tls \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: https picks the right host by precedence
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'exact host reaches the target'     '.[0].result.status == 200' \
+                'exact host hits target backend'    '.[0].result.json.backend == "target"' \
+                'suffix glob reaches the target'    '.[1].result.status == 200' \
+                'catch-all reaches the target'      '.[2].result.status == 200'
+
+    - name: http honors each host's insecure.action
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'exact host defaults to redirect'   '.[0].result.status == 301' \
+                'suffix glob routes cleartext'      '.[1].result.status == 200' \
+                'suffix glob hits target backend'   '.[1].result.json.backend == "target"' \
+                'catch-all defaults to redirect'    '.[2].result.status == 301'

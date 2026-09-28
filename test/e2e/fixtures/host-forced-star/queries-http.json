@@ -1,0 +1,30 @@
+[
+  {
+    "url": "/foo/0-200",
+    "method": "GET",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/foo/1-301",
+    "method": "GET",
+    "headers": {
+      "Host": "nonmatching-hostname"
+    }
+  },
+  {
+    "url": "/bar/2-404",
+    "method": "GET",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/bar/3-404",
+    "method": "GET",
+    "headers": {
+      "Host": "nonmatching-hostname"
+    }
+  }
+]

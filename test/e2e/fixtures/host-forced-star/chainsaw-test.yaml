@@ -1,0 +1,72 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDForcedStar.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# Two Hosts: hostname "*" with no tlsSecret (cleartext-only), and hostname
+# "tls-context-host-1" with a cert. Because it is the only Host carrying a
+# cert, that cert is also what the downstream TLS listener falls back to
+# for a TLS ClientHello whose SNI doesn't match anything, which is exactly
+# what "nonmatching-hostname" queries below send.
+#
+# An SNI that matches no Host gets no TLS refusal. It is routed as if it
+# arrived in cleartext, so the client gets a plain HTTP answer ("server
+# gave HTTP response to HTTPS client"), while "tls-context-host-1"
+# completes TLS normally. host-cleartext shows the same client error for a
+# different reason: there no Host has a cert, so nothing on 8443 does TLS.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-forced-star
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tls-context-host-1 \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:tls-context-host-1 \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-forced-star-tls \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: cleartext behaves the same for a known and an unknown hostname
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'known host, mapped path, routed'      '.[0].result.status == 200' \
+                'known host hits target backend'       '.[0].result.json.backend == "target"' \
+                'unknown host, mapped path, redirected' '.[1].result.status == 301' \
+                'known host, unmapped path, 404'       '.[2].result.status == 404' \
+                'unknown host, unmapped path, 404'     '.[3].result.status == 404'
+
+    - name: an unrecognized SNI gets cleartext routing instead of TLS
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'known SNI, mapped path, reaches the target'  '.[0].result.status == 200' \
+                'known SNI hits target backend'                '.[0].result.json.backend == "target"' \
+                'unknown SNI never completes the handshake'    '.[1].result.status == null' \
+                'unknown SNI gets a plaintext answer instead'  '.[1].result.error | test("HTTP response to HTTPS client")' \
+                'known SNI, unmapped path, 404'                '.[2].result.status == 404' \
+                'unknown SNI, unmapped path, same plaintext bug' '.[3].result.status == null' \
+                'unknown SNI unmapped also gets plaintext'     '.[3].result.error | test("HTTP response to HTTPS client")'
