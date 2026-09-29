@@ -63,13 +63,34 @@ class IRBaseMappingGroup(IRResource):
 
     def normalize_weights_in_mappings(self) -> bool:
         # If there's only one mapping in the group, it's automatically weighted
-        # at 100%.
+        # at 100% -- unless the mapping has an explicit weight of its own, in
+        # which case we need to honor that instead of clobbering it. This
+        # matters most for a Mapping deliberately weighted to 0 (e.g. a canary
+        # that's been scaled down but not yet deleted): forcing it to 100
+        # would both report it as fully weighted in diagnostics and actually
+        # route traffic to it, the opposite of what the explicit weight asked
+        # for.
         if len(self.mappings) == 1:
-            self.logger.debug(
-                "Assigning weight 100 to single mapping %s in group",
-                self.mappings[0].name,
-            )
-            self.mappings[0]._weight = 100
+            mapping = self.mappings[0]
+
+            if "weight" in mapping:
+                if mapping.weight > 100:
+                    self.post_error(f"Mapping {mapping.name} has invalid weight {mapping.weight}")
+                    return False
+
+                self.logger.debug(
+                    "Honoring explicit weight %s for single mapping %s in group",
+                    mapping.weight,
+                    mapping.name,
+                )
+                mapping._weight = round(mapping.weight)
+            else:
+                self.logger.debug(
+                    "Assigning weight 100 to single mapping %s in group",
+                    mapping.name,
+                )
+                mapping._weight = 100
+
             return True
 
         # For multiple mappings, we need to normalize the weights.
