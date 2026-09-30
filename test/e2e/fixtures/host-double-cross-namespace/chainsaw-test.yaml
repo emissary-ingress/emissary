@@ -1,0 +1,66 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDDoubleCrossNamespace.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global, and because it probes /ambassador/v0/diag/, which only
+# a numbered slot serves (see slots.sh).
+#
+# Two Hosts whose tlsSecret references share a name and differ only in
+# namespace. Each Host has to serve the cert from its own namespace. The
+# secrets are created after the apply step, once their namespaces exist.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-double-cross-namespace
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: generate a same-named cert in each namespace
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              for pair in foo:tls-context-host-1 bar:tls-context-host-2; do
+                ns=${pair%%:*} cn=${pair#*:}
+                openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                  -subj "/CN=$cn" \
+                  -addext basicConstraints=critical,CA:FALSE \
+                  -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                  -addext extendedKeyUsage=serverAuth \
+                  -addext "subjectAltName=DNS:$cn" \
+                  -keyout "$dir/$ns.key" -out "$dir/$ns.crt" 2>/dev/null
+                kubectl create secret tls host-double-cross-namespace \
+                  -n "host-double-cross-namespace-$ns" \
+                  --cert="$dir/$ns.crt" --key="$dir/$ns.key"
+              done
+
+    - name: https serves each Host's own cert and routes
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'no diag errors'          '.[0].result.status == 200 and .[0].result.json == []' \
+                'host-1 statuses'         '[.[1:3][].result.status] == [200, 404]' \
+                'host-2 statuses'         '[.[3:5][].result.status] == [404, 200]' \
+                'host-1 reaches target1'  '.[1].result.json.backend == "target1"' \
+                'host-2 reaches target2'  '.[4].result.json.backend == "target2"' \
+                'host-1 serves foo cert'  '.[1].result.tls[0].Subject.CommonName == "tls-context-host-1"' \
+                'host-2 serves bar cert'  '.[4].result.tls[0].Subject.CommonName == "tls-context-host-2"'
+
+    - name: http redirects to https
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'host-1 redirects'  '.[0].result.status == 301' \
+                'host-2 redirects'  '.[1].result.status == 301'
