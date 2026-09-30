@@ -1,6 +1,7 @@
 package busy
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -32,4 +33,55 @@ func TestLoggingJsonFormatter(t *testing.T) {
 		return
 	}
 	assert.Equal(t, "2006-01-02 15:04:05.0000", fm.TimestampFormat)
+}
+
+func TestIsGracefulShutdownError(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{
+			name:     "nil error",
+			err:      nil,
+			expected: false,
+		},
+		{
+			name:     "signal terminated",
+			err:      errors.New("received signal terminated (triggering graceful shutdown)"),
+			expected: true,
+		},
+		{
+			name:     "signal interrupt",
+			err:      errors.New("received signal interrupt (triggering graceful shutdown)"),
+			expected: true,
+		},
+		{
+			name:     "graceful shutdown already triggered",
+			err:      errors.New("received signal terminated (graceful shutdown already triggered; triggering not-so-graceful shutdown)"),
+			expected: true,
+		},
+		{
+			name:     "not-so-graceful shutdown already triggered",
+			err:      errors.New("received signal terminated (not-so-graceful shutdown already triggered)"),
+			expected: true,
+		},
+		{
+			name:     "other error",
+			err:      errors.New("some other error occurred"),
+			expected: false,
+		},
+		{
+			name:     "empty error",
+			err:      errors.New(""),
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isGracefulShutdownError(tt.err)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
