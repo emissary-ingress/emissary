@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"syscall"
 	"time"
 
@@ -39,7 +40,7 @@ func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) error {
 
 	for {
 		// ...then send it and wait for the webhook to return...
-		finished, err := notifyWebhookUrl(ctx, "diagd", fmt.Sprintf("%s?url=%s", GetEventUrl(), snapshotUrl))
+		finished, err := notifyWebhookUrl(ctx, DiagdClient(), "diagd", fmt.Sprintf("%s?url=%s", GetEventUrl(), snapshotUrl))
 		if err != nil {
 			return err
 		}
@@ -66,7 +67,7 @@ func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) error {
 }
 
 // posts to a webhook style url, logging any errors, and returning false if a retry is needed
-func notifyWebhookUrl(ctx context.Context, name, xurl string) (bool, error) {
+func notifyWebhookUrl(ctx context.Context, client *http.Client, name, xurl string) (bool, error) {
 	defer debug.FromContext(ctx).Timer(fmt.Sprintf("notifyWebhook:%s", name)).Start()()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, xurl, nil)
@@ -87,18 +88,24 @@ func notifyWebhookUrl(ctx context.Context, name, xurl string) (bool, error) {
 	// OK, the URL parsed clean (as it *!&@*#& well should have!) so we can find
 	// out if it's going to localhost. We'll do this the strict way, since these
 	// URLs should be hardcoded.
+	//
+	// DiagdURLOrigin gets a pass: it isn't a real host, it's the placeholder we use
+	// for requests that ride over diagd's Unix-domain socket, which by definition
+	// cannot have come from off-pod.
 
-	if acp.HostPortIsLocal(fmt.Sprintf("%s:%s", parsedURL.Hostname(), parsedURL.Port())) {
+	if strings.HasPrefix(xurl, DiagdURLOrigin+"/") ||
+		acp.HostPortIsLocal(fmt.Sprintf("%s:%s", parsedURL.Hostname(), parsedURL.Port())) {
 		// If we're speaking to localhost, we're speaking from localhost. Hit it.
 		req.Header.Set("X-Ambassador-Diag-IP", "127.0.0.1")
 	}
 
 	req.Header.Set("content-type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
-		if errors.Is(err, syscall.ECONNREFUSED) {
-			// We couldn't succesfully connect to the sidecar, probably because it hasn't
-			// started up yet, so we log the error and return false to signal retry.
+		// ECONNREFUSED means nothing is listening on the TCP port yet; ENOENT means the
+		// Unix-domain socket hasn't been created yet. Either way the far end just hasn't
+		// finished starting up, so log it and return false to signal retry.
+		if errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, syscall.ENOENT) {
 			dlog.Error(ctx, err.Error())
 			return false, nil
 		} else {

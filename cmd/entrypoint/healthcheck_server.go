@@ -47,7 +47,10 @@ func handleCheckReady(w http.ResponseWriter, r *http.Request, ambwatch *acp.Amba
 	}
 }
 
-func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) error {
+// healthCheckMux builds the handler for the health check port (8877 by default).
+// This port is reachable from off-pod, so be very careful about what gets
+// registered here.
+func healthCheckMux(ctx context.Context, ambwatch *acp.AmbassadorWatcher) *http.ServeMux {
 	dbg := debug.FromContext(ctx)
 
 	// We need to do some HTTP stuff by hand to catch the readiness and liveness
@@ -79,19 +82,41 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 	sm.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	sm.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 
+	// diagd's internal API -- most importantly /_internal/v0/watt, which is how a
+	// new snapshot gets submitted -- is flatly not available here. This port is
+	// reachable from off-pod, and `kubectl port-forward` makes off-pod traffic look
+	// like it came from 127.0.0.1, so there is no way to tell local traffic from
+	// remote traffic here. Anything that needs the internal API has to talk to
+	// diagd over its Unix-domain socket instead.
+	//
+	// Note that this has to be registered before the "/" catchall below, and that
+	// ServeMux normalizes paths (collapsing "..", etc.) before matching, so this
+	// can't be walked around with a cleverly-encoded path.
+	sm.HandleFunc("/_internal/", func(w http.ResponseWriter, r *http.Request) {
+		http.NotFound(w, r)
+	})
+
 	// For everything else, use a ReverseProxy to forward it to diagd.
 	//
-	// diagdOrigin is where diagd is listening.
-	diagdOrigin, _ := url.Parse("http://127.0.0.1:8004/")
+	// diagd listens on a Unix-domain socket, so diagdOrigin is just a placeholder
+	// host: DiagdTransport dials the socket no matter what's in the URL.
+	diagdOrigin, _ := url.Parse(DiagdURLOrigin)
 
 	// This reverseProxy is dirt simple: use a director function to
 	// swap the scheme and host of our request for the ones from the
 	// diagdOrigin. Leave everything else (notably including the path)
 	// alone.
 	reverseProxy := &httputil.ReverseProxy{
+		Transport: DiagdTransport(),
 		Director: func(req *http.Request) {
 			req.URL.Scheme = diagdOrigin.Scheme
 			req.URL.Host = diagdOrigin.Host
+
+			// Whatever the client had to say about X-Ambassador-Diag-IP, they don't
+			// get a vote: this is a header that we generate, and honoring a
+			// client-supplied value would let anyone who can reach this port claim
+			// to be local. Drop it before we consider setting it ourselves.
+			req.Header.Del("X-Ambassador-Diag-IP")
 
 			// If this request is coming from localhost, tell diagd about that.
 			if acp.HostPortIsLocal(req.RemoteAddr) {
@@ -103,6 +128,12 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 	// Finally, use the reverseProxy to handle anything coming in on
 	// the magic catchall path.
 	sm.HandleFunc("/", reverseProxy.ServeHTTP)
+
+	return sm
+}
+
+func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) error {
+	sm := healthCheckMux(ctx, ambwatch)
 
 	// Set up listener.
 	// The default value for network is ANY.
