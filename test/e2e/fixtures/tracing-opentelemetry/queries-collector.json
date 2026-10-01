@@ -1,0 +1,4 @@
+[
+  {"url": "/jaeger/api/services", "method": "GET"},
+  {"url": "/jaeger/api/traces?service=ambassador&limit=100", "method": "GET"}
+]
