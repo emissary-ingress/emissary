@@ -1,0 +1,117 @@
+---
+# Port of KAT's tests/kat/t_tracing.py::TracingTestOpentelemetry.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.42.0
+          env:
+            - name: COLLECTOR_OTLP_ENABLED
+              value: "true"
+          ports:
+            - name: http-json
+              containerPort: 16686
+            - name: otlp-grpc
+              containerPort: 4317
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - name: http-json
+      port: 16686
+      targetPort: http-json
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: target:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: jaeger
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /jaeger/
+  rewrite: /
+  service: jaeger:16686
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+metadata:
+  name: tracing
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service: (join(':', [join('.', ['jaeger', $namespace]), '4317']))
+  driver: opentelemetry
+  custom_tags:
+    - tag: ltag
+      literal:
+        value: lvalue
+    - tag: htag
+      request_header:
+        name: x-something
+        default_value: hfallback
