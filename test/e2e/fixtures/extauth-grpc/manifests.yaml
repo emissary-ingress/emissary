@@ -1,0 +1,133 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationGRPCTest.
+#
+# One plain target plus a gRPC (v3) auth service: kat-server in `grpc_auth`
+# mode answers per request from the `kat-req-extauth-*` headers and echoes
+# the AuthService's context extensions back in a response header.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: auth
+            - name: KAT_BACKEND_TYPE
+              value: grpc_auth
+            # Must match the AuthService's protocol_version; kat-server
+            # echoes it back in Kat-Resp-Extauth-Protocol-Version.
+            - name: GRPC_AUTH_PROTOCOL_VERSION
+              value: v3
+          ports:
+            - containerPort: 8080
+---
+# Port 80, not 8080: an AuthService's `auth_service` with no port defaults to 80.
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+spec:
+  selector:
+    app: auth
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name: auth
+spec:
+  ambassador_id: [(env('SLOT'))]
+  auth_service: (join('.', ['auth', $namespace]))
+  timeout_ms: 5000
+  proto: grpc
+  protocol_version: v3
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: target:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target-context-extensions
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /context-extensions/
+  service: target:8080
+  auth_context_extensions:
+    first: "first element"
+    second: "second element"
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: auth-context-mapping
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /context-extensions-crd/
+  service: target:8080
+  auth_context_extensions:
+    context: "auth-context-name"
+    data: "auth-data"
