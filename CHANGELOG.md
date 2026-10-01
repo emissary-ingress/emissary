@@ -38,6 +38,15 @@ from the Helm charts.
   share, so a pair weighted 70 and 30 actually split about 77/23. If you had tuned
   weights around the old behaviour, your split will change.
 
+- Fix: `apiext` now eagerly generates its webhook server certificate for its
+  well-known Service hostname as part of its readiness check, rather than
+  generating it lazily on the first incoming TLS handshake. Previously, the
+  first CRD-conversion request from the Kubernetes apiserver after `apiext`
+  reported itself ready could be the one paying for certificate generation,
+  occasionally causing that request to time out ([#4275]).
+
+[#4275]: https://github.com/emissary-ingress/emissary/issues/4275
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
