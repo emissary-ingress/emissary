@@ -1,0 +1,70 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDDouble.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global, and because it probes /ambassador/v0/diag/, which only
+# a numbered slot serves (see slots.sh).
+#
+# Three Hosts, each with its own cert and a different insecure.action
+# (Route, Redirect, Reject), and five paths probed against each Host over
+# both schemes. Each status assertion covers one Host on one scheme, in
+# path order: target-1, target-2, target-3, target-shared, acme-challenge.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-double
+spec:
+  steps:
+    - name: generate the downstream certs
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              for pair in 1:tls-context-host-1 2:tls-context-host-2 3:ambassador.example.com; do
+                n=${pair%%:*} cn=${pair#*:}
+                openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                  -subj "/CN=$cn" \
+                  -addext basicConstraints=critical,CA:FALSE \
+                  -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                  -addext extendedKeyUsage=serverAuth \
+                  -addext "subjectAltName=DNS:$cn" \
+                  -keyout "$dir/$n.key" -out "$dir/$n.crt" 2>/dev/null
+                kubectl create secret tls "host-double-$n" \
+                  -n "$NAMESPACE" --cert="$dir/$n.crt" --key="$dir/$n.key"
+              done
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: https routes each path only through the Hosts that carry it
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'no diag errors'           '.[0].result.status == 200 and .[0].result.json == []' \
+                'host-1 statuses'          '[.[1:6][].result.status] == [200, 404, 404, 200, 404]' \
+                'host-2 statuses'          '[.[6:11][].result.status] == [404, 200, 404, 200, 404]' \
+                'host-3 statuses'          '[.[11:16][].result.status] == [404, 404, 200, 200, 200]' \
+                'host-1 backends'          '[.[1,4] | .result.json.backend] == ["target1", "targetshared"]' \
+                'host-2 backends'          '[.[7,9] | .result.json.backend] == ["target2", "targetshared"]' \
+                'host-3 backends'          '[.[13,14,15] | .result.json.backend] == ["target3", "targetshared", "target3"]' \
+                'each Host serves its cert' '[.[1:][] | select(.result.status == 200) | .result.tls[0].Subject.CommonName == .headers.Host] | all'
+
+    - name: http follows each Host's insecure.action
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'host-1 routes cleartext'      '[.[0:5][].result.status] == [200, 404, 404, 200, 404]' \
+                'host-2 redirects cleartext'   '[.[5:10][].result.status] == [404, 301, 404, 301, 404]' \
+                'host-3 rejects all but acme'  '[.[10:15][].result.status] == [404, 404, 404, 404, 200]' \
+                'host-1 backends'              '[.[0,3] | .result.json.backend] == ["target1", "targetshared"]' \
+                'host-3 acme reaches target3'  '.[14].result.json.backend == "target3"'

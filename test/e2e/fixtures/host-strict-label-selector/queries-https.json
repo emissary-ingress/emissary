@@ -1,0 +1,90 @@
+[
+  {
+    "url": "/ambassador/v0/diag/?json=true&filter=errors",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared-labels-all/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared-labels-one/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared-hostname/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared-labels-all/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared-labels-one/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared-hostname/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  }
+]

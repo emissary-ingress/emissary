@@ -1,0 +1,131 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host-one: tls-context-host-1
+      h: foo
+  tlsSecret:
+    name: host-strict-label-selector-1
+---
+# Matches only one of host-1's two selector labels.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: host-1
+  labels:
+    host-one: tls-context-host-1
+    h: bar
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-1
+  prefix: /target-1/
+  service: target:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-2
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host-two: tls-context-host-2
+      h: foo
+  tlsSecret:
+    name: host-strict-label-selector-2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: host-2
+  labels:
+    host-two: tls-context-host-2
+    h: foo
+spec:
+  ambassador_id: [(env('SLOT'))]
+  host: tls-context-host-2
+  prefix: /target-2/
+  service: target:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: shared-labels-all
+  labels:
+    host-one: tls-context-host-1
+    host-two: tls-context-host-2
+    h: foo
+spec:
+  ambassador_id: [(env('SLOT'))]
+  prefix: /target-shared-labels-all/
+  service: target:8080
+---
+# Carries only the label both Hosts have in common.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: shared-labels-one
+  labels:
+    h: foo
+spec:
+  ambassador_id: [(env('SLOT'))]
+  prefix: /target-shared-labels-one/
+  service: target:8080
+---
+# No labels at all; hostname "*" alone does not satisfy a mappingSelector.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: shared-hostname
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target-shared-hostname/
+  service: target:8080
