@@ -1,0 +1,6 @@
+[
+  {"url": "/target/", "method": "GET"},
+  {"url": "/target/good/", "method": "GET"},
+  {"url": "/target/nohdr/", "method": "GET"},
+  {"url": "/target/crap/", "method": "GET"}
+]

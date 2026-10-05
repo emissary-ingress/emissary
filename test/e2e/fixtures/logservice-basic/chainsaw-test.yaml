@@ -1,0 +1,143 @@
+# Port of KAT's tests/kat/t_logservice.py::LogServiceTest.
+#
+# `exclusive` because a LogService is instance-global. The ALS backend is read
+# back through a Mapping, so its own requests are logged too; the assertions
+# look only at the /target/ entries. The LogService names its backend with the
+# test namespace because the global config is resolved outside it. The v2
+# and default protocol versions are then swapped in: each must be reported
+# as unsupported and log nothing.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: logservice-basic
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: als
+              status:
+                availableReplicas: 1
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: wait for access logging
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-warmup.json \
+                'target is routed'          '.[0].result.json.backend == "target"' \
+                'warmup request was logged' '[.[1].result.json["alsv3-http"][]? | .request.original_path | select(. == "/target/warmup")] | length > 0'
+
+    - name: send traffic
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              q=$(mktemp)
+              echo '[{"url": "/als/logs", "method": "DELETE"}]' > "$q"
+              ../../probe.sh "$q" 'log buffer cleared' '.[0].result.status == 200'
+              for p in foo bar; do
+                echo "[{\"url\": \"/target/$p\", \"method\": \"GET\"}]" > "$q"
+                ../../probe.sh "$q" "$p reaches the target" '.[0].result.json.backend == "target"'
+              done
+
+    - name: access logs reach the als
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              t='[.[0].result.json["alsv3-http"][]? | .request.original_path | select(startswith("/target/") and . != "/target/warmup")]'
+              ../../probe.sh queries-logs.json \
+                'both requests were logged in order' "(${t} == [\"/target/foo\", \"/target/bar\"])" \
+                'nothing came in as v2'              '(.[0].result.json["alsv2-http"] // []) == [] and (.[0].result.json["alsv2-tcp"] // []) == []' \
+                'nothing came in as v3 tcp'          '(.[0].result.json["alsv3-tcp"] // []) == []'
+
+    - name: switch to protocol_version v2
+      try:
+        - delete:
+            ref:
+              apiVersion: getambassador.io/v3alpha1
+              kind: LogService
+              name: custom-http-logging
+        - apply:
+            file: logservice-v2.yaml
+
+    - name: protocol_version v2 is rejected and nothing is logged
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-diag.json \
+                'rejected as unsupported' '.[0].result.json | tostring | test("protocol_version v2 is unsupported")' || exit 1
+              q=$(mktemp)
+              i=0
+              while :; do
+                i=$((i + 1))
+                echo '[{"url": "/als/logs", "method": "DELETE"}]' > "$q"
+                ../../probe.sh "$q" 'log buffer cleared' '.[0].result.status == 200' > /dev/null || exit 1
+                echo '[{"url": "/target/foo", "method": "GET"}, {"url": "/target/bar", "method": "GET"}]' > "$q"
+                ../../probe.sh "$q" 'requests reach the target' 'all(.[]; .result.json.backend == "target")' > /dev/null || exit 1
+                sleep 3
+                if PROBE_ATTEMPTS=1 ../../probe.sh queries-logs.json \
+                  'nothing was logged' '.[0].result.status == 200 and ([.[0].result.json[]?[]?] | length) == 0'; then
+                  break
+                fi
+                [ "$i" -lt 10 ] || exit 1
+              done
+
+    - name: remove the v2 LogService
+      try:
+        - delete:
+            ref:
+              apiVersion: getambassador.io/v3alpha1
+              kind: LogService
+              name: custom-http-logging
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-diag.json \
+                'no errors are reported' '.[0].result.status == 200 and .[0].result.json == []'
+
+    - name: switch to the default protocol_version
+      try:
+        - apply:
+            file: logservice-default.yaml
+
+    - name: the default protocol_version is rejected and nothing is logged
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-diag.json \
+                'rejected as unsupported' '.[0].result.json | tostring | test("protocol_version v2 is unsupported")' || exit 1
+              q=$(mktemp)
+              i=0
+              while :; do
+                i=$((i + 1))
+                echo '[{"url": "/als/logs", "method": "DELETE"}]' > "$q"
+                ../../probe.sh "$q" 'log buffer cleared' '.[0].result.status == 200' > /dev/null || exit 1
+                echo '[{"url": "/target/foo", "method": "GET"}, {"url": "/target/bar", "method": "GET"}]' > "$q"
+                ../../probe.sh "$q" 'requests reach the target' 'all(.[]; .result.json.backend == "target")' > /dev/null || exit 1
+                sleep 3
+                if PROBE_ATTEMPTS=1 ../../probe.sh queries-logs.json \
+                  'nothing was logged' '.[0].result.status == 200 and ([.[0].result.json[]?[]?] | length) == 0'; then
+                  break
+                fi
+                [ "$i" -lt 10 ] || exit 1
+              done
