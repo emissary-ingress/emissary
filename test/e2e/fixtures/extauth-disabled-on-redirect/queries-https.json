@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET",
+    "insecure": true,
+    "headers": {
+      "kat-req-http-requested-status": "401"
+    }
+  }
+]

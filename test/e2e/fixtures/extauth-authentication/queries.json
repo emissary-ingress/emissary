@@ -1,0 +1,54 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "401",
+      "Baz": "baz",
+      "Request-Header": "Baz"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "302",
+      "kat-req-http-requested-location": "foo",
+      "kat-req-http-requested-header": "location"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "401",
+      "X-Foo": "foo",
+      "kat-req-http-requested-header": "X-Foo"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "401",
+      "X-Bar": "bar",
+      "kat-req-http-requested-header": "X-Bar"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "200",
+      "Authorization": "foo-11111",
+      "kat-req-http-requested-header": "Authorization"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "X-Forwarded-Proto": "https"
+    }
+  }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-extauth-requested-status": "401",
+      "baz": "baz",
+      "request-header": "baz"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-extauth-requested-status": "302",
+      "kat-req-extauth-requested-location": "foo"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-extauth-requested-status": "401",
+      "x-foo": "foo",
+      "kat-req-extauth-requested-header": "x-foo"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-extauth-requested-status": "200",
+      "authorization": "foo-11111",
+      "foo": "foo",
+      "kat-req-extauth-append": "foo=bar;baz=bar",
+      "kat-req-http-requested-header": "Authorization"
+    }
+  },
+  {
+    "url": "/context-extensions/",
+    "method": "GET",
+    "headers": {
+      "request-status": "200",
+      "authorization": "foo-22222",
+      "kat-req-http-requested-header": "Authorization"
+    }
+  },
+  {
+    "url": "/context-extensions-crd/",
+    "method": "GET",
+    "headers": {
+      "request-status": "200",
+      "authorization": "foo-33333",
+      "kat-req-http-requested-header": "Authorization"
+    }
+  }
+]
