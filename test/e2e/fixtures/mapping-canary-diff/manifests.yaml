@@ -1,0 +1,149 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-canary-diff-target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-canary-diff-target
+  template:
+    metadata:
+      labels:
+        app: mapping-canary-diff-target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-canary-diff-target
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-canary-diff-target
+spec:
+  selector:
+    app: mapping-canary-diff-target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-canary-diff-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-canary-diff-canary
+  template:
+    metadata:
+      labels:
+        app: mapping-canary-diff-canary
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-canary-diff-canary
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-canary-diff-canary
+spec:
+  selector:
+    app: mapping-canary-diff-canary
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-canary-diff-0
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-canary-diff-0/
+  service: http://mapping-canary-diff-target:8080
+  host_rewrite: canary.1.example.com
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-canary-diff-0-canary
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-canary-diff-0/
+  service: http://mapping-canary-diff-canary:8080
+  host_rewrite: canary.2.example.com
+  weight: 0
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-canary-diff-50
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-canary-diff-50/
+  service: http://mapping-canary-diff-target:8080
+  host_rewrite: canary.1.example.com
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-canary-diff-50-canary
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-canary-diff-50/
+  service: http://mapping-canary-diff-canary:8080
+  host_rewrite: canary.2.example.com
+  weight: 50
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-canary-diff-100
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-canary-diff-100/
+  service: http://mapping-canary-diff-target:8080
+  host_rewrite: canary.1.example.com
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-canary-diff-100-canary
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-canary-diff-100/
+  service: http://mapping-canary-diff-canary:8080
+  host_rewrite: canary.2.example.com
+  weight: 100

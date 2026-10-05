@@ -1,0 +1,55 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::CanaryMapping.
+#
+# `shared`. Weights 0, 50 and 100, each on its own prefix with a plain
+# Mapping and a canary Mapping.
+#
+# The 50 split is measured once (PROBE_ATTEMPTS=1), since under probe.sh's
+# retry loop a probabilistic assertion would get many chances to pass.
+# kat-client sends all 1000 requests at once and some connections drop with
+# EOF on CI runners, so the split is a share of the requests that landed
+# (at least 600), while any HTTP answer must be a 200 from a backend. 42 to
+# 58 percent holds for a correct 50/50 and rules out 25/75.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-canary
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: boundary weights are exact
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[range(100) | {url: "/mapping-canary-0/", method: "GET"}] + [range(100) | {url: "/mapping-canary-100/", method: "GET"}] + [range(100) | {url: "/mapping-canary-50/", method: "GET"}]' > "$queries"
+              ../../probe.sh "$queries" \
+                'weight 0 sends nothing to the canary'      'all(.[0:100][]; .result.status == 200 and .result.json.backend == "mapping-canary-target")' \
+                'weight 100 sends everything to the canary' 'all(.[100:200][]; .result.status == 200 and .result.json.backend == "mapping-canary-canary")' \
+                'weight 50 reaches both backends'           '([.[200:300][].result.json.backend] | (index("mapping-canary-target") != null and index("mapping-canary-canary") != null))'
+
+    - name: weight 50 splits about evenly
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[range(1000) | {url: "/mapping-canary-50/", method: "GET"}]' > "$queries"
+              PROBE_ATTEMPTS=1 ../../probe.sh "$queries" \
+                'every answer came from a backend' \
+                  'all(.[]; .result.status == null or (.result.status == 200 and (.result.json.backend == "mapping-canary-target" or .result.json.backend == "mapping-canary-canary")))' \
+                'enough requests landed to measure' \
+                  '([.[] | select(.result.json.backend == "mapping-canary-target" or .result.json.backend == "mapping-canary-canary")] | length) >= 600' \
+                'the 50/50 split holds' \
+                  '([.[] | select(.result.json.backend == "mapping-canary-canary")] | length) as $c | ([.[] | select(.result.json.backend == "mapping-canary-target")] | length) as $t | (100 * $c / ($c + $t)) | . > 42 and . < 58'

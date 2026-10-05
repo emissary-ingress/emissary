@@ -1,0 +1,27 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::HostHeaderMapping.
+#
+# `shared`. The Mapping matches `:authority` exactly, so it sets `host` and
+# no `hostname` (which would override it). Emissary does not strip a port equal
+# to the listener's, so the last query sends :8080 (the container port) and is
+# not routed.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-host-header
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'no Host header is not routed'            '.[0].result.status == 404' \
+                'other host is not routed'                '.[1].result.status == 404' \
+                'matching host is routed'                 '.[2].result.status == 200 and .[2].result.json.backend == "mapping-host-header"' \
+                'matching host with a port is not routed' '.[3].result.status == 404'

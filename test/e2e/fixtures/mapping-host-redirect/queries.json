@@ -1,0 +1,34 @@
+[
+  {
+    "url": "/mapping-host-redirect/anything?itworked=true",
+    "method": "GET"
+  },
+  {
+    "url": "/MAPPING-HOST-REDIRECT/anything?itworked=true",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-host-redirect-2/anything?itworked=true",
+    "method": "GET"
+  },
+  {
+    "url": "/MAPPING-HOST-REDIRECT-2/anything?itworked=true",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-host-redirect-3/foo/anything",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-host-redirect-4/foo/bar/baz/anything",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-host-redirect-5/assets/abcd0000f123/images",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-host-redirect-5/assets/abcd0000f123/images?itworked=true",
+    "method": "GET"
+  }
+]

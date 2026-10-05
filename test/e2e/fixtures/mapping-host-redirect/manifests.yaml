@@ -1,0 +1,64 @@
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-host-redirect
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-host-redirect/
+  service: foobar.com
+  host_redirect: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-host-redirect-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-host-redirect-2/
+  case_sensitive: false
+  service: foobar.com
+  host_redirect: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-host-redirect-3
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-host-redirect-3/foo/
+  service: foobar.com
+  host_redirect: true
+  path_redirect: /redirect/
+  redirect_response_code: 302
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-host-redirect-4
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-host-redirect-4/foo/bar/baz
+  service: foobar.com
+  host_redirect: true
+  prefix_redirect: /foobar/baz
+  redirect_response_code: 307
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-host-redirect-5
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-host-redirect-5/assets/([a-f0-9]{12})/images
+  prefix_regex: true
+  service: foobar.com
+  host_redirect: true
+  regex_redirect:
+    pattern: /mapping-host-redirect-5/assets/([a-f0-9]{12})/images
+    substitution: /images/\1
+  redirect_response_code: 308
