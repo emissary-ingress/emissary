@@ -446,6 +446,10 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 					old = o
 				}
 
+				if old == nil {
+					return
+				}
+
 				// This is for testing. It allows us to deliberately increase the probability of
 				// race conditions by e.g. introducing sleeps. At some point I'm sure we will want a
 				// nicer prettier set of hooks, but for now all we need is this hack for
