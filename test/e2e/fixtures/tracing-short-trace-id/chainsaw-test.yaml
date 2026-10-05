@@ -1,0 +1,68 @@
+# Port of KAT's tests/kat/t_tracing.py::TracingTestShortTraceId.
+#
+# `exclusive` because a TracingService is instance-global. The tracer is part
+# of Envoy's bootstrap, which is read only at startup, so the slot's Emissary
+# is restarted once the TracingService is applied. Zipkin is queried through a
+# Mapping so kat-client can reach it. Service names embed the slot id, so the
+# assertions are built from $SLOT.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tracing-short-trace-id
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: zipkin
+              status:
+                availableReplicas: 1
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: restart emissary to load the tracer
+      try:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" rollout restart "deploy/emissary-${SLOT}"
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+
+    - name: wait for tracing to be live
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-warmup.json \
+                'zipkin has received spans' '(.[1].result.json | length) > 0'
+
+    - name: send traffic
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-traffic.json \
+                'reached the target' '.[0].result.json.backend == "target"'
+
+    - name: spans reach zipkin
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-collector.json \
+                'every trace id is 64 bit' '(.[0].result.json | length > 0) and ([.[0].result.json[][].traceId | length] | all(. == 16))' \
+                'diag page loads'          '.[1].result.status == 200'
