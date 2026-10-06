@@ -18,7 +18,12 @@ const ExternalSnapshotPort = 8005
 func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/snapshot-external", func(w http.ResponseWriter, r *http.Request) {
-		sanitizedSnap, err := sanitizeExternalSnapshot(ctx, snapshot.Load().([]byte))
+		data, ok := snapshot.Load().([]byte)
+		if !ok || data == nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		sanitizedSnap, err := sanitizeExternalSnapshot(ctx, data)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -37,7 +42,12 @@ func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 func snapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/snapshot", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write(snapshot.Load().([]byte))
+		data, ok := snapshot.Load().([]byte)
+		if !ok || data == nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		_, _ = w.Write(data)
 	})
 
 	s := &dhttp.ServerConfig{
