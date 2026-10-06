@@ -111,7 +111,7 @@ class KnativeIngressProcessor(ManagedKubernetesProcessor):
             self.manager.emit(mapping)
 
     def _make_status(self, generation: int = 1, lb_domain: Optional[str] = None) -> Dict[str, Any]:
-        utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        utcnow = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         status = {
             "observedGeneration": generation,
             "conditions": [
