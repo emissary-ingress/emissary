@@ -650,9 +650,7 @@ func (sh *SnapshotHolder) Notify(
 		notifyWebhooksTimer.Time(func() {
 			err = snapshotProcessor(ctx, SnapshotReady, snapshotJSON)
 		})
-		if err != nil {
-			return err
-		}
+		return err
 	}
 	return snapshotProcessor(ctx, SnapshotIncomplete, snapshotJSON)
 }
