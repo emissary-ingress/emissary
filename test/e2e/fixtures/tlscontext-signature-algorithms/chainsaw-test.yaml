@@ -1,0 +1,86 @@
+---
+# signature_algorithms on a TLSContext (#5871).
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# The server leaf is ECDSA P-256 and the TLSContext allows only
+# ecdsa_secp256r1_sha256 and ed25519, so a client cert is accepted or
+# refused purely by the algorithm its key signs with. Ed25519 is not in
+# Envoy's default list, so the first query also fails without the setting.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tlscontext-signature-algorithms
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: certs and mtls probe
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+
+              # CA that signs both client certs.
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tlscontext-signature-algorithms-ca \
+                -addext basicConstraints=critical,CA:TRUE \
+                -addext keyUsage=critical,keyCertSign,cRLSign \
+                -keyout "$dir/ca.key" -out "$dir/ca.crt" 2>/dev/null
+
+              # Server leaf: ECDSA P-256, so Envoy signs with ecdsa_secp256r1_sha256.
+              openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 3650 \
+                -subj /CN=ambassador.example.com \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:ambassador.example.com \
+                -keyout "$dir/server.key" -out "$dir/server.crt" 2>/dev/null
+
+              printf '%s\n' \
+                'basicConstraints=critical,CA:FALSE' \
+                'keyUsage=critical,digitalSignature' \
+                'extendedKeyUsage=clientAuth' > "$dir/client.ext"
+
+              # Ed25519 client: listed, so it must be accepted.
+              openssl req -newkey ed25519 -nodes -subj /CN=ed25519-client \
+                -keyout "$dir/ed.key" -out "$dir/ed.csr" 2>/dev/null
+              openssl x509 -req -in "$dir/ed.csr" -CA "$dir/ca.crt" -CAkey "$dir/ca.key" \
+                -CAcreateserial -days 3650 -extfile "$dir/client.ext" \
+                -out "$dir/ed.crt" 2>/dev/null
+
+              # P-384 client: signs with ecdsa_secp384r1_sha384, which is not
+              # listed, so it must be refused even though the CA is trusted.
+              openssl req -newkey ec -pkeyopt ec_paramgen_curve:secp384r1 -nodes -subj /CN=p384-client \
+                -keyout "$dir/p384.key" -out "$dir/p384.csr" 2>/dev/null
+              openssl x509 -req -in "$dir/p384.csr" -CA "$dir/ca.crt" -CAkey "$dir/ca.key" \
+                -CAcreateserial -days 3650 -extfile "$dir/client.ext" \
+                -out "$dir/p384.crt" 2>/dev/null
+
+              kubectl create secret tls tlscontext-signature-algorithms-server \
+                -n "$NAMESPACE" --cert="$dir/server.crt" --key="$dir/server.key"
+              kubectl create secret generic tlscontext-signature-algorithms-ca \
+                -n "$NAMESPACE" --from-file=tls.crt="$dir/ca.crt"
+
+              jq -n \
+                --rawfile ed_crt "$dir/ed.crt" \
+                --rawfile ed_key "$dir/ed.key" \
+                --rawfile p384_crt "$dir/p384.crt" \
+                --rawfile p384_key "$dir/p384.key" \
+                '[
+                  {url: "/", headers: {Host: "ambassador.example.com"}, sni: true, insecure: true, client_cert: $ed_crt, client_key: $ed_key},
+                  {url: "/", headers: {Host: "ambassador.example.com"}, sni: true, insecure: true, client_cert: $p384_crt, client_key: $p384_key}
+                ]' > "$dir/queries.json"
+
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh "$dir/queries.json" \
+                'a listed algorithm (ed25519) reaches the target' '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'an unlisted algorithm (P-384) is refused'        '.[1].result.status == null'

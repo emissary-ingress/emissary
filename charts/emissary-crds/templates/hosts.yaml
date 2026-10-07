@@ -553,6 +553,10 @@ spec:
                     type: string
                   redirect_cleartext_from:
                     type: integer
+                  signature_algorithms:
+                    items:
+                      type: string
+                    type: array
                   sni:
                     type: string
                 type: object

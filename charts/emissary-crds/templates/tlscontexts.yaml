@@ -244,6 +244,10 @@ spec:
                 type: string
               secret_namespacing:
                 type: boolean
+              signature_algorithms:
+                items:
+                  type: string
+                type: array
               sni:
                 type: string
             type: object
