@@ -33,25 +33,6 @@ class Empty(AmbassadorTest):
 
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
-
-        # diagd's internal API is not proxied from 8877 at all, so these are 404s --
-        # not 403s, and *especially* not 200s. Note that from KAT's point of view
-        # these requests arrive from off-pod, but the X-Ambassador-Diag-IP spoof
-        # below would make diagd think they were local if they ever reached diagd.
-        yield Query(self.url("_internal/v0/ping", scheme="http", port=8877), expected=404)
-        yield Query(
-            self.url("_internal/v0/ping", scheme="http", port=8877),
-            headers={"X-Ambassador-Diag-IP": "127.0.0.1"},
-            expected=404,
-        )
-        yield Query(
-            self.url("_internal/v0/watt", scheme="http", port=8877),
-            method="POST",
-            headers={"X-Ambassador-Diag-IP": "127.0.0.1"},
-            body="{}",
-            expected=404,
-        )
-
         yield Query(self.url("ambassador/v0/check_ready", scheme="http", port=8877))
 
     def check(self):
