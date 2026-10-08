@@ -25,7 +25,9 @@ func TestHealthCheckMuxRejectsInternalAPI(t *testing.T) {
 		method string
 		path   string
 	}{
+		{"internal-root", http.MethodGet, "/_internal"},
 		{"watt", http.MethodPost, "/_internal/v0/watt"},
+		{"encoded-slash", http.MethodPost, "/_internal%2fv0%2fwatt"},
 		{"fs", http.MethodPost, "/_internal/v0/fs?path=/tmp/evil"},
 		{"ping", http.MethodGet, "/_internal/v0/ping"},
 		{"features", http.MethodGet, "/_internal/v0/features"},

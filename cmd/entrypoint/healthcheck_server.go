@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 	"net/http/pprof"
 	"net/url"
+	"strings"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -89,9 +90,9 @@ func healthCheckMux(ctx context.Context, ambwatch *acp.AmbassadorWatcher) *http.
 	// remote traffic here. Anything that needs the internal API has to talk to
 	// diagd over its Unix-domain socket instead.
 	//
-	// Note that this has to be registered before the "/" catchall below, and that
-	// ServeMux normalizes paths (collapsing "..", etc.) before matching, so this
-	// can't be walked around with a cleverly-encoded path.
+	// Note that this has to be registered before the "/" catchall below. ServeMux
+	// normalizes paths before matching, but encoded slashes can bypass this pattern,
+	// so the catchall also rejects decoded paths under /_internal.
 	sm.HandleFunc("/_internal/", func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	})
@@ -127,7 +128,13 @@ func healthCheckMux(ctx context.Context, ambwatch *acp.AmbassadorWatcher) *http.
 
 	// Finally, use the reverseProxy to handle anything coming in on
 	// the magic catchall path.
-	sm.HandleFunc("/", reverseProxy.ServeHTTP)
+	sm.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/_internal" || strings.HasPrefix(r.URL.Path, "/_internal/") {
+			http.NotFound(w, r)
+			return
+		}
+		reverseProxy.ServeHTTP(w, r)
+	})
 
 	return sm
 }
