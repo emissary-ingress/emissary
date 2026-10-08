@@ -43,6 +43,10 @@ configuration snapshot -- unreachable from off-pod. Binding to 127.0.0.1 would _
 because `kubectl port-forward` makes off-pod traffic appear to originate from 127.0.0.1. For the
 same reason, the health check server on 8877 refuses to proxy `/_internal/` to `diagd`.
 
+`entrypoint` sends each new snapshot to `diagd` as the body of that `POST`. There is deliberately no
+listener anywhere that serves the raw (unsanitized) snapshot: it contains secrets, and anything
+listening on TCP for it would be reachable with `kubectl port-forward`.
+
 ### The Ambassador Configuration
 
 An Ambassador configuration is a collection of _Ambassador configuration resources_, which are represented by subclasses of `ambassador.config.ACResource`. The configuration as a whole is represented by an `ambassador.Config` object.

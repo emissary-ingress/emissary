@@ -17,7 +17,7 @@ import (
 func TestNotifyWebhookUrlConnectionRefused(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
 
-	finished, err := notifyWebhookUrl(ctx, http.DefaultClient, "test", "http://localhost:5555")
+	finished, err := notifyWebhookUrl(ctx, http.DefaultClient, "test", "http://localhost:5555", nil)
 	assert.NoError(t, err)
 	assert.False(t, finished)
 }
@@ -36,7 +36,7 @@ func TestNotifyWebhookUrlSocketMissing(t *testing.T) {
 
 	t.Setenv("AMBASSADOR_DIAGD_SOCKET", filepath.Join(dir, "nonexistent.sock"))
 
-	finished, err := notifyWebhookUrl(ctx, DiagdClient(), "diagd", GetEventUrl())
+	finished, err := notifyWebhookUrl(ctx, DiagdClient(), "diagd", GetEventUrl(), nil)
 	assert.NoError(t, err)
 	assert.False(t, finished)
 }
@@ -51,6 +51,6 @@ func TestNotifyWebhookUrlEOF(t *testing.T) {
 		srv.CloseClientConnections()
 	}))
 
-	_, err := notifyWebhookUrl(ctx, http.DefaultClient, "test", srv.URL)
+	_, err := notifyWebhookUrl(ctx, http.DefaultClient, "test", srv.URL, nil)
 	assert.Error(t, err)
 }

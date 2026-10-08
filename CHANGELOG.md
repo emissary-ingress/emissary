@@ -42,6 +42,14 @@ from the Helm charts.
   This removes the `AMBASSADOR_DIAGD_BIND_PORT` and `AMBASSADOR_DIAGD_BIND_ADDREASS`
   environment variables, which no longer have anything to configure.
 
+- Security: The snapshot is now handed to `diagd` directly, as the body of the
+  `/_internal/v0/watt` request, rather than as a URL for `diagd` to go fetch.
+  This removes the snapshot server that used to listen on `localhost:9696`,
+  which served the _unsanitized_ snapshot -- secrets and all -- and which was
+  reachable with `kubectl port-forward`. (The sanitized snapshot is still
+  available on 8005 as before.) It also removes an attacker-controlled fetch
+  from the `/_internal/v0/watt` handler.
+
 - Fix: Completely disable the Ambassador Labs `error_response_overrides` mechanism;
   you'll now see an error posted if you try to use it. (This shouldn't affect anyone
   running Emissary.)

@@ -34,19 +34,6 @@ func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 	return s.ListenAndServe(ctx, fmt.Sprintf(":%d", ExternalSnapshotPort))
 }
 
-func snapshotServer(ctx context.Context, snapshot *atomic.Value) error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/snapshot", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write(snapshot.Load().([]byte))
-	})
-
-	s := &dhttp.ServerConfig{
-		Handler: mux,
-	}
-
-	return s.ListenAndServe(ctx, "localhost:9696")
-}
-
 func sanitizeExternalSnapshot(ctx context.Context, rawSnapshot []byte) ([]byte, error) {
 	snapDecoded := snapshotTypes.Snapshot{}
 	err := json.Unmarshal(rawSnapshot, &snapDecoded)

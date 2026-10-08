@@ -45,13 +45,10 @@ class Empty(AmbassadorTest):
             expected=404,
         )
         yield Query(
-            self.url(
-                "_internal/v0/watt?url=http%3A%2F%2Flocalhost%3A9696%2Fsnapshot",
-                scheme="http",
-                port=8877,
-            ),
+            self.url("_internal/v0/watt", scheme="http", port=8877),
             method="POST",
             headers={"X-Ambassador-Diag-IP": "127.0.0.1"},
+            body="{}",
             expected=404,
         )
 

@@ -1,6 +1,7 @@
 package entrypoint
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -27,10 +28,7 @@ type noopNotable struct{}
 func (_ *noopNotable) NoteSnapshotSent()      {}
 func (_ *noopNotable) NoteSnapshotProcessed() {}
 
-func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) error {
-	// XXX: last N snapshots?
-	snapshotUrl := url.QueryEscape("http://localhost:9696/snapshot")
-
+func notifyReconfigWebhooks(ctx context.Context, ambwatch notable, snapshotJSON []byte) error {
 	needDiagdNotify := true
 
 	// We're about to send a new snapshot to diagd. The webhook we're using for this
@@ -40,7 +38,7 @@ func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) error {
 
 	for {
 		// ...then send it and wait for the webhook to return...
-		finished, err := notifyWebhookUrl(ctx, DiagdClient(), "diagd", fmt.Sprintf("%s?url=%s", GetEventUrl(), snapshotUrl))
+		finished, err := notifyWebhookUrl(ctx, DiagdClient(), "diagd", GetEventUrl(), snapshotJSON)
 		if err != nil {
 			return err
 		}
@@ -67,10 +65,10 @@ func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) error {
 }
 
 // posts to a webhook style url, logging any errors, and returning false if a retry is needed
-func notifyWebhookUrl(ctx context.Context, client *http.Client, name, xurl string) (bool, error) {
+func notifyWebhookUrl(ctx context.Context, client *http.Client, name, xurl string, body []byte) (bool, error) {
 	defer debug.FromContext(ctx).Timer(fmt.Sprintf("notifyWebhook:%s", name)).Start()()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, xurl, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, xurl, bytes.NewReader(body))
 	if err != nil {
 		return false, err
 	}
