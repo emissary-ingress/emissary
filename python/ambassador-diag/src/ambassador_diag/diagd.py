@@ -24,6 +24,7 @@ import multiprocessing
 import os
 import queue
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -74,7 +75,6 @@ from ambassador.utils import (
     SystemInfo,
     Timer,
     dump_json,
-    load_url_contents,
     parse_bool,
     parse_json,
 )
@@ -922,15 +922,21 @@ def handle_features():
 @app.route("/_internal/v0/watt", methods=["POST"])
 @internal_handler
 def handle_watt_update():
-    url = request.args.get("url", None)
+    # The snapshot is the request body. Stream it straight to disk: it runs to
+    # several MB, and _load_ir rotates this exact file into the snapshot history
+    # once it's done with it.
+    ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-    if not url:
-        app.logger.error("error: watt update requested with no URL")
-        return "error: watt update requested with no URL\n", 400
+    try:
+        with open(ss_path, "wb") as ss_file:
+            shutil.copyfileobj(request.stream, ss_file)
+    except OSError as e:
+        app.logger.error("error: could not save snapshot to %s: %s" % (ss_path, e))
+        return "error: could not save snapshot\n", 500
 
-    app.logger.debug("Update requested: watt, %s" % url)
+    app.logger.debug("Update requested: watt, %s" % ss_path)
 
-    status, info = app.watcher.post("CONFIG", ("watt", url))
+    status, info = app.watcher.post("CONFIG", ("watt", ss_path))
 
     return info, status
 
@@ -1436,11 +1442,11 @@ class AmbassadorEventWatcher(threading.Thread):
                     self.logger.exception(e)
                     self._respond(rqueue, 500, "configuration from filesystem failed")
             elif cmd == "CONFIG":
-                version, url = arg
+                version, ss_path = arg
 
                 try:
                     if version == "watt":
-                        self.load_config_watt(rqueue, url)
+                        self.load_config_watt(rqueue, ss_path)
                     else:
                         raise RuntimeError("config from %s not supported" % version)
                 except Exception as e:
@@ -1540,22 +1546,22 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
-    # load_config_watt reconfigures from the filesystem. It's the one true way of
-    # reconfiguring these days.
+    # load_config_watt reconfigures from a snapshot that's already been written to
+    # disk by handle_watt_update. It's the one true way of reconfiguring these days.
     #
     # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
-    def load_config_watt(self, rqueue: queue.Queue, url: str):
-        snapshot = url.split("/")[-1]
-        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
+    def load_config_watt(self, rqueue: queue.Queue, ss_path: str):
+        # This is just a label for logs and app.latest_snapshot.
+        snapshot = "snapshot"
 
         # OK, we're starting a reconfiguration. BE CAREFUL TO STOP THE TIMER
         # BEFORE YOU RESPOND TO THE CALLER.
         self.app.config_timer.start()
 
-        self.logger.debug("copying configuration: watt, %s to %s" % (url, ss_path))
+        self.logger.debug("loading configuration: watt, %s" % ss_path)
 
-        # Grab the serialization, and save it to disk too.
-        serialization = load_url_contents(self.logger, url, stream2=open(ss_path, "w"))
+        with open(ss_path, "r", encoding="utf-8") as ss_file:
+            serialization = ss_file.read()
 
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
@@ -1565,7 +1571,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
         # the secrets that watt sends.
-        scc = SecretHandler(app.logger, url, app.snapshot_path, snapshot)
+        scc = SecretHandler(app.logger, ss_path, app.snapshot_path, snapshot)
 
         # OK. Time the various configuration sections separately.
 

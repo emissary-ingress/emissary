@@ -159,10 +159,6 @@ func (f *Fake) Setup() {
 			f.T.Fatal("unable to find diagd, cannot run")
 		}
 
-		f.group.Go("snapshot_server", func(ctx context.Context) error {
-			return snapshotServer(ctx, f.currentSnapshot)
-		})
-
 		err = os.MkdirAll(f.config.OutputDir, os.ModePerm)
 
 		if err != nil {
@@ -344,7 +340,7 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 	var irText []byte
 
 	if disp == SnapshotReady && f.config.EnvoyConfig {
-		if err := notifyReconfigWebhooks(ctx, &noopNotable{}); err != nil {
+		if err := notifyReconfigWebhooks(ctx, &noopNotable{}, snapJSON); err != nil {
 			return err
 		}
 
