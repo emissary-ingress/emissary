@@ -2693,6 +2693,11 @@ func (in *TLSConfig) DeepCopyInto(out *TLSConfig) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.SignatureAlgorithms != nil {
+		in, out := &in.SignatureAlgorithms, &out.SignatureAlgorithms
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.RedirectCleartextFrom != nil {
 		in, out := &in.RedirectCleartextFrom, &out.RedirectCleartextFrom
 		*out = new(int)
@@ -2793,6 +2798,11 @@ func (in *TLSContextSpec) DeepCopyInto(out *TLSContextSpec) {
 	}
 	if in.ECDHCurves != nil {
 		in, out := &in.ECDHCurves, &out.ECDHCurves
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.SignatureAlgorithms != nil {
+		in, out := &in.SignatureAlgorithms, &out.SignatureAlgorithms
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}

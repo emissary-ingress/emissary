@@ -691,6 +691,22 @@ func Convert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(in *v3alpha1.TCPMappin
 	return nil
 }
 
+func Convert_v3alpha1_TLSConfig_To_v2_TLSConfig(in *v3alpha1.TLSConfig, out *TLSConfig, s conversion.Scope) error {
+	if err := autoConvert_v3alpha1_TLSConfig_To_v2_TLSConfig(in, out, s); err != nil {
+		return err
+	}
+	// WARNING: in.SignatureAlgorithms requires manual conversion: does not exist in peer-type
+	return nil
+}
+
+func Convert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in *v3alpha1.TLSContextSpec, out *TLSContextSpec, s conversion.Scope) error {
+	if err := autoConvert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in, out, s); err != nil {
+		return err
+	}
+	// WARNING: in.SignatureAlgorithms requires manual conversion: does not exist in peer-type
+	return nil
+}
+
 func Convert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *TracingServiceSpec, out *v3alpha1.TracingServiceSpec, s conversion.Scope) error {
 	if err := autoConvert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in, out, s); err != nil {
 		return err
