@@ -38,6 +38,16 @@ from the Helm charts.
   share, so a pair weighted 70 and 30 actually split about 77/23. If you had tuned
   weights around the old behaviour, your split will change.
 
+- Fix: A `Mapping` that is alone in its group (i.e. the only `Mapping` with its
+  prefix/method/headers/host) and has an explicit `weight` of 0 now keeps that weight
+  of 0 instead of being forced to 100. This matters for a `Mapping` deliberately
+  weighted to 0, such as a canary that's been scaled down but not yet deleted: it was
+  both reported as fully weighted in the diagnostics UI and actually receiving traffic,
+  the opposite of what the explicit weight asked for. Any other weight on a lone
+  `Mapping` is unchanged and is still treated as 100. ([#5811])
+
+[#5811]: https://github.com/emissary-ingress/emissary/issues/5811
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
