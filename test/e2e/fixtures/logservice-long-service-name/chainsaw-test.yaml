@@ -50,10 +50,14 @@ spec:
             content: |
               q=$(mktemp)
               echo '[{"url": "/als/logs", "method": "DELETE"}]' > "$q"
-              ../../probe.sh "$q" 'log buffer cleared' '.[0].result.status == 200'
+              ../../probe.sh "$q" 'log buffer cleared' '.[0].result.status == 200' || exit 1
+              # Each Envoy worker streams its own log entries, so foo must be
+              # logged before bar is sent or the two can arrive in either order.
               for p in foo bar; do
                 echo "[{\"url\": \"/target/$p\", \"method\": \"GET\"}]" > "$q"
-                ../../probe.sh "$q" "$p reaches the target" '.[0].result.json.backend == "target"'
+                ../../probe.sh "$q" "$p reaches the target" '.[0].result.json.backend == "target"' || exit 1
+                ../../probe.sh queries-logs.json "$p was logged" \
+                  "[.[0].result.json[\"alsv3-http\"][]? | .request.original_path] | index(\"/target/$p\") != null" || exit 1
               done
 
     - name: access logs reach the als
