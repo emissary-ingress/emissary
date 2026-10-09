@@ -1,0 +1,122 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tcpmapping-sni-with-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tcpmapping-sni-with-http
+  template:
+    metadata:
+      labels:
+        app: tcpmapping-sni-with-http
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: tcpmapping-sni-with-http
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcpmapping-sni-with-http
+spec:
+  selector:
+    app: tcpmapping-sni-with-http
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tcpmapping-sni-with-http-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tcpmapping-sni-with-http-http
+  template:
+    metadata:
+      labels:
+        app: tcpmapping-sni-with-http-http
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: tcpmapping-sni-with-http-http
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcpmapping-sni-with-http-http
+spec:
+  selector:
+    app: tcpmapping-sni-with-http-http
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: tcpmapping-sni-with-http
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: sni-http.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-cert
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tlsserver
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: tlsserver-cert
+  hosts:
+    - tls-context-host-2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: tcpmapping-sni-with-http
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 8443
+  host: tls-context-host-2
+  service: tcpmapping-sni-with-http:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: tcpmapping-sni-with-http-http
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: sni-http.example.com
+  prefix: /tcpmapping-sni-with-http/
+  service: tcpmapping-sni-with-http-http:8080

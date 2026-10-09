@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_default.py::SameMappingDifferentNamespaces.
+#
+# `shared`. Two Mappings with one name, one in the test's namespace and one in
+# `mapping-same-name-different-namespaces-other` (KAT uses two extra
+# namespaces). The extra namespace is applied like any other resource, so
+# chainsaw deletes it on cleanup. Both Mappings route to the one backend, which
+# lives in the test's namespace.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-same-name-different-namespaces
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'first namespace routes'  '.[0].result.status == 200 and .[0].result.json.backend == "mapping-same-name-different-namespaces"' \
+                'second namespace routes' '.[1].result.status == 200 and .[1].result.json.backend == "mapping-same-name-different-namespaces"'

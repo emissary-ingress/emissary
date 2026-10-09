@@ -1,0 +1,29 @@
+---
+# Port of KAT's tests/kat/t_basics.py::SafeRegexMapping.
+#
+# `shared`. The 404 queries pass for any unrouted request, so the routed
+# queries carry the proof that the three regexes match. The query with
+# `need-normalization/..` shows the prefix regex is applied after Envoy
+# normalizes the path.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-safe-regex
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'header match is routed'                 '.[0].result.status == 200 and .[0].result.json.backend == "mapping-safe-regex"' \
+                'original path is kept'                  '.[0].result.json.request.headers["x-envoy-original-path"][0] == "/mapping-safe-regex/"' \
+                'normalized path is routed'              '.[1].result.status == 200 and .[1].result.json.backend == "mapping-safe-regex"' \
+                'original path is normalized'            '.[1].result.json.request.headers["x-envoy-original-path"][0] == "/mapping-safe-regex/"' \
+                'no header is not routed'                '.[2].result.status == 404' \
+                'normalized path with no header is not routed' '.[3].result.status == 404'
