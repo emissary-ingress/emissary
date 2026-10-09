@@ -1,0 +1,58 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingSNIWithHTTPTest.
+#
+# KAT parameterizes this class across a TLSContext-provided cert and a
+# Host-provided one; only the TLSContext variant is ported here, for a
+# one-fixture-per-class mapping to the KAT source.
+#
+# `exclusive` because a Host and a TLSContext reconfigure the listener's TLS.
+# The TCPMapping shares the HTTPS listener's port (8443) with a Host, which is
+# the point of the test, so the probe goes through GATEWAY_HTTPS_URL rather
+# than the TCP port. The SNI name is the TCPMapping's, not the Host's.
+# KAT queries only the TCPMapping; the second query shows the Host's own HTTP
+# route still works beside it.
+#
+# Both certs are minted per run as server leaf certs (see host-tls).
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-sni-with-http
+spec:
+  steps:
+    - name: generate the Host and TCPMapping certs
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              for name in sni-http.example.com tls-context-host-2; do
+                openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                  -subj "/CN=$name" \
+                  -addext basicConstraints=critical,CA:FALSE \
+                  -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                  -addext extendedKeyUsage=serverAuth \
+                  -addext "subjectAltName=DNS:$name" \
+                  -keyout "$dir/$name.key" -out "$dir/$name.crt" 2>/dev/null
+              done
+              kubectl create secret tls host-cert \
+                -n "$NAMESPACE" --cert="$dir/sni-http.example.com.crt" --key="$dir/sni-http.example.com.key"
+              kubectl create secret tls tlsserver-cert \
+                -n "$NAMESPACE" --cert="$dir/tls-context-host-2.crt" --key="$dir/tls-context-host-2.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: SNI picks the TCPMapping for its host and HTTP for the Host's
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries.json \
+                'TCPMapping host reached the target'    '.[0].result.status == 200 and .[0].result.json.backend == "tcpmapping-sni-with-http"' \
+                'terminated before the backend'          '.[0].result.json.request.tls.enabled == false' \
+                'Host name reached the HTTP route'       '.[1].result.status == 200 and .[1].result.json.backend == "tcpmapping-sni-with-http-http"'
