@@ -1,0 +1,12 @@
+[
+  {
+    "url": "/mapping-add-request-headers/",
+    "method": "GET",
+    "headers": {
+      "zoo": "ZooZ",
+      "aoo": "AooA",
+      "boo": "BooB",
+      "foo": "FooF"
+    }
+  }
+]

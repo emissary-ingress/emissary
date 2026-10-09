@@ -1,0 +1,22 @@
+[
+  {
+    "url": "/echo.EchoService/Echo",
+    "grpc_type": "real",
+    "headers": {
+      "content-type": "application/grpc",
+      "kat-req-echo-requested-status": "0"
+    }
+  },
+  {
+    "url": "/echo.EchoService/Echo",
+    "grpc_type": "real",
+    "headers": {
+      "content-type": "application/grpc",
+      "kat-req-echo-requested-status": "7"
+    }
+  },
+  {
+    "url": "/ambassador/v0/diag/?json=true&filter=errors",
+    "method": "GET"
+  }
+]

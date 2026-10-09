@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::SimpleMappingIngress.
+#
+# `shared`. Exactly one Emissary picks the Ingress up: the one whose id
+# matches its `getambassador.io/ambassador-id` annotation (the slot, or
+# "default" on the base install). `kubernetes.io/ingress.class: ambassador`
+# only passes the class check, which every Emissary in the cluster passes.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-simple-ingress
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'both queries succeed'        '.[0].result.status == 200 and .[1].result.status == 200' \
+                'both reach the backend'      '[.[].result.json.backend] == ["mapping-simple-ingress", "mapping-simple-ingress"]' \
+                'original path is normalized' '[.[].result.json.request.headers["x-envoy-original-path"][0]] == ["/mapping-simple-ingress/", "/mapping-simple-ingress/"]'

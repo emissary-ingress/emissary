@@ -1,0 +1,27 @@
+[
+  {
+    "url": "/mapping-host-header/",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-host-header/",
+    "method": "GET",
+    "headers": {
+      "Host": "inspector.internal"
+    }
+  },
+  {
+    "url": "/mapping-host-header/",
+    "method": "GET",
+    "headers": {
+      "Host": "inspector.external"
+    }
+  },
+  {
+    "url": "/mapping-host-header/",
+    "method": "GET",
+    "headers": {
+      "Host": "inspector.external:8080"
+    }
+  }
+]
