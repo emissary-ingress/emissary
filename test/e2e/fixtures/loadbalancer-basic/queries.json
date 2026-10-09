@@ -1,0 +1,42 @@
+[
+  {
+    "url": "/loadbalancer-basic-0/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-1/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-2/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-3/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-4/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-5/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-6/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-7/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-8/",
+    "method": "GET"
+  },
+  {
+    "url": "/loadbalancer-basic-9/",
+    "method": "GET"
+  }
+]
