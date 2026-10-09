@@ -17,11 +17,14 @@ from ambassador.utils import NullSecretHandler  # noqa: E402
 # Regression test for https://github.com/emissary-ingress/emissary/issues/5811:
 # a Mapping that is alone in its group -- i.e. the only Mapping with its
 # prefix/method/headers/host -- used to always have its computed weight
-# forced to 100, even when the Mapping explicitly asked for a different
-# weight (most notably weight: 0, e.g. a canary that's been scaled down but
-# not yet deleted). That's wrong both for the diagnostics UI, which reports
-# the computed weight, and for the actual Envoy config, which uses it to
-# decide how much traffic the Mapping gets.
+# forced to 100, even when the Mapping explicitly asked for weight: 0 (e.g. a
+# canary that's been scaled down but not yet deleted). That's wrong both for
+# the diagnostics UI, which reports the computed weight, and for the actual
+# Envoy config, which uses it to decide how much traffic the Mapping gets.
+#
+# Only weight: 0 is honored for a lone Mapping. Any other explicit weight
+# (e.g. 15) is still forced to 100, because honoring it would make Envoy drop
+# the remaining traffic, which is the problem the forcing was there to prevent.
 
 
 def _get_ir_config(yaml):
@@ -64,21 +67,21 @@ weight: 0
 
 
 @pytest.mark.compilertest
-def test_lone_mapping_with_explicit_nonzero_weight_is_honored():
+def test_lone_mapping_with_explicit_nonzero_weight_is_still_forced_to_100():
     yaml = """
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
-name: half-weight-mapping
+name: partial-weight-mapping
 namespace: default
-prefix: /half/
-service: halfsvc:8080
-weight: 50
+prefix: /partial/
+service: partialsvc:8080
+weight: 15
 """
     ir = _get_ir_config(yaml)
-    group_size, weight = _weight_of(ir, "half-weight-mapping")
+    group_size, weight = _weight_of(ir, "partial-weight-mapping")
 
     assert group_size == 1, f"expected this Mapping to be alone in its group, got {group_size}"
-    assert weight == 50, f"expected the explicit weight: 50 to be honored, got {weight}"
+    assert weight == 100, f"a lone Mapping with weight 15 must still be 100 so Envoy doesn't drop traffic, got {weight}"
 
 
 @pytest.mark.compilertest

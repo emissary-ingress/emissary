@@ -63,27 +63,24 @@ class IRBaseMappingGroup(IRResource):
 
     def normalize_weights_in_mappings(self) -> bool:
         # If there's only one mapping in the group, it's automatically weighted
-        # at 100% -- unless the mapping has an explicit weight of its own, in
-        # which case we need to honor that instead of clobbering it. This
-        # matters most for a Mapping deliberately weighted to 0 (e.g. a canary
-        # that's been scaled down but not yet deleted): forcing it to 100
-        # would both report it as fully weighted in diagnostics and actually
-        # route traffic to it, the opposite of what the explicit weight asked
-        # for.
+        # at 100%, so that Envoy doesn't drop the remainder of the traffic.
+        #
+        # The one exception is a mapping with an explicit weight of 0 (e.g. a
+        # canary that's been scaled down but not yet deleted): that stays at 0
+        # rather than being forced to 100, which would route traffic to it and
+        # report it as fully weighted in diagnostics, the opposite of what the
+        # explicit weight asked for. Any other explicit weight on a lone mapping
+        # (say 15) is still treated as 100, since honoring it would make Envoy
+        # drop the remaining traffic.
         if len(self.mappings) == 1:
             mapping = self.mappings[0]
 
-            if "weight" in mapping:
-                if mapping.weight > 100:
-                    self.post_error(f"Mapping {mapping.name} has invalid weight {mapping.weight}")
-                    return False
-
+            if "weight" in mapping and mapping.weight == 0:
                 self.logger.debug(
-                    "Honoring explicit weight %s for single mapping %s in group",
-                    mapping.weight,
+                    "Honoring explicit weight 0 for single mapping %s in group",
                     mapping.name,
                 )
-                mapping._weight = round(mapping.weight)
+                mapping._weight = 0
             else:
                 self.logger.debug(
                     "Assigning weight 100 to single mapping %s in group",
