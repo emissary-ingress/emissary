@@ -121,7 +121,6 @@ Here is a list of everything managed by the `entrypoint` binary. Each one is ind
 | `diagd` - admin ui & config processor                                     |                    | :white_check_mark: |
 | `ambex` - the Envoy ADS Server                                            | :white_check_mark: |                    |
 | `envoy` - proxy routing data                                              |                    | :white_check_mark: |
-| SnapshotServer  - expose in-memory snapshot over localhost                | :white_check_mark: |                    |
 | ExternalSnapshotServer - Ambassador Cloud friendly exposed over localhost | :white_check_mark: |                    |
 | HealthCheck -  endpoints for K8s liveness/readiness probes                | :white_check_mark: |                    |
 | Watt - Watch k8s, consul & files for cluster changes                      | :white_check_mark: |                    |
@@ -162,10 +161,11 @@ Provides two main functions:
 2. Processing Cluster changes into Envoy ready configuration
    1. This process has all the steps i'm outlining below
 
-- receives "CONFIG" event and pushes on queue
+- entrypoint POSTs the snapshot to `diagd` over `diagd`'s Unix-domain socket, as the body of a
+  `/_internal/v0/watt` request
+- the handler streams the body to `/ambassador/snapshots/snapshot-tmp.yaml` and pushes a "CONFIG"
+  event on the queue
 - event queue loop listens for commands and pops them off
-- on CONFIG event it calls back to emissary Snapshot Server to grab current snapshot stored in-memory
-- It is serialized and stored in `/ambassador/snapshots/snapshot-tmp.yaml`.
 - A SecretHandler and Config is initialized
 - A ResourceFetcher (aka, parse the snapshot into an in-memory representation)
 - Generate IR and envoy configs (load_ir function)

@@ -83,7 +83,7 @@ type Fake struct {
 
 	ambassadorMeta *snapshot.AmbassadorMetaInfo
 
-	DiagdBindPort string
+	DiagdSocketPath string
 }
 
 // FakeConfig provides option when constructing a new Fake.
@@ -159,17 +159,17 @@ func (f *Fake) Setup() {
 			f.T.Fatal("unable to find diagd, cannot run")
 		}
 
-		f.group.Go("snapshot_server", func(ctx context.Context) error {
-			return snapshotServer(ctx, f.currentSnapshot)
-		})
-
-		f.DiagdBindPort = GetDiagdBindPort()
-
 		err = os.MkdirAll(f.config.OutputDir, os.ModePerm)
 
 		if err != nil {
 			f.T.Fatalf("failed to create directory: %v", err)
 		}
+
+		// Keep diagd's socket alongside the rest of this Fake's output, so that
+		// concurrent Fakes don't collide and so that we don't need a writable
+		// /ambassador.
+		f.T.Setenv("AMBASSADOR_DIAGD_SOCKET", filepath.Join(f.config.OutputDir, "diagd.sock"))
+		f.DiagdSocketPath = GetDiagdSocketPath()
 
 		f.group.Go("diagd", func(ctx context.Context) error {
 			args := []string{
@@ -178,8 +178,7 @@ func (f *Fake) Setup() {
 				filepath.Join(f.config.OutputDir, "bootstrap-ads.json"),
 				filepath.Join(f.config.OutputDir, "envoy.json"),
 				"--no-envoy",
-				"--host", "127.0.0.1",
-				"--port", f.DiagdBindPort,
+				"--socket-path", f.DiagdSocketPath,
 			}
 
 			if f.config.DiagdDebug {
@@ -220,7 +219,7 @@ func (f *Fake) GetFeatures(ctx context.Context, features interface{}) error {
 	// at present.
 	//
 	// TODO(Flynn): That's a stupid reason and we should fix it.
-	featuresURL := fmt.Sprintf("http://localhost:%s/_internal/v0/features", f.DiagdBindPort)
+	featuresURL := fmt.Sprintf("%s/_internal/v0/features", DiagdURLOrigin)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", featuresURL, nil)
 
@@ -232,7 +231,7 @@ func (f *Fake) GetFeatures(ctx context.Context, features interface{}) error {
 	// so that diagd will trust the request.
 	req.Header.Set("X-Ambassador-Diag-IP", "127.0.0.1")
 	req.Header.Set("content-type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := DiagdClient().Do(req)
 
 	if err != nil {
 		return err
@@ -341,7 +340,7 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 	var irText []byte
 
 	if disp == SnapshotReady && f.config.EnvoyConfig {
-		if err := notifyReconfigWebhooks(ctx, &noopNotable{}); err != nil {
+		if err := notifyReconfigWebhooks(ctx, &noopNotable{}, snapJSON); err != nil {
 			return err
 		}
 

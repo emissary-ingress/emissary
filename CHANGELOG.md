@@ -29,6 +29,27 @@ from the Helm charts.
 ## [TBD] TBD
 [TBD]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...TBD
 
+- Security: `diagd`'s internal API -- most importantly `POST /_internal/v0/watt`,
+  which hands Emissary a new configuration snapshot -- is no longer reachable
+  through the admin port (8877). `diagd` now listens on a Unix-domain socket
+  (`AMBASSADOR_DIAGD_SOCKET`, default `$AMBASSADOR_CONFIG_BASE_DIR/diagd.sock`)
+  rather than on TCP, and the server on 8877 refuses to proxy `/_internal/` at
+  all, so submitting a snapshot now requires being on the pod. Health checks and
+  the diagnostics UI on 8877 are unchanged. Note that binding `diagd` to
+  127.0.0.1 would _not_ have been sufficient, since `kubectl port-forward` makes
+  off-pod traffic appear to originate from 127.0.0.1.
+
+  This removes the `AMBASSADOR_DIAGD_BIND_PORT` and `AMBASSADOR_DIAGD_BIND_ADDREASS`
+  environment variables, which no longer have anything to configure.
+
+- Security: The snapshot is now handed to `diagd` directly, as the body of the
+  `/_internal/v0/watt` request, rather than as a URL for `diagd` to go fetch.
+  This removes the snapshot server that used to listen on `localhost:9696`,
+  which served the _unsanitized_ snapshot -- secrets and all -- and which was
+  reachable with `kubectl port-forward`. (The sanitized snapshot is still
+  available on 8005 as before.) It also removes an attacker-controlled fetch
+  from the `/_internal/v0/watt` handler.
+
 - Fix: Completely disable the Ambassador Labs `error_response_overrides` mechanism;
   you'll now see an error posted if you try to use it. (This shouldn't affect anyone
   running Emissary.)
