@@ -1,0 +1,5 @@
+[
+  {"url": "/foo/", "method": "GET"},
+  {"url": "/ambassador/v0/diag/", "method": "GET"},
+  {"url": "/config_dump", "method": "GET"}
+]

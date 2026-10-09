@@ -1,0 +1,122 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: als
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: als
+  template:
+    metadata:
+      labels:
+        app: als
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: als
+            - name: KAT_BACKEND_TYPE
+              value: grpc_als
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logservicelongservicename-longnamewithnearly60characters
+spec:
+  selector:
+    app: als
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: LogService
+metadata:
+  name: custom-http-logging
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service: (join(':', [join('.', ['logservicelongservicename-longnamewithnearly60characters', $namespace]), '80']))
+  grpc: true
+  protocol_version: v3
+  driver: http
+  driver_config:
+    additional_log_headers:
+      - header_name: included-on-all
+      - header_name: not-included-on-trailer
+        during_trailer: false
+      - header_name: not-included on resp-trail
+        during_trailer: false
+        during_response: false
+      - header_name: not-anywhere
+        during_trailer: false
+        during_response: false
+        during_request: false
+  flush_interval_time: 1
+  flush_interval_byte_size: 1
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: target:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: als
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /als/
+  rewrite: /
+  service: logservicelongservicename-longnamewithnearly60characters:80
