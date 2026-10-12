@@ -1,0 +1,26 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "x-evil-header": "evilness",
+      "x-evilness": "more evilness"
+    }
+  },
+  {
+    "url": "/target-no-header/",
+    "method": "GET",
+    "headers": {
+      "x-evil-header": "evilness",
+      "x-evilness": "more evilness"
+    }
+  },
+  {
+    "url": "/target-linkerd-only/",
+    "method": "GET",
+    "headers": {
+      "x-evil-header": "evilness",
+      "x-evilness": "more evilness"
+    }
+  }
+]

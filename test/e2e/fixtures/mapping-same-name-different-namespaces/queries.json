@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/mapping-same-name-different-namespaces-1/",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-same-name-different-namespaces-2/",
+    "method": "GET"
+  }
+]

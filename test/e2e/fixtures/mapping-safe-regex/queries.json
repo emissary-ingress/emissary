@@ -1,0 +1,24 @@
+[
+  {
+    "url": "/mapping-safe-regex/",
+    "method": "GET",
+    "headers": {
+      "X-Foo": "hello"
+    }
+  },
+  {
+    "url": "/need-normalization/../mapping-safe-regex/",
+    "method": "GET",
+    "headers": {
+      "X-Foo": "hello"
+    }
+  },
+  {
+    "url": "/mapping-safe-regex/",
+    "method": "GET"
+  },
+  {
+    "url": "/need-normalization/../mapping-safe-regex/",
+    "method": "GET"
+  }
+]
