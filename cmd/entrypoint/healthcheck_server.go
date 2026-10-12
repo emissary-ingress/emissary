@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 	"net/http/pprof"
 	"net/url"
+	"path"
 	"strings"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -16,6 +17,22 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/acp"
 	"github.com/emissary-ingress/emissary/v3/pkg/debug"
 )
+
+// diagdPathAllowed reports whether p is a path we're willing to hand to diagd on
+// the health check port. p must be the *decoded* path: ServeMux matches patterns
+// against the escaped path, but gunicorn decodes %2f before Werkzeug routes on
+// the result, so the two disagree on where a request is going and both have to
+// agree it's allowed.
+func diagdPathAllowed(p string) bool {
+	// Clean resolves the ".." that an encoded separator can smuggle in, and drops
+	// any trailing slash.
+	p = path.Clean(p)
+
+	return p == "/metrics" ||
+		p == "/ambassador/v0/favicon.ico" ||
+		p == "/ambassador/v0/diag" ||
+		strings.HasPrefix(p, "/ambassador/v0/diag/")
+}
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
 	// The liveness check needs to explicitly try to talk to Envoy...
@@ -83,21 +100,8 @@ func healthCheckMux(ctx context.Context, ambwatch *acp.AmbassadorWatcher) *http.
 	sm.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	sm.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 
-	// diagd's internal API -- most importantly /_internal/v0/watt, which is how a
-	// new snapshot gets submitted -- is flatly not available here. This port is
-	// reachable from off-pod, and `kubectl port-forward` makes off-pod traffic look
-	// like it came from 127.0.0.1, so there is no way to tell local traffic from
-	// remote traffic here. Anything that needs the internal API has to talk to
-	// diagd over its Unix-domain socket instead.
-	//
-	// Note that this has to be registered before the "/" catchall below. ServeMux
-	// normalizes paths before matching, but encoded slashes can bypass this pattern,
-	// so the catchall also rejects decoded paths under /_internal.
-	sm.HandleFunc("/_internal/", func(w http.ResponseWriter, r *http.Request) {
-		http.NotFound(w, r)
-	})
-
-	// For everything else, use a ReverseProxy to forward it to diagd.
+	// Proxy to diagd for the handful of paths diagd serves that belong on this
+	// port.
 	//
 	// diagd listens on a Unix-domain socket, so diagdOrigin is just a placeholder
 	// host: DiagdTransport dials the socket no matter what's in the URL.
@@ -126,15 +130,33 @@ func healthCheckMux(ctx context.Context, ambwatch *acp.AmbassadorWatcher) *http.
 		},
 	}
 
-	// Finally, use the reverseProxy to handle anything coming in on
-	// the magic catchall path.
-	sm.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/_internal" || strings.HasPrefix(r.URL.Path, "/_internal/") {
+	// This is an allowlist, and it needs to stay one. The rest of what diagd
+	// serves is its internal API -- /_internal/v0/{ping,features,watt,fs}, which
+	// includes snapshot submission -- and this port is reachable from off-pod.
+	// `kubectl port-forward` makes off-pod traffic look like it came from
+	// 127.0.0.1, so there is no way to tell local from remote here; the only safe
+	// answer is that the internal API is not routable from this mux at all. It is
+	// reachable solely over diagd's Unix-domain socket.
+	//
+	// Listing what's allowed rather than excluding what isn't also sidesteps
+	// encoded-separator tricks. Go matches patterns against the *escaped* path, so
+	// "/_internal%2fv0%2fwatt" is a single segment that matches nothing here --
+	// but gunicorn decodes %2f before Werkzeug routes, so a catchall would have
+	// handed exactly that to the internal handler.
+	//
+	// A new diagd route does not appear here by default, which is the point: it
+	// fails closed, and adding it is a deliberate act.
+	proxyAllowed := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !diagdPathAllowed(r.URL.Path) {
 			http.NotFound(w, r)
 			return
 		}
 		reverseProxy.ServeHTTP(w, r)
 	})
+
+	sm.Handle("/metrics", proxyAllowed)
+	sm.Handle("/ambassador/v0/favicon.ico", proxyAllowed)
+	sm.Handle("/ambassador/v0/diag/", proxyAllowed)
 
 	return sm
 }
