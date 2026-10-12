@@ -1,0 +1,175 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadbalancer-basic-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadbalancer-basic-echo
+  template:
+    metadata:
+      labels:
+        app: loadbalancer-basic-echo
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: loadbalancer-basic-echo
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loadbalancer-basic-echo
+spec:
+  selector:
+    app: loadbalancer-basic-echo
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+# Named to this fixture rather than the literal "endpoint" KAT uses, so a
+# concurrent fixture never resolves the wrong KubernetesEndpointResolver.
+apiVersion: getambassador.io/v3alpha1
+kind: KubernetesEndpointResolver
+metadata:
+  name: loadbalancer-basic-resolver
+spec:
+  ambassador_id: [(env('SLOT'))]
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-0
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-0/
+  service: loadbalancer-basic-echo:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-1/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-2/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: ring_hash
+    header: test-header
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-3
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-3/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: ring_hash
+    source_ip: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-4
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-4/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: ring_hash
+    cookie:
+      name: test-cookie
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-5
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-5/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: ring_hash
+    cookie:
+      name: test-cookie
+    header: test-header
+    source_ip: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-6
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-6/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: round_robin
+    cookie:
+      name: test-cookie
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-8
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-8/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: least_request
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-9
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-9/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: least_request
+    cookie:
+      name: test-cookie

@@ -1,0 +1,65 @@
+---
+# Port of KAT's tests/kat/t_loadbalancer.py::GlobalLoadBalancing.
+#
+# `exclusive` because the Module sets the global load_balancer policy and
+# resolver. Three backend pods sit behind one Service and each reports its own
+# name as the backend.
+#
+# probe.sh retries until every assertion passes, so a distribution is never
+# asserted as a percentage. Hashed traffic is asserted deterministic (every
+# landed request on one pod). Unhashed traffic is asserted to reach all three
+# pods, which only a working balancer does.
+#
+# kat-client fires the 300 requests at once and a CI runner can drop some, so
+# each group must land at least 40 of its 50, and no request may get an HTTP
+# error status.
+#
+# Group order in queries: cookie mapping with no key, with LB-HEADER, with the
+# cookie; then the same three against the generic mapping.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: loadbalancer-global
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: probe
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '
+                def group($url; $extra): [range(50) | {url: $url, method: "GET"} + $extra];
+                group("/loadbalancer-global/cookie/"; {})
+                + group("/loadbalancer-global/cookie/"; {headers: {"LB-HEADER": "yes"}})
+                + group("/loadbalancer-global/cookie/"; {cookies: [{name: "lb-cookie", value: "yes"}]})
+                + group("/loadbalancer-global/generic/"; {})
+                + group("/loadbalancer-global/generic/"; {headers: {"LB-HEADER": "yes"}})
+                + group("/loadbalancer-global/generic/"; {cookies: [{name: "lb-cookie", value: "yes"}]})
+              ' > "$queries"
+              ../../probe.sh "$queries" \
+                'no HTTP error status' \
+                  '[.[] | select(.result.status != null and .result.status != 200)] | length == 0' \
+                'every group landed enough requests' \
+                  '[range(0; 300; 50) as $i | [.[$i:$i+50][] | select(.result.status == 200)] | length] | all(. >= 40)' \
+                'cookie mapping, no key: all three pods' \
+                  '[.[0:50][] | .result.json.backend // empty] | unique | length == 3' \
+                'cookie mapping, LB-HEADER ignored: all three pods' \
+                  '[.[50:100][] | .result.json.backend // empty] | unique | length == 3' \
+                'cookie mapping, cookie: one pod' \
+                  '[.[100:150][] | .result.json.backend // empty] | unique | length == 1' \
+                'generic mapping, no key: all three pods' \
+                  '[.[150:200][] | .result.json.backend // empty] | unique | length == 3' \
+                'generic mapping, LB-HEADER: one pod' \
+                  '[.[200:250][] | .result.json.backend // empty] | unique | length == 1' \
+                'generic mapping, cookie ignored: all three pods' \
+                  '[.[250:300][] | .result.json.backend // empty] | unique | length == 3'

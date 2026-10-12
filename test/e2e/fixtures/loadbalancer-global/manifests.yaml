@@ -1,0 +1,120 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lb-global-1
+  labels:
+    app: loadbalancer-global-backend
+spec:
+  containers:
+    - name: kat-server
+      image: (env('KAT_SERVER_IMAGE'))
+      imagePullPolicy: IfNotPresent
+      command: ["/work/kat-server"]
+      env:
+        - name: BACKEND
+          value: lb-global-1
+      ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lb-global-2
+  labels:
+    app: loadbalancer-global-backend
+spec:
+  containers:
+    - name: kat-server
+      image: (env('KAT_SERVER_IMAGE'))
+      imagePullPolicy: IfNotPresent
+      command: ["/work/kat-server"]
+      env:
+        - name: BACKEND
+          value: lb-global-2
+      ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lb-global-3
+  labels:
+    app: loadbalancer-global-backend
+spec:
+  containers:
+    - name: kat-server
+      image: (env('KAT_SERVER_IMAGE'))
+      imagePullPolicy: IfNotPresent
+      command: ["/work/kat-server"]
+      env:
+        - name: BACKEND
+          value: lb-global-3
+      ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loadbalancer-global-backend
+spec:
+  selector:
+    app: loadbalancer-global-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+# Named to this fixture rather than the literal "endpoint" KAT uses, so a
+# concurrent fixture never resolves the wrong KubernetesEndpointResolver.
+apiVersion: getambassador.io/v3alpha1
+kind: KubernetesEndpointResolver
+metadata:
+  name: loadbalancer-global-resolver
+spec:
+  ambassador_id: [(env('SLOT'))]
+---
+# Instance-global, which is why this fixture is `exclusive`. The `cookie` mapping
+# overrides the policy with a cookie; the `generic` mapping inherits it.
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    resolver: loadbalancer-global-resolver
+    load_balancer:
+      policy: ring_hash
+      header: LB-HEADER
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-global-cookie
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-global/cookie/
+  service: loadbalancer-global-backend:8080
+  load_balancer:
+    policy: ring_hash
+    cookie:
+      name: lb-cookie
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-global-generic
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-global/generic/
+  service: loadbalancer-global-backend:8080

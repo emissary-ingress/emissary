@@ -1,0 +1,115 @@
+---
+# Port of KAT's tests/kat/t_loadbalancer.py::PerMappingLoadBalancing.
+#
+# Runs the same six request groups against ring_hash and then maglev Mappings,
+# one step per policy. Three backend pods sit behind one Service and each
+# reports its own name as the backend.
+#
+# probe.sh retries until every assertion passes, so a distribution is never
+# asserted as a percentage. Hashed traffic is asserted deterministic (every
+# landed request on one pod). Unhashed traffic is asserted to reach all three
+# pods, which only a working balancer does.
+#
+# kat-client fires the 300 requests of a step at once and a CI runner can drop
+# some, so each group must land at least 40 of its 50, and no request may get
+# an HTTP error status. KAT's "all 50 on one pod" for source_ip becomes "every
+# landed request on one pod" for the same reason.
+#
+# Group order in queries: header with no key, header with LB-HEADER, source_ip,
+# cookie with no cookie sent, cookie with the cookie, cookie-no-ttl with the
+# cookie. Without a cookie the TTL Mapping makes Envoy mint one, so every
+# response carries exactly one Set-Cookie with the configured Max-Age and Path.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: loadbalancer-per-mapping
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: ring_hash
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n --arg base /loadbalancer-per-mapping/ring-hash '
+                def group($path; $extra): [range(50) | {url: ($base + $path), method: "GET"} + $extra];
+                group("/header/"; {})
+                + group("/header/"; {headers: {"LB-HEADER": "yes"}})
+                + group("/source-ip/"; {})
+                + group("/cookie/"; {})
+                + group("/cookie/"; {cookies: [{name: "lb-cookie", value: "yes"}]})
+                + group("/cookie-no-ttl/"; {cookies: [{name: "lb-cookie", value: "yes"}]})
+              ' > "$queries"
+              ../../probe.sh "$queries" \
+                'no HTTP error status' \
+                  '[.[] | select(.result.status != null and .result.status != 200)] | length == 0' \
+                'every group landed enough requests' \
+                  '[range(0; 300; 50) as $i | [.[$i:$i+50][] | select(.result.status == 200)] | length] | all(. >= 40)' \
+                'header, no key: all three pods' \
+                  '[.[0:50][] | .result.json.backend // empty] | unique | length == 3' \
+                'header, LB-HEADER: one pod' \
+                  '[.[50:100][] | .result.json.backend // empty] | unique | length == 1' \
+                'source_ip: one pod' \
+                  '[.[100:150][] | .result.json.backend // empty] | unique | length == 1' \
+                'cookie, none sent: all three pods' \
+                  '[.[150:200][] | .result.json.backend // empty] | unique | length == 3' \
+                'cookie, none sent: every response sets the cookie with the TTL and path' \
+                  '[.[150:200][] | select(.result.status == 200) | .result.headers["Set-Cookie"] | length == 1 and (.[0] | contains("lb-cookie=") and contains("Max-Age=125") and contains("Path=/foo"))] | all' \
+                'cookie, sent: one pod' \
+                  '[.[200:250][] | .result.json.backend // empty] | unique | length == 1' \
+                'cookie, sent: no Set-Cookie' \
+                  '[.[200:250][] | select(.result.status == 200) | .result.headers | has("Set-Cookie") | not] | all' \
+                'cookie without a TTL, sent: one pod' \
+                  '[.[250:300][] | .result.json.backend // empty] | unique | length == 1' \
+                'cookie without a TTL, sent: no Set-Cookie' \
+                  '[.[250:300][] | select(.result.status == 200) | .result.headers | has("Set-Cookie") | not] | all'
+
+    - name: maglev
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n --arg base /loadbalancer-per-mapping/maglev '
+                def group($path; $extra): [range(50) | {url: ($base + $path), method: "GET"} + $extra];
+                group("/header/"; {})
+                + group("/header/"; {headers: {"LB-HEADER": "yes"}})
+                + group("/source-ip/"; {})
+                + group("/cookie/"; {})
+                + group("/cookie/"; {cookies: [{name: "lb-cookie", value: "yes"}]})
+                + group("/cookie-no-ttl/"; {cookies: [{name: "lb-cookie", value: "yes"}]})
+              ' > "$queries"
+              ../../probe.sh "$queries" \
+                'no HTTP error status' \
+                  '[.[] | select(.result.status != null and .result.status != 200)] | length == 0' \
+                'every group landed enough requests' \
+                  '[range(0; 300; 50) as $i | [.[$i:$i+50][] | select(.result.status == 200)] | length] | all(. >= 40)' \
+                'header, no key: all three pods' \
+                  '[.[0:50][] | .result.json.backend // empty] | unique | length == 3' \
+                'header, LB-HEADER: one pod' \
+                  '[.[50:100][] | .result.json.backend // empty] | unique | length == 1' \
+                'source_ip: one pod' \
+                  '[.[100:150][] | .result.json.backend // empty] | unique | length == 1' \
+                'cookie, none sent: all three pods' \
+                  '[.[150:200][] | .result.json.backend // empty] | unique | length == 3' \
+                'cookie, none sent: every response sets the cookie with the TTL and path' \
+                  '[.[150:200][] | select(.result.status == 200) | .result.headers["Set-Cookie"] | length == 1 and (.[0] | contains("lb-cookie=") and contains("Max-Age=125") and contains("Path=/foo"))] | all' \
+                'cookie, sent: one pod' \
+                  '[.[200:250][] | .result.json.backend // empty] | unique | length == 1' \
+                'cookie, sent: no Set-Cookie' \
+                  '[.[200:250][] | select(.result.status == 200) | .result.headers | has("Set-Cookie") | not] | all' \
+                'cookie without a TTL, sent: one pod' \
+                  '[.[250:300][] | .result.json.backend // empty] | unique | length == 1' \
+                'cookie without a TTL, sent: no Set-Cookie' \
+                  '[.[250:300][] | select(.result.status == 200) | .result.headers | has("Set-Cookie") | not] | all'
