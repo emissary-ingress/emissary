@@ -1,0 +1,7 @@
+[
+  {"url": "/ambassador/v0/diag/?json=true&filter=errors", "method": "GET"},
+  {"url": "/good-annotation/", "method": "GET"},
+  {"url": "/bad-annotation/", "method": "GET"},
+  {"url": "/good-crd/", "method": "GET"},
+  {"url": "/bad-crd/", "method": "GET"}
+]
