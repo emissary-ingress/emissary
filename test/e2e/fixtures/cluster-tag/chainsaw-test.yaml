@@ -1,0 +1,33 @@
+---
+# Port of KAT's tests/kat/t_cluster_tag.py::ClusterTagTest.
+#
+# `exclusive` because it reads /ambassador/v0/diag/, which only a numbered
+# slot serves (see slots.sh). A cluster_tag becomes a prefix on the Envoy
+# cluster name, so one backend reached through several tags yields several
+# clusters, each of which has to point at its own backend. The cluster names
+# embed the test namespace with dashes turned into underscores.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: cluster-tag
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              s=$(printf %s "$NAMESPACE" | tr - _)
+              c='.[0].result.json.cluster_info'
+              long=some_really_long_tag_that_is_really_long
+              ../../probe.sh queries.json \
+                'no tag'                 "${c}[\"cluster_target1_${s}_8080_${s}\"].targets[0].ip == \"target1.${NAMESPACE}\"" \
+                'tag-1 on target1'       "${c}[\"cluster_tag_1_target1_${s}_8080_${s}\"].targets[0].ip == \"target1.${NAMESPACE}\"" \
+                'tag-2 on target1'       "${c}[\"cluster_tag_2_target1_${s}_8080_${s}\"].targets[0].ip == \"target1.${NAMESPACE}\"" \
+                'tag-2 on target2'       "${c}[\"cluster_tag_2_target2_${s}_8080_${s}\"].targets[0].ip == \"target2.${NAMESPACE}\"" \
+                'long tag on target1'    "${c}[\"cluster_${long}_target1_${s}_8080_${s}\"].targets[0].ip == \"target1.${NAMESPACE}\"" \
+                'long tag on target2'    "${c}[\"cluster_${long}_target2_${s}_8080_${s}\"].targets[0].ip == \"target2.${NAMESPACE}\""
