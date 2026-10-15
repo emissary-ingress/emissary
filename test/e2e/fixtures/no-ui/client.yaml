@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: diag-client
+spec:
+  restartPolicy: Never
+  containers:
+    - name: curl
+      image: (replace(env('KAT_SERVER_IMAGE'), 'kat-server', 'test-auth', `-1`))
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: SLOT
+          value: (env('SLOT'))
+        - name: EXPECT
+          value: "404"
+      command:
+        - sh
+        - -c
+        - |
+          for i in $(seq 1 30); do
+            c=$(curl -s -m 5 -o /dev/null -w '%{http_code}' "http://emissary-$SLOT-admin.emissary-$SLOT:8877/ambassador/v0/diag/")
+            echo "attempt $i: $c"
+            [ "$c" = "$EXPECT" ] && exit 0
+            sleep 2
+          done
+          exit 1
