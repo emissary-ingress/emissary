@@ -10,9 +10,8 @@
 # landed request on one pod). Unhashed traffic is asserted to reach all three
 # pods, which only a working balancer does.
 #
-# kat-client fires the 300 requests at once and a CI runner can drop some, so
-# each group must land at least 40 of its 50, and no request may get an HTTP
-# error status.
+# A CI runner can drop the odd connection with EOF, so each group must land at
+# least 40 of its 50, and no request may get an HTTP error status.
 #
 # Group order in queries: cookie mapping with no key, with LB-HEADER, with the
 # cookie; then the same three against the generic mapping.
