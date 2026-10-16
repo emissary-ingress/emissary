@@ -376,6 +376,7 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 	snapshot, err := ecp_v3_cache.NewSnapshot(d.version, snapshotResources)
 	if err != nil {
 		dlog.Errorf(ctx, "Dispatcher Snapshot Error: %v", err)
+		return
 	}
 
 	if err := snapshot.Consistent(); err != nil {
