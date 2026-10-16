@@ -551,6 +551,9 @@ func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consulWatcher *consu
 		endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
 		_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
 	}()
+	if dispSnapshot == nil {
+		return false
+	}
 	fastpathProcessor(ctx, &ambex.FastpathSnapshot{
 		Endpoints: endpoints,
 		Snapshot:  dispSnapshot,
