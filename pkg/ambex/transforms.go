@@ -136,6 +136,9 @@ func V3ListenerToRdsListener(lnr *v3listener.Listener) (*v3listener.Listener, []
 			if hcm != nil {
 				// RouteSpecifier is a protobuf oneof that corresponds to the rds, route_config, and
 				// scoped_routes fields. Only one of those may be set at a time.
+				if hcm.RouteSpecifier == nil {
+					continue
+				}
 				rs, ok := hcm.RouteSpecifier.(*v3httpman.HttpConnectionManager_RouteConfig)
 				if ok {
 					rc := rs.RouteConfig
