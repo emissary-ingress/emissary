@@ -326,6 +326,9 @@ func watchConsul(
 	}
 
 	w.Watch(func(endpoints consulwatch.Endpoints, e error) {
+		if e != nil {
+			return
+		}
 		if endpoints.Id == "" {
 			// For Ambassador, overwrite the ID with the resolver's datacenter -- the
 			// Consul watcher doesn't actually hand back the DC, and we need it.
