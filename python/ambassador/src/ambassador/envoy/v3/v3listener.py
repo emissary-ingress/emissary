@@ -175,7 +175,7 @@ class V3Chain:
 
 
 def tlscontext_for_tcpmapping(
-    irgroup: IRTCPMappingGroup, config: "V3Config"
+    irgroup: IRTCPMappingGroup, config: "V3Config", irlistener: Optional[IRListener] = None
 ) -> Optional["IRTLSContext"]:
     group_host = irgroup.get("host")
     if not group_host:
@@ -185,9 +185,13 @@ def tlscontext_for_tcpmapping(
     #
     # Give 'Hosts' precedence.  Why?  IDK, it felt right.
 
-    # First, Hosts:
+    # First, Hosts. If we know which Listener we're building, only consider
+    # the Hosts that its hostBinding takes, same as we do for HTTP chains.
 
     for irhost in sorted(config.ir.get_hosts(), key=lambda h: h.hostname):
+        if irlistener and not irlistener.matches_host(irhost):
+            continue
+
         if irhost.context and hostglob_matches(irhost.hostname, group_host):
             return irhost.context
 
@@ -815,7 +819,7 @@ class V3Listener:
                 # so just add this immediately as a "*" chain.
                 self.add_chain("tcp", None, "*", "*").add_tcphost(irgroup)
             else:  # TLS/SNI
-                context = tlscontext_for_tcpmapping(irgroup, self.config)
+                context = tlscontext_for_tcpmapping(irgroup, self.config, self._irlistener)
                 if not context:
                     irgroup.post_error("No matching TLSContext found, disabling!")
                     continue
