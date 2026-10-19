@@ -141,13 +141,13 @@ e2e/run/%: $(tools/kat-client) $(tools/chainsaw)
 	fi
 	@tag="$$(head -n1 $(E2E_VERSION_FILE))-$(ARCH)"; \
 	kind="$$(sed -n 's/^ *slot: *//p' $(OSS_HOME)/test/e2e/fixtures/$*/chainsaw-test.yaml | head -n1)"; \
-	url="$(E2E_GATEWAY_URL)"; https_url="$(E2E_GATEWAY_HTTPS_URL)"; tcp_url="$(E2E_GATEWAY_URL):6789"; slot=default; \
+	url="$(E2E_GATEWAY_URL)"; https_url="$(E2E_GATEWAY_HTTPS_URL)"; tcp_url="$(E2E_GATEWAY_URL):6789"; tcp2_url=""; slot=default; \
 	if test "$$kind" = "exclusive"; then \
 	    want="$${E2E_SLOT:-}"; \
 	    while read -r name base; do \
 	        if test -z "$$want" -o "$$name" = "$$want"; then \
 	            slot="$$name"; \
-	            url="$(E2E_GATEWAY_URL):$$base"; https_url="$(E2E_GATEWAY_HTTPS_URL):$$((base+1))"; tcp_url="$(E2E_GATEWAY_URL):$$((base+2))"; \
+	            url="$(E2E_GATEWAY_URL):$$base"; https_url="$(E2E_GATEWAY_HTTPS_URL):$$((base+1))"; tcp_url="$(E2E_GATEWAY_URL):$$((base+2))"; tcp2_url="$(E2E_GATEWAY_URL):$$((base+3))"; \
 	            break; \
 	        fi; \
 	    done <<<"$$($(E2E_SLOTS_SH) list)"; \
@@ -159,6 +159,7 @@ e2e/run/%: $(tools/kat-client) $(tools/chainsaw)
 	GATEWAY_URL="$$url" \
 	GATEWAY_HTTPS_URL="$$https_url" \
 	GATEWAY_TCP_URL="$$tcp_url" \
+	GATEWAY_TCP2_URL="$$tcp2_url" \
 	    $(tools/chainsaw) test \
 	        --config $(OSS_HOME)/test/e2e/.chainsaw.yaml \
 	        $(OSS_HOME)/test/e2e/fixtures/$*
