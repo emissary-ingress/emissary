@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/ingress-status-ingress-class/",
+    "method": "GET"
+  },
+  {
+    "url": "/need-normalization/../ingress-status-ingress-class/",
+    "method": "GET"
+  }
+]

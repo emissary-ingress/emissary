@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/ingress-status-across-namespaces/",
+    "method": "GET"
+  },
+  {
+    "url": "/need-normalization/../ingress-status-across-namespaces/",
+    "method": "GET"
+  }
+]
