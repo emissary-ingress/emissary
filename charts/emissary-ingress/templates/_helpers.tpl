@@ -124,3 +124,29 @@ Define the http port of the Ambassador service
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Container ports for the Ambassador container, derived from .Values.service.ports.
+
+Several service ports may share a targetPort (for example, when TLS is
+terminated at the load balancer and both `http` and `https` target 8080).
+A pod must not declare the same containerPort/protocol pair twice, so only the
+first service port for each pair is emitted.
+*/}}
+{{- define "ambassador.containerPorts" -}}
+{{- $seen := dict -}}
+{{- range .Values.service.ports -}}
+{{- $key := printf "%d/%s" (int .targetPort) (default "TCP" .protocol) -}}
+{{- if not (hasKey $seen $key) -}}
+{{- $_ := set $seen $key true }}
+- name: {{ .name }}
+  containerPort: {{ int .targetPort }}
+  {{- if .protocol }}
+  protocol: {{ .protocol }}
+  {{- end }}
+  {{- if .hostPort }}
+  hostPort: {{ .hostPort }}
+  {{- end }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
