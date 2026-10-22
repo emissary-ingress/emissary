@@ -130,6 +130,9 @@ func TestWatchQuery(t *testing.T) {
 		if err != nil {
 			return err
 		}
+		// The callback runs again whenever the Service changes, so keep only
+		// the latest list.
+		services = services[:0]
 		for _, r := range list {
 			services = append(services, r.QName())
 		}
@@ -140,5 +143,5 @@ func TestWatchQuery(t *testing.T) {
 		w.Stop()
 	})
 	require.NoError(t, w.Wait(ctx))
-	require.Equal(t, services, []string{"kubernetes.default"})
+	require.Equal(t, []string{"kubernetes.default"}, services)
 }
