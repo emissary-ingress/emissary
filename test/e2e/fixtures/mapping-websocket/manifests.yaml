@@ -1,0 +1,45 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::WebSocketMapping.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-websocket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-websocket
+  template:
+    metadata:
+      labels:
+        app: mapping-websocket
+    spec:
+      containers:
+        - name: echo
+          image: jmalloc/echo-server:v0.3.7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-websocket
+spec:
+  selector:
+    app: mapping-websocket
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-websocket
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-websocket/
+  service: mapping-websocket:8080
+  use_websocket: true

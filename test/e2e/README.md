@@ -158,7 +158,9 @@ environment, and manifests call `(env('KAT_SERVER_IMAGE'))` and
 - `queries.json` is a plain [kat-client][] input file. URLs starting with `/`
   are prefixed with `$PROBE_BASE` (defaults to `$GATEWAY_URL`); absolute URLs
   are left alone, so TLS and alternate-port fixtures spell out their own
-  scheme and host. A fixture that wants to probe the downstream HTTPS
+  scheme and host. A websocket query is written `"ws:/path"` and resolves
+  against an `http://` base with the scheme swapped to `ws`; kat-client does
+  not dial `wss`, so an `https://` base is an error. A fixture that wants to probe the downstream HTTPS
   listener sets `PROBE_BASE="$GATEWAY_HTTPS_URL"` in its `script` step;
   `slots.sh` and `e2e.mk` export `GATEWAY_HTTPS_URL` alongside `GATEWAY_URL`,
   `GATEWAY_TCP_URL` and `GATEWAY_TCP2_URL`, pointing at the slot's `+1` port
