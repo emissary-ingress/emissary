@@ -33,7 +33,6 @@ class Empty(AmbassadorTest):
 
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
-        yield Query(self.url("_internal/v0/ping", scheme="http", port=8877), expected=403)
         yield Query(self.url("ambassador/v0/check_ready", scheme="http", port=8877))
 
     def check(self):

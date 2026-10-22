@@ -102,6 +102,8 @@ spec:
   host_rewrite: canary.2.example.com
   weight: 0
 ---
+# The 1000-request split can queue one backend past the default 3s route
+# timeout on a busy runner; kat-client gives up at 10s.
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
@@ -111,6 +113,7 @@ spec:
   hostname: "*"
   prefix: /mapping-canary-diff-50/
   service: http://mapping-canary-diff-target:8080
+  timeout_ms: 8000
   host_rewrite: canary.1.example.com
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -122,6 +125,7 @@ spec:
   hostname: "*"
   prefix: /mapping-canary-diff-50/
   service: http://mapping-canary-diff-canary:8080
+  timeout_ms: 8000
   host_rewrite: canary.2.example.com
   weight: 50
 ---
