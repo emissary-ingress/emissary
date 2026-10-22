@@ -128,3 +128,42 @@ def test_tcpmapping_ignores_hosts_the_listener_does_not_bind():
         for errs in errors.values()
         for e in errs
     ), f"expected the TCPMapping to be disabled, got errors {errors}"
+
+
+UNBOUND_TCP_HOST = TCP_HOST.replace('tcp: "yes"', 'tcp: "no"')
+
+TCP_TLSCONTEXT = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tcp-context
+  namespace: default
+spec:
+  hosts:
+  - tcp.example.com
+  secret: secret-context
+"""
+
+
+def test_tcpmapping_ignores_tlscontext_generated_by_unbound_host():
+    # The unbound Host matches tcp.example.com exactly, so the TLSContext it
+    # generates lists that hostname. The Listener must not serve it either.
+    r = compile_with_cachecheck(
+        _listener(SELECT_TCP_HOSTS) + UNBOUND_TCP_HOST + TCP_MAPPING, errors_ok=True
+    )
+
+    files = _tcp_cert_files(r["xds"].as_dict())
+    assert files == [], f"expected no certificate on port 6379, got {files}"
+
+
+def test_tcpmapping_still_takes_standalone_tlscontext():
+    # TLSContexts are ignored when there are no Hosts at all, so add one that
+    # the Listener does not bind and whose hostname is not tcp.example.com.
+    econf = econf_compile(
+        _listener(SELECT_TCP_HOSTS) + WILDCARD_HOST + TCP_TLSCONTEXT + TCP_MAPPING
+    )
+
+    files = _tcp_cert_files(econf)
+    assert len(files) == 1, f"expected one certificate on port 6379, got {files}"
+    assert "/secret-context/" in files[0], f"expected the TLSContext's secret, got {files[0]}"

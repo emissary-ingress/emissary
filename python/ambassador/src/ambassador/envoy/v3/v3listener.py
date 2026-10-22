@@ -188,8 +188,15 @@ def tlscontext_for_tcpmapping(
     # First, Hosts. If we know which Listener we're building, only consider
     # the Hosts that its hostBinding takes, same as we do for HTTP chains.
 
+    # A Host also registers the TLSContext it generates from its tlsSecret or
+    # tls settings, so remember those of skipped Hosts: they must not be
+    # picked up by the TLSContext lookup below either.
+    skipped_host_contexts = set()
+
     for irhost in sorted(config.ir.get_hosts(), key=lambda h: h.hostname):
         if irlistener and not irlistener.matches_host(irhost):
+            if irhost.context and irhost.context.rkey == irhost.rkey:
+                skipped_host_contexts.add(id(irhost.context))
             continue
 
         if irhost.context and hostglob_matches(irhost.hostname, group_host):
@@ -198,6 +205,9 @@ def tlscontext_for_tcpmapping(
     # Second, TLSContexts:
 
     for context in config.ir.get_tls_contexts():
+        if id(context) in skipped_host_contexts:
+            continue
+
         for context_host in context.get("hosts") or []:
             # Note: this is *not* glob matching.
             if context_host == group_host:
