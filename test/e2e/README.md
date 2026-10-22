@@ -144,6 +144,20 @@ environment, and manifests call `(env('KAT_SERVER_IMAGE'))` and
 > `probe.sh` itself has a bash shebang and can use bash freely; this applies to
 > the inline `content` a fixture writes.
 
+### Reconfiguring the slot itself
+
+A few fixtures need the slot's Emissary changed, not just its CRDs:
+`host-loose-label-selector` and `lua-scripts` set an env var on the Deployment
+(`kubectl set env` plus `rollout status`), and `ip-allow` and `ip-deny` patch
+`l7Depth` onto the slot's own 8080 Listener (a second Listener on that port
+would conflict). All are `slot: exclusive`.
+
+The mutation and the work that depends on it go in **one step**, with the undo
+in that step's `finally`. A `finally` runs when its own step ends, pass or
+fail, so a later step's `finally` would never run if an earlier step failed.
+The restore must wait for the rollout (env) or clear the field (Listener), so
+the next fixture on the slot starts from the chart's state.
+
 ## The probe helper
 
 `probe.sh <queries.json> <jq-expr>` is the whole assertion mechanism:
