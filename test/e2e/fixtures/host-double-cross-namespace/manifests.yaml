@@ -1,0 +1,136 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: host-double-cross-namespace-foo
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: host-double-cross-namespace-bar
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target1
+  template:
+    metadata:
+      labels:
+        app: target1
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target1
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target1
+spec:
+  selector:
+    app: target1
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target2
+  template:
+    metadata:
+      labels:
+        app: target2
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target2
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target2
+spec:
+  selector:
+    app: target2
+  ports:
+    - name: http
+      port: 8080
+---
+# The two Hosts name the same secret and differ only in its namespace.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      hostname: tls-context-host-1
+  tlsSecret:
+    name: host-double-cross-namespace
+    namespace: host-double-cross-namespace-foo
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: host-1
+  labels:
+    hostname: tls-context-host-1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-1
+  prefix: /target-1/
+  service: target1:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-2
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-double-cross-namespace
+    namespace: host-double-cross-namespace-bar
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: host-2
+  labels:
+    hostname: tls-context-host-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-2
+  prefix: /target-2/
+  service: target2:8080

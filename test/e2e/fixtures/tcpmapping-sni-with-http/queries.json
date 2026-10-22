@@ -1,0 +1,20 @@
+[
+  {
+    "url": "/",
+    "method": "GET",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "sni": true,
+    "insecure": true
+  },
+  {
+    "url": "/tcpmapping-sni-with-http/",
+    "method": "GET",
+    "headers": {
+      "Host": "sni-http.example.com"
+    },
+    "sni": true,
+    "insecure": true
+  }
+]

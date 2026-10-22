@@ -1,0 +1,68 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: ingress-status-ingress-class
+  annotations:
+    getambassador.io/ambassador-id: (env('SLOT'))
+spec:
+  controller: getambassador.io/ingress-controller
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-status-ingress-class
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingress-status-ingress-class
+  template:
+    metadata:
+      labels:
+        app: ingress-status-ingress-class
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: ingress-status-ingress-class
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-status-ingress-class
+spec:
+  selector:
+    app: ingress-status-ingress-class
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-status-ingress-class
+  annotations:
+    getambassador.io/ambassador-id: (env('SLOT'))
+spec:
+  ingressClassName: ingress-status-ingress-class
+  rules:
+    - http:
+        paths:
+          - path: /ingress-status-ingress-class/
+            pathType: Prefix
+            backend:
+              service:
+                name: ingress-status-ingress-class
+                port:
+                  number: 8080

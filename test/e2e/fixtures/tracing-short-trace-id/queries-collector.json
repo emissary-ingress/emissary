@@ -1,0 +1,4 @@
+[
+  {"url": "/zipkin/api/v2/traces?limit=1000", "method": "GET"},
+  {"url": "/ambassador/v0/diag/", "method": "GET"}
+]

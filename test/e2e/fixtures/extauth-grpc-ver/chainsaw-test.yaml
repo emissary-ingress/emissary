@@ -1,0 +1,106 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationGRPCVerTest.
+#
+# `exclusive` because an AuthService is instance-global. The fixture walks
+# protocol_version v3, v2 and unset in turn by deleting and re-applying the
+# AuthService. The auth service speaks v3, so v3 works and v2 and unset get
+# Envoy's 500.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: extauth-grpc-ver
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: protocol_version v3
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'q0 answered by auth'                 '.[0].result.json.backend == "auth"' \
+                'q0 auth saw the original path'       '.[0].result.json.request.url.path == "/target/"' \
+                'q0 auth saw xfp http'                '.[0].result.json.request.headers["x-forwarded-proto"] == ["http"]' \
+                'q0 auth saw user-agent'              '(.[0].result.json.request.headers | has("user-agent"))' \
+                'q0 auth saw baz'                     '(.[0].result.json.request.headers | has("baz"))' \
+                'q0 client got 401'                   '.[0].result.status == 401' \
+                'q0 Server is envoy'                  '.[0].result.headers["Server"] == ["envoy"]' \
+                'q0 protocol version v3'              '.[0].result.headers["Kat-Resp-Extauth-Protocol-Version"] == ["v3"]' \
+                'q1 answered by auth'                 '.[1].result.json.backend == "auth"' \
+                'q1 auth saw requested status'        '.[1].result.json.request.headers["kat-req-extauth-requested-status"] == ["302"]' \
+                'q1 auth saw requested location'      '.[1].result.json.request.headers["kat-req-extauth-requested-location"] == ["foo"]' \
+                'q1 client got 302'                   '.[1].result.status == 302' \
+                'q1 Location came back'               '.[1].result.headers["Location"] == ["foo"]' \
+                'q1 protocol version v3'              '.[1].result.headers["Kat-Resp-Extauth-Protocol-Version"] == ["v3"]' \
+                'q2 answered by auth'                 '.[2].result.json.backend == "auth"' \
+                'q2 auth saw requested status'        '.[2].result.json.request.headers["kat-req-extauth-requested-status"] == ["401"]' \
+                'q2 auth saw requested header'        '.[2].result.json.request.headers["kat-req-extauth-requested-header"] == ["x-foo"]' \
+                'q2 auth saw x-foo'                   '.[2].result.json.request.headers["x-foo"] == ["foo"]' \
+                'q2 client got 401'                   '.[2].result.status == 401' \
+                'q2 Server is envoy'                  '.[2].result.headers["Server"] == ["envoy"]' \
+                'q2 X-Foo returned'                   '.[2].result.headers["X-Foo"] == ["foo"]' \
+                'q2 protocol version v3'              '.[2].result.headers["Kat-Resp-Extauth-Protocol-Version"] == ["v3"]' \
+                'q3 routed to the target'             '.[3].result.json.backend == "target"' \
+                'q3 target saw requested status'      '.[3].result.json.request.headers["kat-req-extauth-requested-status"] == ["200"]' \
+                'q3 target saw requested header'      '.[3].result.json.request.headers["kat-req-http-requested-header"] == ["Authorization"]' \
+                'q3 target saw authorization'         '.[3].result.json.request.headers["authorization"] == ["foo-11111"]' \
+                'q3 auth appended to foo'             '.[3].result.json.request.headers["foo"] == ["foo,bar"]' \
+                'q3 append did not add absent baz'    '(.[3].result.status == 200 and (.[3].result.json.request.headers | has("baz") | not))' \
+                'q3 client got 200'                   '.[3].result.status == 200' \
+                'q3 Server is envoy'                  '.[3].result.headers["Server"] == ["envoy"]' \
+                'q3 Authorization returned'           '.[3].result.headers["Authorization"] == ["foo-11111"]' \
+                'q3 target saw protocol version v3'   '.[3].result.json.request.headers["kat-resp-extauth-protocol-version"] == ["v3"]'
+
+    - name: switch to protocol_version v2
+      try:
+        - delete:
+            ref:
+              apiVersion: getambassador.io/v3alpha1
+              kind: AuthService
+              name: auth
+        - apply:
+            file: authservice-v2.yaml
+
+    - name: protocol_version v2 is rejected
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'q0 client got 500'                   '.[0].result.status == 500' \
+                'q1 client got 500'                   '.[1].result.status == 500' \
+                'q2 client got 500'                   '.[2].result.status == 500' \
+                'q3 client got 500'                   '.[3].result.status == 500' \
+                'all bodies carry status_code 500'    '([.[].result.json.status_code == 500] | all)' \
+                'all bodies carry a request_id'       '([.[].result.json.request_id | length > 0] | all)' \
+                'all messages name the AuthService'   '([.[].result.json.message | contains("AuthService")] | all)'
+
+    - name: switch to unset protocol_version
+      try:
+        - delete:
+            ref:
+              apiVersion: getambassador.io/v3alpha1
+              kind: AuthService
+              name: auth
+        - apply:
+            file: authservice-default.yaml
+
+    - name: unset protocol_version is rejected
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'q0 client got 500'                   '.[0].result.status == 500' \
+                'q1 client got 500'                   '.[1].result.status == 500' \
+                'q2 client got 500'                   '.[2].result.status == 500' \
+                'q3 client got 500'                   '.[3].result.status == 500' \
+                'all bodies carry status_code 500'    '([.[].result.json.status_code == 500] | all)' \
+                'all bodies carry a request_id'       '([.[].result.json.request_id | length > 0] | all)' \
+                'all messages name the AuthService'   '([.[].result.json.message | contains("AuthService")] | all)'

@@ -1,0 +1,18 @@
+[
+  {
+    "url": "/mapping-simple-ingress-annotations/",
+    "method": "GET"
+  },
+  {
+    "url": "/need-normalization/../mapping-simple-ingress-annotations/",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-simple-ingress-annotations-nested/",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-simple-ingress-annotations-non-existent/",
+    "method": "GET"
+  }
+]

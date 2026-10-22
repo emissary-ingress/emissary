@@ -1,0 +1,6 @@
+[
+  {"url": "/normal/", "method": "GET", "headers": {"Kat-Req-Http-Requested-Backend-Delay": "0"}},
+  {"url": "/normal/", "method": "GET", "headers": {"Kat-Req-Http-Requested-Status": "500"}},
+  {"url": "/retry/", "method": "GET", "headers": {"Kat-Req-Http-Requested-Status": "500", "Kat-Req-Http-Requested-Backend-Delay": "2000"}},
+  {"url": "/normal/", "method": "GET", "headers": {"Kat-Req-Http-Requested-Status": "409", "Kat-Req-Http-Requested-Backend-Delay": "2000"}}
+]

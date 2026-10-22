@@ -1,0 +1,5 @@
+[
+  {"url": "/xfp/target/", "method": "GET", "headers": {"X-Forwarded-Proto": "http"}},
+  {"url": "/xfp/target/", "method": "GET", "headers": {"X-Forwarded-Proto": "https"}},
+  {"url": "/ambassador/v0/diag/?json=true&filter=errors", "method": "GET", "headers": {"X-Forwarded-Proto": "https"}}
+]

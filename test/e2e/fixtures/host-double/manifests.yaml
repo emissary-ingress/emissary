@@ -1,0 +1,261 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target1
+  template:
+    metadata:
+      labels:
+        app: target1
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target1
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target1
+spec:
+  selector:
+    app: target1
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target2
+  template:
+    metadata:
+      labels:
+        app: target2
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target2
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target2
+spec:
+  selector:
+    app: target2
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target3
+  template:
+    metadata:
+      labels:
+        app: target3
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target3
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target3
+spec:
+  selector:
+    app: target3
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: targetshared
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: targetshared
+  template:
+    metadata:
+      labels:
+        app: targetshared
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: targetshared
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: targetshared
+spec:
+  selector:
+    app: targetshared
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host-one: tls-context-host-1
+  tlsSecret:
+    name: host-double-1
+  requestPolicy:
+    insecure:
+      action: Route
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: host-1
+  labels:
+    host-one: tls-context-host-1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  host: tls-context-host-1
+  prefix: /target-1/
+  service: target1:8080
+---
+# No mappingSelector: this Host associates Mappings by hostname alone.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: tls-context-host-2
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-double-2
+  requestPolicy:
+    insecure:
+      action: Redirect
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: host-2
+  labels:
+    hostname: tls-context-host-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  host: tls-context-host-2
+  prefix: /target-2/
+  service: target2:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-3
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: ambassador.example.com
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      hostname: ambassador.example.com
+  tlsSecret:
+    name: host-double-3
+  requestPolicy:
+    insecure:
+      action: Reject
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: host-3
+  labels:
+    hostname: ambassador.example.com
+spec:
+  ambassador_id: [(env('SLOT'))]
+  host: ambassador.example.com
+  prefix: /target-3/
+  service: target3:8080
+---
+# An ACME challenge path on host-3 separates "reached a Mapping" from
+# "rejected by insecure.action", since ACME challenges bypass Reject.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: host-3-acme
+  labels:
+    hostname: ambassador.example.com
+spec:
+  ambassador_id: [(env('SLOT'))]
+  host: ambassador.example.com
+  prefix: /.well-known/acme-challenge/
+  service: target3:8080
+---
+# hostname "*", so it is the labels that decide which Hosts carry it:
+# host-1 and host-3 match a label, host-2 matches by hostname.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: shared
+  labels:
+    host-one: tls-context-host-1
+    hostname: ambassador.example.com
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target-shared/
+  service: targetshared:8080

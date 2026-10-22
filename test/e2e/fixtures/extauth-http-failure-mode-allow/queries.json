@@ -1,0 +1,16 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "200"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "kat-req-http-requested-status": "503"
+    }
+  }
+]

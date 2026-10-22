@@ -1,0 +1,4 @@
+[
+  {"url": "/foo/", "method": "GET"},
+  {"url": "/ambassador/v0/diag/", "method": "GET"}
+]

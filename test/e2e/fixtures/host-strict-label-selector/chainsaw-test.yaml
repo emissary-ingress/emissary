@@ -1,0 +1,55 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDStrictLabelSelector.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global, and because it probes /ambassador/v0/diag/, which only
+# a numbered slot serves (see slots.sh).
+#
+# Two Hosts, each with a two-label mappingSelector. A Mapping is attached
+# to a Host only when it carries every selector label. Each status
+# assertion covers one Host, in path order: target-1, target-2,
+# shared-labels-all, shared-labels-one, shared-hostname.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-strict-label-selector
+spec:
+  steps:
+    - name: generate the downstream certs
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              for n in 1 2; do
+                cn=tls-context-host-$n
+                openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                  -subj "/CN=$cn" \
+                  -addext basicConstraints=critical,CA:FALSE \
+                  -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                  -addext extendedKeyUsage=serverAuth \
+                  -addext "subjectAltName=DNS:$cn" \
+                  -keyout "$dir/$n.key" -out "$dir/$n.crt" 2>/dev/null
+                kubectl create secret tls "host-strict-label-selector-$n" \
+                  -n "$NAMESPACE" --cert="$dir/$n.crt" --key="$dir/$n.key"
+              done
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: only Mappings carrying every selector label are routed
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'no diag errors'            '.[0].result.status == 200 and .[0].result.json == []' \
+                'host-1 statuses'           '[.[1:6][].result.status] == [404, 404, 200, 404, 404]' \
+                'host-2 statuses'           '[.[6:11][].result.status] == [404, 200, 200, 404, 404]' \
+                'routed paths reach target' '[.[3,7,8] | .result.json.backend] == ["target", "target", "target"]' \
+                'each Host serves its cert' '[.[1:][] | select(.result.status == 200) | .result.tls[0].Subject.CommonName == .headers.Host] | all'

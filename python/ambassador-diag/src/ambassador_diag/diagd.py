@@ -24,6 +24,7 @@ import multiprocessing
 import os
 import queue
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -74,7 +75,6 @@ from ambassador.utils import (
     SystemInfo,
     Timer,
     dump_json,
-    load_url_contents,
     parse_bool,
     parse_json,
 )
@@ -676,8 +676,16 @@ def _is_local_request() -> bool:
     """
     Determine if this request originated with localhost.
 
-    We rely on healthcheck_server.go setting the X-Ambassador-Diag-IP header for us
-    (and we rely on it overwriting anything that's already there!).
+    We rely on the caller setting the X-Ambassador-Diag-IP header for us. The only
+    things that set it are entrypoint's notify.go, which only ever speaks to us over
+    our Unix-domain socket, and healthcheck_server.go, which _deletes_ any header the
+    client supplied before deciding whether to set it itself.
+
+    This is deliberately not the whole story for the /_internal/ endpoints: the real
+    protection for those is that healthcheck_server.go refuses to proxy /_internal/
+    at all, so the only way to reach them is over our Unix-domain socket. That matters
+    because `kubectl port-forward` makes off-pod traffic look like it came from
+    127.0.0.1, so "the request looks local" cannot mean "the request is on-pod".
 
     It might be possible to consider the environment variables SERVER_NAME and
     SERVER_PORT instead, as those are allegedly required by WSGI... but attempting
@@ -914,15 +922,21 @@ def handle_features():
 @app.route("/_internal/v0/watt", methods=["POST"])
 @internal_handler
 def handle_watt_update():
-    url = request.args.get("url", None)
+    # The snapshot is the request body. Stream it straight to disk: it runs to
+    # several MB, and _load_ir rotates this exact file into the snapshot history
+    # once it's done with it.
+    ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-    if not url:
-        app.logger.error("error: watt update requested with no URL")
-        return "error: watt update requested with no URL\n", 400
+    try:
+        with open(ss_path, "wb") as ss_file:
+            shutil.copyfileobj(request.stream, ss_file)
+    except OSError as e:
+        app.logger.error("error: could not save snapshot to %s: %s" % (ss_path, e))
+        return "error: could not save snapshot\n", 500
 
-    app.logger.debug("Update requested: watt, %s" % url)
+    app.logger.debug("Update requested: watt, %s" % ss_path)
 
-    status, info = app.watcher.post("CONFIG", ("watt", url))
+    status, info = app.watcher.post("CONFIG", ("watt", ss_path))
 
     return info, status
 
@@ -1428,11 +1442,11 @@ class AmbassadorEventWatcher(threading.Thread):
                     self.logger.exception(e)
                     self._respond(rqueue, 500, "configuration from filesystem failed")
             elif cmd == "CONFIG":
-                version, url = arg
+                version, ss_path = arg
 
                 try:
                     if version == "watt":
-                        self.load_config_watt(rqueue, url)
+                        self.load_config_watt(rqueue, ss_path)
                     else:
                         raise RuntimeError("config from %s not supported" % version)
                 except Exception as e:
@@ -1532,22 +1546,22 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
-    # load_config_watt reconfigures from the filesystem. It's the one true way of
-    # reconfiguring these days.
+    # load_config_watt reconfigures from a snapshot that's already been written to
+    # disk by handle_watt_update. It's the one true way of reconfiguring these days.
     #
     # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
-    def load_config_watt(self, rqueue: queue.Queue, url: str):
-        snapshot = url.split("/")[-1]
-        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
+    def load_config_watt(self, rqueue: queue.Queue, ss_path: str):
+        # This is just a label for logs and app.latest_snapshot.
+        snapshot = "snapshot"
 
         # OK, we're starting a reconfiguration. BE CAREFUL TO STOP THE TIMER
         # BEFORE YOU RESPOND TO THE CALLER.
         self.app.config_timer.start()
 
-        self.logger.debug("copying configuration: watt, %s to %s" % (url, ss_path))
+        self.logger.debug("loading configuration: watt, %s" % ss_path)
 
-        # Grab the serialization, and save it to disk too.
-        serialization = load_url_contents(self.logger, url, stream2=open(ss_path, "w"))
+        with open(ss_path, "r", encoding="utf-8") as ss_file:
+            serialization = ss_file.read()
 
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
@@ -1557,7 +1571,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
         # the secrets that watt sends.
-        scc = SecretHandler(app.logger, url, app.snapshot_path, snapshot)
+        scc = SecretHandler(app.logger, ss_path, app.snapshot_path, snapshot)
 
         # OK. Time the various configuration sections separately.
 
@@ -2185,6 +2199,11 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 )
 @click.option("--host", type=str, help="Interface on which to listen")
 @click.option("--port", type=int, default=-1, help="Port on which to listen", show_default=True)
+@click.option(
+    "--socket-path",
+    type=click.Path(),
+    help="Unix-domain socket on which to listen, instead of a TCP port",
+)
 @click.option("--notices", type=click.Path(), help="Optional file to read for local notices")
 @click.option(
     "--validation-retries",
@@ -2219,6 +2238,7 @@ def main(
     workers=None,
     port=-1,
     host="",
+    socket_path=None,
     notices=None,
     validation_retries=5,
     allow_fs_commands=False,
@@ -2260,6 +2280,7 @@ def main(
         ads_path = "/tmp/ads.json"
 
         port = 9998
+        socket_path = None
 
         allow_fs_commands = True
         report_action_keys = True
@@ -2293,11 +2314,25 @@ def main(
         workers = number_of_workers()
 
     gunicorn_config = {
-        "bind": "%s:%s" % (host, port),
         # 'workers': 1,
         "threads": workers,
         "control_socket_disable": True,
     }
+
+    if socket_path:
+        # Listening on a Unix-domain socket is how we keep diagd's internal API --
+        # in particular the WATT snapshot endpoint -- off the network entirely.
+        # Binding to 127.0.0.1 is _not_ good enough: `kubectl port-forward` makes
+        # off-pod traffic look like it originated on the loopback interface.
+        #
+        # Make sure the directory exists, and that gunicorn creates the socket
+        # rw------- so that only our own uid can talk to it.
+        os.makedirs(os.path.dirname(os.path.abspath(socket_path)), mode=0o755, exist_ok=True)
+
+        gunicorn_config["bind"] = "unix:%s" % socket_path
+        gunicorn_config["umask"] = 0o177
+    else:
+        gunicorn_config["bind"] = "%s:%s" % (host, port)
 
     app.logger.info(
         "thread count %d, listening on %s" % (gunicorn_config["threads"], gunicorn_config["bind"])

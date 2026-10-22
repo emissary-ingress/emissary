@@ -1,0 +1,72 @@
+# Port of KAT's tests/kat/t_tracing.py::TracingTestOpentelemetry.
+#
+# `exclusive` because a TracingService is instance-global. The tracer is part
+# of Envoy's bootstrap, which is read only at startup, so the slot's Emissary
+# is restarted once the TracingService is applied. Jaeger is queried through a
+# Mapping so kat-client can reach it.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tracing-opentelemetry
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: jaeger
+              status:
+                availableReplicas: 1
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: restart emissary to load the tracer
+      try:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" rollout restart "deploy/emissary-${SLOT}"
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+
+    - name: wait for tracing to be live
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-warmup.json \
+                'jaeger has received spans' '(.[1].result.json.data | length) > 0'
+
+    - name: send traffic
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              q=$(mktemp)
+              jq -n '[range(20) | {url: "/target/\(.)", method: "GET", headers: {"x-watsup": "nothin", "x-something": "something"}}]' > "$q"
+              ../../probe.sh "$q" \
+                'all 20 reached the target' '([.[].result.json.backend] | all(. == "target"))'
+
+    - name: spans reach jaeger
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              host="${GATEWAY_URL#http://}"
+              egress="[.[1].result.json.data[].spans[] | select(.operationName == \"egress ${host}\") | select(any(.tags[]; .key == \"http.url\" and (.value | test(\"/target/[0-9]+\$\"))))]"
+              ../../probe.sh queries-collector.json \
+                'jaeger lists the ambassador service' '(.[0].result.json.data | index("ambassador")) != null' \
+                'egress spans exist for the target'   "(${egress} | length) > 0" \
+                'egress spans carry the custom tags'  "(${egress} | all(([.tags[] | {(.key): .value}] | add) as \$t | \$t.ltag == \"lvalue\" and \$t.htag == \"something\"))"

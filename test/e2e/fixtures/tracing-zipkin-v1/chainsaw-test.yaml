@@ -1,0 +1,78 @@
+# Port of KAT's tests/kat/t_tracing.py::TracingTestZipkinV1.
+#
+# `exclusive` because a TracingService is instance-global. The tracer is part
+# of Envoy's bootstrap, which is read only at startup, so the slot's Emissary
+# is restarted once the TracingService is applied. Zipkin is queried through a
+# Mapping so kat-client can reach it.
+#
+# The assertion is an absence: with HTTP_JSON_V1 Zipkin must hold no services,
+# spans or traces and must never have received a message. A fixed wait stands
+# in for a readiness probe, since there is nothing to poll for.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tracing-zipkin-v1
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: zipkin
+              status:
+                availableReplicas: 1
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: restart emissary to load the tracer
+      try:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" rollout restart "deploy/emissary-${SLOT}"
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+
+    - name: send traffic
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              q=$(mktemp)
+              jq -n '[range(100) | {url: "/target/\(.)", method: "GET"}]' > "$q"
+              ../../probe.sh "$q" \
+                'all 100 reached the target' '([.[].result.json.backend] | all(. == "target"))'
+
+    - name: nothing reaches zipkin
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              sleep 30
+              svc="${SLOT}-emissary-${SLOT}"
+              q=$(mktemp)
+              jq -n --arg svc "$svc" '[
+                {url: "/zipkin/metrics"},
+                {url: "/zipkin/api/v2/services"},
+                {url: "/zipkin/api/v2/spans?serviceName=\($svc)"},
+                {url: "/zipkin/api/v2/traces?serviceName=\($svc)"},
+                {url: "/ambassador/v0/diag/"}
+              ] | map(. + {method: "GET"})' > "$q"
+              ../../probe.sh "$q" \
+                'zipkin received no messages' '.[0].result.json["counter.zipkin_collector.messages.http"] == 0' \
+                'no services captured'        '.[1].result.json == []' \
+                'no spans captured'           '.[2].result.json == []' \
+                'no traces captured'          '.[3].result.json == []' \
+                'diag page loads'             '.[4].result.status == 200'

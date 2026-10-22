@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/mapping-simple-ingress/",
+    "method": "GET"
+  },
+  {
+    "url": "/need-normalization/../mapping-simple-ingress/",
+    "method": "GET"
+  }
+]

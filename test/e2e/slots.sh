@@ -12,9 +12,9 @@
 # both `make e2e/...` and test-images.yaml. See test/e2e/README.md.
 set -euo pipefail
 
-# <name>:<port-base>; a slot owns <base>+0 http, +1 https, +2 tcp. k3d fixes
-# published ports at cluster-creation time, so the 8100-8159 block it reserves
-# caps this at 15 slots.
+# <name>:<port-base>; a slot owns <base>+0 http, +1 https, +2 tcp (to 6789) and
+# +3 tcp2 (to 6790). k3d fixes published ports at cluster-creation time, so the
+# 8100-8159 block it reserves caps this at 15 slots.
 SLOTS="${E2E_SLOTS:-slot1:8100 slot2:8104 slot3:8108 slot4:8112 slot5:8116 slot6:8120 slot7:8124 slot8:8128}"
 
 NAMESPACE="${E2E_NAMESPACE:-emissary}"
@@ -70,6 +70,10 @@ cmd_install() {
             --set "service.ports[2].port=$((base + 2))" \
             --set "service.ports[2].targetPort=6789" \
             --set "service.ports[2].protocol=TCP" \
+            --set "service.ports[3].name=tcp2" \
+            --set "service.ports[3].port=$((base + 3))" \
+            --set "service.ports[3].targetPort=6790" \
+            --set "service.ports[3].protocol=TCP" \
             --wait --timeout 5m \
             && kubectl -n "${NAMESPACE}-${name}" \
                 rollout status "deploy/emissary-${name}" --timeout=2m
@@ -79,7 +83,7 @@ cmd_install() {
 
     for f in $SLOTS; do
         local name="${f%%:*}" base="${f##*:}"
-        echo "+ installing slot '${name}' (http=${base} https=$((base + 1)) tcp=$((base + 2)))"
+        echo "+ installing slot '${name}' (http=${base} https=$((base + 1)) tcp=$((base + 2)) tcp2=$((base + 3)))"
         install_one "$name" "$base" >"${logdir}/${name}.log" 2>&1 &
         pids+=("$!"); names+=("$name")
     done
@@ -188,10 +192,11 @@ cmd_run() {
     logdir="$(mktemp -d)"
 
     run_shard() {
-        local shard="$1" slot="$2" url="$3" https_url="$4" tcp_url="$5" parallel="$6"
-        shift 6
+        local shard="$1" slot="$2" url="$3" https_url="$4" tcp_url="$5" tcp2_url="$6" parallel="$7"
+        shift 7
         set +e
         SLOT="$slot" GATEWAY_URL="$url" GATEWAY_HTTPS_URL="$https_url" GATEWAY_TCP_URL="$tcp_url" \
+            GATEWAY_TCP2_URL="$tcp2_url" \
             "$chainsaw" test \
                 --config "$config" \
                 --parallel "$parallel" \
@@ -201,7 +206,7 @@ cmd_run() {
         set -e
     }
 
-    run_shard shared default "$GATEWAY_URL" "$GATEWAY_HTTPS_URL" "${GATEWAY_URL}:6789" "$DEFAULT_PARALLEL" \
+    run_shard shared default "$GATEWAY_URL" "$GATEWAY_HTTPS_URL" "${GATEWAY_URL}:6789" "" "$DEFAULT_PARALLEL" \
         --selector "slot=shared" &
     pids+=("$!"); shards+=(shared)
 
@@ -210,7 +215,7 @@ cmd_run() {
         # empty regex would select every test rather than none.
         [[ -n "${assigned[i]}" ]] || continue
         local name="${slot_names[i]}" base="${slot_bases[i]}"
-        run_shard "$name" "$name" "${GATEWAY_URL}:${base}" "${GATEWAY_HTTPS_URL}:$((base + 1))" "${GATEWAY_URL}:$((base + 2))" 1 \
+        run_shard "$name" "$name" "${GATEWAY_URL}:${base}" "${GATEWAY_HTTPS_URL}:$((base + 1))" "${GATEWAY_URL}:$((base + 2))" "${GATEWAY_URL}:$((base + 3))" 1 \
             --include-test-regex "chainsaw/(${assigned[i]#|})\$" &
         pids+=("$!"); shards+=("$name")
     done

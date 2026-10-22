@@ -1,0 +1,80 @@
+# Port of KAT's tests/kat/t_tracing.py::TracingTestSampling.
+#
+# `exclusive` because a TracingService is instance-global. The tracer is part
+# of Envoy's bootstrap, which is read only at startup, so the slot's Emissary
+# is restarted once the TracingService is applied. Zipkin is queried through a
+# Mapping so kat-client can reach it.
+#
+# At 10% overall sampling the readiness wait can need several requests before
+# one is sampled. Only traces for /target/<n> requests are counted, so those
+# and the Zipkin queries themselves do not skew the bound.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tracing-sampling
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: zipkin
+              status:
+                availableReplicas: 1
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: restart emissary to load the tracer
+      try:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" rollout restart "deploy/emissary-${SLOT}"
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+
+    - name: wait for tracing to be live
+      try:
+        - script:
+            timeout: 5m
+            content: |
+              PROBE_ATTEMPTS=100 ../../probe.sh queries-warmup.json \
+                'zipkin has received spans' '(.[1].result.json | length) > 0'
+
+    - name: send traffic
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              q=$(mktemp)
+              jq -n '[range(100) | {url: "/target/\(.)", method: "GET"}]' > "$q"
+              ../../probe.sh "$q" \
+                'all 100 reached the target' '([.[].result.json.backend] | all(. == "target"))'
+
+    - name: traces are sampled
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              q=$(mktemp)
+              jq -n '[
+                {url: "/zipkin/api/v2/traces?limit=10000", method: "GET"},
+                {url: "/ambassador/v0/diag/", method: "GET"}
+              ]' > "$q"
+              traced='[.[0].result.json[] | select(any(.[]; (.tags["http.url"] // "") | test("/target/[0-9]+$")))] | length'
+              ../../probe.sh "$q" \
+                'at least one of 100 requests was traced'  "(${traced}) >= 1" \
+                'no more than half were traced'             "(${traced}) <= 50" \
+                'diag page loads'                           '.[1].result.status == 200'

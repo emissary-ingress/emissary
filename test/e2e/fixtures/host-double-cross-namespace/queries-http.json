@@ -1,0 +1,14 @@
+[
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    }
+  }
+]

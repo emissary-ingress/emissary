@@ -52,7 +52,7 @@ spec:
   timeouts:
     apply: 30s
     assert: 2m
-    cleanup: 1m
+    cleanup: 2m
     delete: 1m
     error: 30s
     exec: 2m

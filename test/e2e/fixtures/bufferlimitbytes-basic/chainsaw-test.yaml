@@ -1,0 +1,37 @@
+# Port of KAT's tests/kat/t_bufferlimitbytes.py::BufferLimitBytesTest.
+#
+# `exclusive` because a Module is instance-global. The Module raises
+# buffer_limit_bytes and adds a Lua filter that buffers the request body.
+# Envoy's config dump is read back through a Mapping to its local admin
+# listener to confirm the limit reached every listener.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: bufferlimitbytes-basic
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: buffered requests
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              t='[.[2].result.json.configs[] | select(.["@type"] == "type.googleapis.com/envoy.admin.v3.ListenersConfigDump") | .dynamic_listeners[].active_state // empty | .listener.per_connection_buffer_limit_bytes]'
+              ../../probe.sh queries.json \
+                'request reaches the target'            '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'diag request is served'                '.[1].result.status == 200' \
+                'every listener has the 5MiB buffer'    "(${t} | length > 0 and all(. == 5242880))"

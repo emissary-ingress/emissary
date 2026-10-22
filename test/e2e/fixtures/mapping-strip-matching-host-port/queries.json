@@ -1,0 +1,34 @@
+[
+  {
+    "url": "/mapping-strip-matching-host-port/",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-strip-matching-host-port/",
+    "method": "GET",
+    "headers": {
+      "Host": "yourhostname.com"
+    }
+  },
+  {
+    "url": "/mapping-strip-matching-host-port/",
+    "method": "GET",
+    "headers": {
+      "Host": "myhostname.com"
+    }
+  },
+  {
+    "url": "/mapping-strip-matching-host-port/",
+    "method": "GET",
+    "headers": {
+      "Host": "myhostname.com:8080"
+    }
+  },
+  {
+    "url": "/mapping-strip-matching-host-port/",
+    "method": "GET",
+    "headers": {
+      "Host": "myhostname.com:11875"
+    }
+  }
+]

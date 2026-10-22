@@ -1,0 +1,52 @@
+---
+# Port of KAT's tests/kat/t_ingress.py::IngressStatusTestWithAnnotations.
+#
+# `exclusive` because the assertion reads the slot's own Service status, and
+# Emissary copies that Service's status onto the Ingress. KAT writes a fake
+# status onto the Service with kubestatus; here the Ingress is compared with
+# the Service's real status instead, since k3s's service LB owns that field.
+# The routing checks go beyond KAT, which only asserts the status here. The
+# `getambassador.io/config` annotation is a JSON object because it has to
+# embed the slot's id.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: ingress-status-annotations
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'ingress rule routes'       '.[0].result.status == 200 and .[0].result.json.backend == "ingress-status-annotations"' \
+                'annotation Mapping routes' '.[1].result.status == 200 and .[1].result.json.backend == "ingress-status-annotations" and .[1].result.json.request.headers["x-envoy-original-path"][0] == "/ingress-status-annotations-nested/"' \
+                'ingress rule normalizes'   '.[2].result.status == 200 and .[2].result.json.request.headers["x-envoy-original-path"][0] == "/ingress-status-annotations/"'
+    - name: ingress status matches the Service
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              # Compare addresses only: newer Kubernetes adds ipMode to a Service's
+              # status, and an Ingress status has no such field.
+              want=$(kubectl get svc -A -o json \
+                -l "app.kubernetes.io/component=ambassador-service,app.kubernetes.io/instance=emissary-$SLOT" \
+                | jq -c '[.items[0].status.loadBalancer.ingress[]? | {ip, hostname} | with_entries(select(.value != null))]')
+              echo "$want" | jq -e 'length > 0' >/dev/null \
+                || { echo "Service has no load balancer status: $want" >&2; exit 1; }
+              for i in $(seq 1 30); do
+                got=$(kubectl -n "$NAMESPACE" get ingress ingress-status-annotations -o json | jq -c '[.status.loadBalancer.ingress[]? | {ip, hostname} | with_entries(select(.value != null))]')
+                if [ "$got" = "$want" ]; then
+                  echo "ok (attempt $i): Ingress status $got"
+                  exit 0
+                fi
+                sleep 2
+              done
+              echo "Ingress status $got, want $want" >&2
+              exit 1

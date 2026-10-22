@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/mapping-simple/",
+    "method": "GET"
+  },
+  {
+    "url": "/need-normalization/../mapping-simple/",
+    "method": "GET"
+  }
+]

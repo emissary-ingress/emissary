@@ -1,0 +1,43 @@
+# Port of KAT's tests/kat/t_grpc_stats.py::AcceptanceGrpcStatsTest.
+#
+# `exclusive` because a Module is instance-global. all_methods and
+# upstream_stats are on, so per-method stats and the upstream timing histogram
+# appear and the generic ones do not. Metrics are read off Emissary's admin
+# port (8877) through a Mapping to 127.0.0.1:8877, since that port is not
+# published. Envoy's counters lag the traffic, so the read is retried, and only
+# this fixture's own cluster is looked at.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: grpc-stats-acceptance
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: grpc-stats-acceptance
+              status:
+                availableReplicas: 1
+
+    - name: gRPC stats
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              CLUSTER=$(printf 'grpc-stats-acceptance_%s_8080' "$NAMESPACE" | tr - _)
+              export CLUSTER
+              names='[.[20].result.body | @base64d | split("\n")[] | select(contains("envoy_cluster_name=\"" + $ENV.CLUSTER + "\"")) | split("{")[0]]'
+              ../../probe.sh queries.json \
+                'metrics are served'              '.[20].result.status == 200' \
+                'per-method stats are present'    "(([\"envoy_cluster_grpc_Echo_0\", \"envoy_cluster_grpc_Echo_13\", \"envoy_cluster_grpc_Echo_request_message_count\", \"envoy_cluster_grpc_Echo_response_message_count\", \"envoy_cluster_grpc_Echo_success\", \"envoy_cluster_grpc_Echo_total\"] - ${names}) == [])" \
+                'upstream timing is present'      "(${names} | any(.[]; startswith(\"envoy_cluster_grpc_Echo_upstream_rq_time\")))" \
+                'generic stats are absent'        "(([\"envoy_cluster_grpc_0\", \"envoy_cluster_grpc_13\", \"envoy_cluster_grpc_request_message_count\", \"envoy_cluster_grpc_response_message_count\", \"envoy_cluster_grpc_success\", \"envoy_cluster_grpc_total\"] - ${names}) | length == 6)"

@@ -1,0 +1,60 @@
+---
+# The Module is global to one Emissary instance, hence `slot: exclusive`.
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    strip_matching_host_port: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-strip-matching-host-port
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-strip-matching-host-port
+  template:
+    metadata:
+      labels:
+        app: mapping-strip-matching-host-port
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-strip-matching-host-port
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-strip-matching-host-port
+spec:
+  selector:
+    app: mapping-strip-matching-host-port
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-strip-matching-host-port
+spec:
+  ambassador_id: [(env('SLOT'))]
+  prefix: /mapping-strip-matching-host-port/
+  host: myhostname.com
+  service: http://mapping-strip-matching-host-port:8080
