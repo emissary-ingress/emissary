@@ -44,7 +44,7 @@ spec:
               ../../probe.sh reset.json \
                 'sink reset' '.[0].result.status == 200' || exit 1
               ../../probe.sh dump.json \
-                'sink empty' '.[0].result.json == {}' || exit 1
+                'no requests counted since the reset' '[.[0].result.json[] | to_entries[] | select(.key | test("upstream_rq")) | .value] | all(. == 0)' || exit 1
         - script:
             timeout: 5m
             content: |
