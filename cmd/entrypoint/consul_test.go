@@ -3,7 +3,11 @@ package entrypoint
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -207,4 +211,38 @@ type testStopper struct {
 
 func (ts *testStopper) Stop() {
 	ts.watcher.Logf("%s:%s:stop", ts.resolver, ts.service)
+}
+
+func TestWatchConsulQueriesResolverDatacenter(t *testing.T) {
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
+	defer cancel()
+
+	datacenters := make(chan string, 16)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case datacenters <- r.URL.Query().Get("dc"):
+		default:
+		}
+		w.Header().Set("X-Consul-Index", "1")
+		_, _ = w.Write([]byte("[]"))
+	}))
+	defer server.Close()
+
+	resolver := &amb.ConsulResolver{
+		Spec: amb.ConsulResolverSpec{
+			Address:    strings.TrimPrefix(server.URL, "http://"),
+			Datacenter: "dc13",
+		},
+	}
+
+	stopper, err := watchConsul(ctx, resolver, "consul-service", make(chan consulwatch.Endpoints, 16))
+	require.NoError(t, err)
+	defer stopper.Stop()
+
+	select {
+	case dc := <-datacenters:
+		assert.Equal(t, "dc13", dc)
+	case <-time.After(10 * time.Second):
+		t.Fatal("watch never queried consul")
+	}
 }
