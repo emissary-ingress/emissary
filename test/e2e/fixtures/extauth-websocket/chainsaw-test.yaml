@@ -1,0 +1,29 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationWebsocketTest.
+#
+# `exclusive` because an AuthService is instance-global. The echo backend
+# sends a "Request served by <host>" frame before echoing and answers a plain
+# GET with 200. The third query has the auth service deny the upgrade.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: extauth-websocket
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'plain GET answered 200'         '.[0].result.status == 200' \
+                'plain GET hit the echo backend' '(.[0].result.text | startswith("Request served by"))' \
+                'upgrade succeeded'              '.[1].result.error == null' \
+                'greeting frame first'           '(.[1].result.messages[0] | startswith("Request served by"))' \
+                'messages echoed in order'       '.[1].result.messages[1:] == ["one", "two", "three"]' \
+                'denied upgrade fails'           '(.[2].result.error != null)' \
+                'denied upgrade got no frames'   '(.[2].result.messages // []) == []'

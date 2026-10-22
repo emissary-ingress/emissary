@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/mapping-websocket/",
+    "method": "GET"
+  },
+  {
+    "url": "ws:/mapping-websocket/",
+    "messages": ["one", "two", "three"]
+  }
+]

@@ -6,7 +6,9 @@
 #   probe.sh <queries.json> <label> <jq-expr> [<label> <jq-expr> ...]
 #
 # queries.json is a kat-client input file; relative URLs are prefixed with
-# $PROBE_BASE (default $GATEWAY_URL). Each <jq-expr> is evaluated against the
+# $PROBE_BASE (default $GATEWAY_URL). A websocket URL is written "ws:/path"
+# and resolves against the same base with its scheme swapped (http to ws,
+# https to wss). Each <jq-expr> is evaluated against the
 # kat-client output array and replaces KAT's Python check(). Use the labelled
 # form for more than a couple of assertions so failures name themselves.
 #
@@ -47,7 +49,10 @@ interval="${PROBE_INTERVAL:-2}"
 total=${#exprs[@]}
 
 resolved=$(jq --arg base "$base" \
-    '[.[] | .url |= (if startswith("http") then . else $base + . end)]' \
+    '[.[] | .url |= (
+        if startswith("http") then .
+        elif startswith("ws:/") then "ws" + ($base | ltrimstr("http")) + ltrimstr("ws:")
+        else $base + . end)]' \
     "$queries") || exit 1
 
 summary='[.[] | {url: .url, status: .result.status, backend: .result.json.backend, error: .result.error}]'
