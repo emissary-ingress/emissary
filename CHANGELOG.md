@@ -40,7 +40,9 @@ from the Helm charts.
 
 - Fix: The Helm chart no longer declares the same `containerPort` twice when several
   `service.ports` share a `targetPort` (for example `http` and `https` both targeting 8080
-  when TLS is terminated at the load balancer). Duplicate entries can make the Deployment fail to apply. ([#5802])
+  when TLS is terminated at the load balancer). Duplicate entries can make the Deployment fail to apply.
+  A `hostPort` set on any of those service ports is kept, and different `hostPort` values for the
+  same `targetPort` are rejected. ([#5802])
 
 [#5802]: https://github.com/emissary-ingress/emissary/issues/5802
 

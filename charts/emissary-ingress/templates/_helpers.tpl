@@ -130,23 +130,38 @@ Container ports for the Ambassador container, derived from .Values.service.ports
 
 Several service ports may share a targetPort (for example, when TLS is
 terminated at the load balancer and both `http` and `https` target 8080).
-A pod must not declare the same containerPort/protocol pair twice, so only the
-first service port for each pair is emitted.
+A pod must not declare the same containerPort/protocol pair twice, so only one
+entry is emitted for each pair, named after the first service port. A hostPort
+set on any of the service ports sharing the pair is kept, and different
+hostPorts for the same pair are rejected.
 */}}
 {{- define "ambassador.containerPorts" -}}
-{{- $seen := dict -}}
+{{- $ports := list -}}
+{{- $byKey := dict -}}
 {{- range .Values.service.ports -}}
 {{- $key := printf "%d/%s" (int .targetPort) (default "TCP" .protocol) -}}
-{{- if not (hasKey $seen $key) -}}
-{{- $_ := set $seen $key true }}
+{{- if hasKey $byKey $key -}}
+{{- $port := get $byKey $key -}}
+{{- if .hostPort -}}
+{{- if and $port.hostPort (ne (int $port.hostPort) (int .hostPort)) -}}
+{{- fail (printf "service ports %q and %q share containerPort %s but set different hostPorts" $port.name .name $key) -}}
+{{- end -}}
+{{- $_ := set $port "hostPort" .hostPort -}}
+{{- end -}}
+{{- else -}}
+{{- $port := dict "name" .name "targetPort" (int .targetPort) "protocol" .protocol "hostPort" .hostPort -}}
+{{- $_ := set $byKey $key $port -}}
+{{- $ports = append $ports $port -}}
+{{- end -}}
+{{- end -}}
+{{- range $ports }}
 - name: {{ .name }}
-  containerPort: {{ int .targetPort }}
+  containerPort: {{ .targetPort }}
   {{- if .protocol }}
   protocol: {{ .protocol }}
   {{- end }}
   {{- if .hostPort }}
   hostPort: {{ .hostPort }}
   {{- end }}
-{{- end -}}
 {{- end -}}
 {{- end -}}
