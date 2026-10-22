@@ -1,0 +1,60 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-merge-slashes-enabled
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-merge-slashes-enabled
+  template:
+    metadata:
+      labels:
+        app: mapping-merge-slashes-enabled
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-merge-slashes-enabled
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-merge-slashes-enabled
+spec:
+  selector:
+    app: mapping-merge-slashes-enabled
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    merge_slashes: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-merge-slashes-enabled
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-merge-slashes-enabled/status/
+  rewrite: /status/
+  service: mapping-merge-slashes-enabled:8080
