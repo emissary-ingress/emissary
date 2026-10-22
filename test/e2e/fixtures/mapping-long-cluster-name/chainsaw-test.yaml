@@ -1,0 +1,20 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_default.py::LongClusterNameMapping.
+# The Mapping targets an ExternalName Service with a 62-character name.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-long-cluster-name
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'long-named service routes' '.[0].result.status == 200 and .[0].result.json.backend == "mapping-long-cluster-name"'

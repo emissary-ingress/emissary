@@ -1,0 +1,60 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-reject-escaped-slashes-enabled
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-reject-escaped-slashes-enabled
+  template:
+    metadata:
+      labels:
+        app: mapping-reject-escaped-slashes-enabled
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-reject-escaped-slashes-enabled
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-reject-escaped-slashes-enabled
+spec:
+  selector:
+    app: mapping-reject-escaped-slashes-enabled
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    reject_requests_with_escaped_slashes: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-reject-escaped-slashes-enabled
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-reject-escaped-slashes-enabled/status/
+  rewrite: /status/
+  service: mapping-reject-escaped-slashes-enabled:8080
