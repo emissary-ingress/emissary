@@ -168,6 +168,7 @@ class IRHost(IRResource):
                             "alpnProtocols": "alpn_protocols",
                             "cipherSuites": "cipher_suites",
                             "ecdhCurves": "ecdh_curves",
+                            "signatureAlgorithms": "signature_algorithms",
                             "redirectCleartextFrom": "redirect_cleartext_from",
                             "certRequired": "cert_required",
                             "minTlsVersion": "min_tls_version",

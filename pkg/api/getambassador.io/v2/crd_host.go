@@ -147,6 +147,9 @@ type TLSConfig struct {
 
 	// +k8s:conversion-gen:rename=CRLSecret
 	V3CRLSecret string `json:"v3CRLSecret,omitempty"`
+
+	// +k8s:conversion-gen:rename=SignatureAlgorithms
+	V3SignatureAlgorithms []string `json:"v3SignatureAlgorithms,omitempty"`
 }
 
 // The first value listed in the Enum marker becomes the "zero" value,

@@ -91,6 +91,10 @@ spec:
                 type: string
               v3CRLSecret:
                 type: string
+              v3SignatureAlgorithms:
+                items:
+                  type: string
+                type: array
             type: object
             x-kubernetes-preserve-unknown-fields: true
         type: object
@@ -165,6 +169,10 @@ spec:
                 type: string
               v3CRLSecret:
                 type: string
+              v3SignatureAlgorithms:
+                items:
+                  type: string
+                type: array
             type: object
             x-kubernetes-preserve-unknown-fields: true
         type: object
@@ -244,6 +252,10 @@ spec:
                 type: string
               secret_namespacing:
                 type: boolean
+              signature_algorithms:
+                items:
+                  type: string
+                type: array
               sni:
                 type: string
             type: object

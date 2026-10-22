@@ -84,6 +84,23 @@
   kind: "Host"
   metadata:
       creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "host-tls-signature-algorithms"
+      namespace: "alt2-namespace"
+  spec:
+      acmeProvider:
+          authority: "none"
+      hostname: "host-tls-signature-algorithms"
+      tls:
+          signature_algorithms:
+          - "ecdsa_secp256r1_sha256"
+          - "ed25519"
+      tlsSecret:
+          name: "hostcrdclientcertsamenamespace.server"
+  status: {}
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "Host"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
       name: "host-addlport-negative-1"
       namespace: "default"
   spec:
