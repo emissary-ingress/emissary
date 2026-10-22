@@ -123,6 +123,12 @@ since any of those would mean the fixture silently never runs.
 > stride that holds 15 slots, and going past that needs the range widened
 > *and* the cluster recreated.
 >
+> **Scratch ports.** `tcpmapping-multi-port` needs more TCP ports than a slot
+> publishes, so it adds a `LoadBalancer` Service in its slot's namespace on host
+> ports 8132-8134. Those are cluster-global, not per slot, and a ninth slot at
+> the current stride would take 8132-8135, so move the fixture's ports before
+> adding one.
+>
 > Slots install concurrently, so adding one costs wall-clock only if it pushes
 > the runner past its CPU budget. Sizing: at ~28s per fixture, N slots clear
 > the pinned backlog in `(count / N) * 28`s. Returns flatten past N=8, where

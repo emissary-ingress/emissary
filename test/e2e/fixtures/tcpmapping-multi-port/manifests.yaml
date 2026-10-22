@@ -1,0 +1,290 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target1
+  template:
+    metadata:
+      labels:
+        app: target1
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target1
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target1
+spec:
+  selector:
+    app: target1
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 8443
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target2
+  namespace: tcpmapping-multi-port-other
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target2
+  template:
+    metadata:
+      labels:
+        app: target2
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target2
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target2
+  namespace: tcpmapping-multi-port-other
+spec:
+  selector:
+    app: target2
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 8443
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target3
+  template:
+    metadata:
+      labels:
+        app: target3
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target3
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target3
+spec:
+  selector:
+    app: target3
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 8443
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcpmapping-multi-port-scratch
+  namespace: (join('-', ['emissary', env('SLOT')]))
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: (join('-', ['emissary', env('SLOT')]))
+    app.kubernetes.io/instance: (join('-', ['emissary', env('SLOT')]))
+  ports:
+    - name: clear-to-tls
+      port: 8132
+      targetPort: 7654
+      protocol: TCP
+    - name: local-only
+      port: 8133
+      targetPort: 8765
+      protocol: TCP
+    - name: passthrough
+      port: 8134
+      targetPort: 9876
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: sni-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  protocol: TLS
+  securityModel: SECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: clear-to-tls-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 7654
+  protocol: TCP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: local-only-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 8765
+  protocol: TCP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: passthrough-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 9876
+  protocol: TCP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tlscontext
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: supersecret
+  hosts:
+    - tls-context-host-1
+    - tls-context-host-2
+    - tls-context-host-3
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: passthrough
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 9876
+  service: target1:443
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: local-only
+spec:
+  ambassador_id: [(env('SLOT'))]
+  address: 127.0.0.1
+  port: 8765
+  service: target1:443
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: clear-to-tls
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 7654
+  service: https://target2.tcpmapping-multi-port-other:443
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: sni-host-1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  host: tls-context-host-1
+  service: target1:80
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: sni-host-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  host: tls-context-host-2
+  service: target2.tcpmapping-multi-port-other
+  tls: tlscontext
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: sni-host-3
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  host: tls-context-host-3
+  service: https://target3
