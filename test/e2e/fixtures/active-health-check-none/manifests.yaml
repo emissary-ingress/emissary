@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: active-health-check-none-backend
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: active-health-check-none-backend
+  template:
+    metadata:
+      labels:
+        app: active-health-check-none-backend
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: active-health-check-none-backend
+            - name: KAT_BACKEND_TYPE
+              value: health_check_server
+            - name: HEALTHY_STATUS_CODE
+              value: "200"
+            - name: UNHEALTHY_STATUS_CODE
+              value: "500"
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: active-health-check-none-backend
+spec:
+  selector:
+    app: active-health-check-none-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: KubernetesEndpointResolver
+metadata:
+  name: active-health-check-none-resolver
+spec:
+  ambassador_id: [(env('SLOT'))]
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: active-health-check-none
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /active-health-check-none/
+  service: active-health-check-none-backend:8080
+  resolver: active-health-check-none-resolver
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: active-health-check-none-clusters
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /active-health-check-none-clusters/
+  rewrite: /clusters
+  service: http://127.0.0.1:8001

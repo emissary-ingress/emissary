@@ -10,10 +10,10 @@
 # landed request on one pod). Unhashed traffic is asserted to reach all three
 # pods, which only a working balancer does.
 #
-# kat-client fires the 300 requests of a step at once and a CI runner can drop
-# some, so each group must land at least 40 of its 50, and no request may get
-# an HTTP error status. KAT's "all 50 on one pod" for source_ip becomes "every
-# landed request on one pod" for the same reason.
+# A CI runner can drop the odd connection with EOF, so each group must land at
+# least 40 of its 50, and no request may get an HTTP error status. KAT's "all
+# 50 on one pod" for source_ip becomes "every landed request on one pod" for
+# the same reason.
 #
 # Group order in queries: header with no key, header with LB-HEADER, source_ip,
 # cookie with no cookie sent, cookie with the cookie, cookie-no-ttl with the

@@ -100,6 +100,8 @@ spec:
   service: http://mapping-canary-canary:8080
   weight: 0
 ---
+# The 1000-request split can queue one backend past the default 3s route
+# timeout on a busy runner; kat-client gives up at 10s.
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
@@ -109,6 +111,7 @@ spec:
   hostname: "*"
   prefix: /mapping-canary-50/
   service: http://mapping-canary-target:8080
+  timeout_ms: 8000
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -119,6 +122,7 @@ spec:
   hostname: "*"
   prefix: /mapping-canary-50/
   service: http://mapping-canary-canary:8080
+  timeout_ms: 8000
   weight: 50
 ---
 apiVersion: getambassador.io/v3alpha1

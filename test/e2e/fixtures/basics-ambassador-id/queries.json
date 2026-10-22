@@ -1,0 +1,7 @@
+[
+  {"url": "/findme/", "method": "GET"},
+  {"url": "/findme-array/", "method": "GET"},
+  {"url": "/findme-array2/", "method": "GET"},
+  {"url": "/missme/", "method": "GET"},
+  {"url": "/missme-array/", "method": "GET"}
+]

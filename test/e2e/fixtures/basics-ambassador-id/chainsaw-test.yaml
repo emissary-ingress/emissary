@@ -1,0 +1,29 @@
+---
+# Port of KAT's tests/kat/t_basics.py::AmbassadorIDTest.
+#
+# `exclusive` because it creates a Module, which is instance-global. A
+# resource routes when this Emissary's id (the slot) is in its ambassador_id
+# list, wherever in the list it sits; resources listing only other ids do
+# not. The Module's service resolution is namespace-relative, so the Mappings
+# name the backend's namespace.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: basics-ambassador-id
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'sole id routes'                 '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'id first in a list routes'      '.[1].result.status == 200 and .[1].result.json.backend == "target"' \
+                'id last in a list routes'       '.[2].result.status == 200 and .[2].result.json.backend == "target"' \
+                'other id alone is not routed'   '.[3].result.status == 404' \
+                'two other ids are not routed'   '.[4].result.status == 404'

@@ -41,13 +41,19 @@ A **slot** is a pre-baked, isolated Emissary install. Isolation is by
 with `env.AMBASSADOR_ID` set, which also makes the chart stamp the matching
 `ambassador_id` onto its default Listeners.
 
-| Slot      | Namespace        | `AMBASSADOR_ID` | http | https | tcp  |
-|-----------|------------------|-----------------|------|-------|------|
-| `default` | `emissary`       | *(unset)*       | 80   | 443   | 6789 |
-| `slot1`   | `emissary-slot1` | `slot1`         | 8100 | 8101  | 8102 |
-| `slot2`   | `emissary-slot2` | `slot2`         | 8104 | 8105  | 8106 |
-| ...       |                  |                 |      |       |      |
-| `slot8`   | `emissary-slot8` | `slot8`         | 8128 | 8129  | 8130 |
+| Slot      | Namespace        | `AMBASSADOR_ID` | http | https | tcp  | tcp2 |
+|-----------|------------------|-----------------|------|-------|------|------|
+| `default` | `emissary`       | *(unset)*       | 80   | 443   | 6789 | none |
+| `slot1`   | `emissary-slot1` | `slot1`         | 8100 | 8101  | 8102 | 8103 |
+| `slot2`   | `emissary-slot2` | `slot2`         | 8104 | 8105  | 8106 | 8107 |
+| ...       |                  |                 |      |       |      |      |
+| `slot8`   | `emissary-slot8` | `slot8`         | 8128 | 8129  | 8130 | 8131 |
+
+The `tcp` port reaches the container's 6789 and `tcp2` reaches 6790, exported
+to fixtures as `GATEWAY_TCP_URL` and `GATEWAY_TCP2_URL`. The `default` release
+has no second TCP port (publishing one needs a cluster recreate), so
+`GATEWAY_TCP2_URL` is empty there and a fixture that listens on 6790 must be
+`slot: exclusive`.
 
 The numbered slots are **anonymous and interchangeable**. Nothing distinguishes
 one from another except its ports; all the config comes from the fixture's own
@@ -154,9 +160,9 @@ environment, and manifests call `(env('KAT_SERVER_IMAGE'))` and
   are left alone, so TLS and alternate-port fixtures spell out their own
   scheme and host. A fixture that wants to probe the downstream HTTPS
   listener sets `PROBE_BASE="$GATEWAY_HTTPS_URL"` in its `script` step;
-  `slots.sh` and `e2e.mk` export `GATEWAY_HTTPS_URL` alongside `GATEWAY_URL`
-  and `GATEWAY_TCP_URL`, pointing at the slot's `+1` port (see the port table
-  above).
+  `slots.sh` and `e2e.mk` export `GATEWAY_HTTPS_URL` alongside `GATEWAY_URL`,
+  `GATEWAY_TCP_URL` and `GATEWAY_TCP2_URL`, pointing at the slot's `+1` port
+  (see the port table above).
 - The `jq` expression is evaluated against kat-client's output array. It maps
   directly onto the old KAT Python assertions: `Query(..., expected=404)`
   becomes `.[0].result.status == 404`, and `r.backend.name == "x"` becomes

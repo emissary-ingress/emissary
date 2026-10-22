@@ -5,11 +5,11 @@
 # Mapping and a canary Mapping.
 #
 # The 50 split is measured once (PROBE_ATTEMPTS=1), since under probe.sh's
-# retry loop a probabilistic assertion would get many chances to pass.
-# kat-client sends all 1000 requests at once and some connections drop with
-# EOF on CI runners, so the split is a share of the requests that landed
-# (at least 600), while any HTTP answer must be a 200 from a backend. 42 to
-# 58 percent holds for a correct 50/50 and rules out 25/75.
+# retry loop a probabilistic assertion would get many chances to pass. A CI
+# runner can drop the odd connection with EOF, so the split is a share of the
+# requests that landed (at least 600), while any HTTP answer must be a 200
+# from a backend. 42 to 58 percent holds for a correct 50/50 and rules out
+# 25/75.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
