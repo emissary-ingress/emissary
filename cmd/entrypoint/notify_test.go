@@ -3,9 +3,12 @@ package entrypoint
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/datawire/dlib/dlog"
 )
@@ -14,7 +17,26 @@ import (
 func TestNotifyWebhookUrlConnectionRefused(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
 
-	finished, err := notifyWebhookUrl(ctx, "test", "http://localhost:5555")
+	finished, err := notifyWebhookUrl(ctx, http.DefaultClient, "test", "http://localhost:5555", nil)
+	assert.NoError(t, err)
+	assert.False(t, finished)
+}
+
+// diagd's Unix-domain socket doesn't exist until diagd has finished starting up, and
+// dialing a socket that isn't there gives ENOENT rather than ECONNREFUSED. That's still
+// just "not up yet", so we need to retry rather than treating it as fatal.
+func TestNotifyWebhookUrlSocketMissing(t *testing.T) {
+	ctx := dlog.NewTestContext(t, false)
+
+	// Not t.TempDir(): sockaddr_un.sun_path is only ~104 bytes, and the temp dir
+	// paths that Go hands out are easily longer than that.
+	dir, err := os.MkdirTemp("/tmp", "diagd")
+	require.NoError(t, err)
+	t.Cleanup(func() { os.RemoveAll(dir) })
+
+	t.Setenv("AMBASSADOR_DIAGD_SOCKET", filepath.Join(dir, "nonexistent.sock"))
+
+	finished, err := notifyWebhookUrl(ctx, DiagdClient(), "diagd", GetEventUrl(), nil)
 	assert.NoError(t, err)
 	assert.False(t, finished)
 }
@@ -29,6 +51,6 @@ func TestNotifyWebhookUrlEOF(t *testing.T) {
 		srv.CloseClientConnections()
 	}))
 
-	_, err := notifyWebhookUrl(ctx, "test", srv.URL)
+	_, err := notifyWebhookUrl(ctx, http.DefaultClient, "test", srv.URL, nil)
 	assert.Error(t, err)
 }

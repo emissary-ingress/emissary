@@ -34,6 +34,7 @@ class IRTLSContext(IRResource):
         "min_tls_version",
         "redirect_cleartext_from",
         "secret_namespacing",
+        "signature_algorithms",
         "sni",
     }
 
@@ -47,6 +48,7 @@ class IRTLSContext(IRResource):
     max_tls_version: Optional[str]
     cipher_suites: Optional[str]
     ecdh_curves: Optional[str]
+    signature_algorithms: Optional[List[str]]
     redirect_cleartext_from: Optional[int]
     secret_namespacing: Optional[bool]
     secret_info: dict

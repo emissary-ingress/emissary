@@ -214,6 +214,10 @@ spec:
                     type: string
                   v3CRLSecret:
                     type: string
+                  v3SignatureAlgorithms:
+                    items:
+                      type: string
+                    type: array
                 type: object
               tlsContext:
                 description: "Name of the TLSContext the Host resource is linked with.\
@@ -553,6 +557,10 @@ spec:
                     type: string
                   redirect_cleartext_from:
                     type: integer
+                  signature_algorithms:
+                    items:
+                      type: string
+                    type: array
                   sni:
                     type: string
                 type: object
