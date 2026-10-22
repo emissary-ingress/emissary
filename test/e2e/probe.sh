@@ -7,8 +7,8 @@
 #
 # queries.json is a kat-client input file; relative URLs are prefixed with
 # $PROBE_BASE (default $GATEWAY_URL). A websocket URL is written "ws:/path"
-# and resolves against the same base with its scheme swapped (http to ws,
-# https to wss). Each <jq-expr> is evaluated against the
+# and resolves against an http:// base with the scheme swapped to ws
+# (kat-client does not dial wss). Each <jq-expr> is evaluated against the
 # kat-client output array and replaces KAT's Python check(). Use the labelled
 # form for more than a couple of assertions so failures name themselves.
 #
@@ -50,8 +50,10 @@ total=${#exprs[@]}
 
 resolved=$(jq --arg base "$base" \
     '[.[] | .url |= (
-        if startswith("http") then .
-        elif startswith("ws:/") then "ws" + ($base | ltrimstr("http")) + ltrimstr("ws:")
+        if startswith("http") or startswith("ws://") or startswith("wss://") then .
+        elif startswith("ws:/") then
+            if ($base | startswith("http://")) then "ws" + ($base | ltrimstr("http")) + ltrimstr("ws:")
+            else error("ws:/ shorthand needs an http:// base; kat-client does not dial wss") end
         else $base + . end)]' \
     "$queries") || exit 1
 
