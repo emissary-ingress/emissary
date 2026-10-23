@@ -9,7 +9,7 @@ from tests.utils import (
 
 # Tests if `setting` exists within the cluster config and has `expected` as the value for that setting
 # Use `exists` to test if you expect a setting to not exist
-def _test_cluster_setting(yaml, setting, expected, exists=True):
+def _test_cluster_setting(yaml, setting, expected, exists=True, name="cluster_httpbin_default"):
     econf = econf_compile(yaml)
 
     def check(cluster):
@@ -19,7 +19,7 @@ def _test_cluster_setting(yaml, setting, expected, exists=True):
         else:
             assert setting not in cluster
 
-    econf_foreach_cluster(econf, check)
+    econf_foreach_cluster(econf, check, name=name)
 
 
 # Tests a setting in a cluster that has it's own fields. Example: common_http_protocol_options has multiple subfields
@@ -69,7 +69,9 @@ def test_logical_dns_type_endpoints():
     # Ensure we use endpoint discovery instead of this value when using the endpoint resolver.
     yaml = module_and_mapping_manifests(None, ["dns_type: logical_dns", "resolver: endpoint"])
     # The dns type is listed as just "type"
-    _test_cluster_setting(yaml, setting="type", expected="EDS", exists=True)
+    _test_cluster_setting(
+        yaml, setting="type", expected="EDS", exists=True, name="cluster_httpbin_endpoint_default"
+    )
 
 
 @pytest.mark.compilertest
