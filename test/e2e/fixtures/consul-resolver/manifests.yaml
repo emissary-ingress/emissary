@@ -1,0 +1,172 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consul
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consul
+  template:
+    metadata:
+      labels:
+        app: consul
+    spec:
+      containers:
+        - name: consul
+          image: hashicorp/consul:1.15.4
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CONSUL_LOCAL_CONFIG
+              value: '{"datacenter":"dc12"}'
+          ports:
+            - containerPort: 8500
+          readinessProbe:
+            httpGet:
+              path: /v1/status/leader
+              port: 8500
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul
+spec:
+  selector:
+    app: consul
+  ports:
+    - name: consul
+      port: 8500
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s
+  template:
+    metadata:
+      labels:
+        app: k8s
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: k8s
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s
+spec:
+  selector:
+    app: k8s
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-ns
+  namespace: consul-resolver-other
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-ns
+  template:
+    metadata:
+      labels:
+        app: k8s-ns
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: k8s-ns
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-ns
+  namespace: consul-resolver-other
+spec:
+  selector:
+    app: k8s-ns
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: ConsulResolver
+metadata:
+  name: consul-resolver
+spec:
+  ambassador_id: [(env('SLOT'))]
+  address: (join('', ['consul.', $namespace, ':8500']))
+  datacenter: dc12
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: k8s
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /k8s/
+  service: k8s:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: consul
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /consul/
+  service: consul-service
+  resolver: consul-resolver
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: consul-node
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /consul_node/
+  service: consul-node
+  resolver: consul-resolver
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: consul-ns
+  namespace: consul-resolver-other
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /consul_ns/
+  service: consul-ns-service
+  resolver: consul-resolver
+  load_balancer:
+    policy: round_robin
