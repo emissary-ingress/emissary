@@ -47,10 +47,6 @@ def _route_clusters(econf):
 # Mappings load sorted by name and the first one to reach a cluster name creates the
 # cluster, so both name orders are covered.
 @pytest.mark.compilertest
-@pytest.mark.xfail(
-    strict=True,
-    reason="the cluster name omits the resolver, so both Mappings share one cluster",
-)
 @pytest.mark.parametrize(
     "service_name,endpoint_name",
     [("svc-resolver", "endpoint-resolver"), ("a-svc-resolver", "z-endpoint-resolver")],

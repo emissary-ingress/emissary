@@ -70,6 +70,13 @@ from the Helm charts.
   the two Mappings got endpoints (the other returned 503), and which one could
   change as either watch updated.
 
+- Fix: Two Mappings for the same service, one using the default Kubernetes service
+  resolver and one using an endpoint resolver, no longer share one Envoy cluster.
+  Whichever loaded first decided the cluster type for both, so one Mapping could lose
+  per-pod endpoints and its health checks, or gain them unasked. Clusters for Mappings
+  with a non-default resolver now include the resolver name, so Envoy recreates them
+  once on upgrade; stats names are unchanged.
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
