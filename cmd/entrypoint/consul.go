@@ -117,7 +117,13 @@ func (c *consulWatcher) run(ctx context.Context) error {
 func (c *consulWatcher) updateEndpoints(endpoints consulwatch.Endpoints) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.endpoints[endpoints.Service] = endpoints
+	c.endpoints[endpointsKey(endpoints.Id, endpoints.Service)] = endpoints
+}
+
+// Two ConsulResolvers in different datacenters can watch services with the same name, so the
+// datacenter is part of the identity. It matches the datacenter Python reads from Endpoints.Id.
+func endpointsKey(datacenter, service string) string {
+	return datacenter + "/" + service
 }
 
 func (c *consulWatcher) changed() chan struct{} {
@@ -245,9 +251,10 @@ func (c *consulWatcher) reconcile(ctx context.Context, resolvers []*amb.ConsulRe
 	if !c.firstReconcileHasHappened {
 		c.firstReconcileHasHappened = true
 		var keysForBootstrap []string
-		for _, mappings := range mappingsByResolver {
+		for rname, mappings := range mappingsByResolver {
+			datacenter := resolversByName[rname].Spec.Datacenter
 			for _, m := range mappings {
-				keysForBootstrap = append(keysForBootstrap, m.Service)
+				keysForBootstrap = append(keysForBootstrap, endpointsKey(datacenter, m.Service))
 			}
 		}
 		c.mutex.Lock()
