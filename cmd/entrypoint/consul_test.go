@@ -126,6 +126,47 @@ func TestBootstrap(t *testing.T) {
 	assert.True(t, c.isBootstrapped())
 }
 
+func TestSameServiceInTwoDatacenters(t *testing.T) {
+	ctx := dlog.NewTestContext(t, false)
+	resolvers := []*amb.ConsulResolver{
+		{
+			ObjectMeta: kates.ObjectMeta{Name: "resolver-dc12", Namespace: "default"},
+			Spec:       amb.ConsulResolverSpec{Address: "consul-dc12:8500", Datacenter: "dc12"},
+		},
+		{
+			ObjectMeta: kates.ObjectMeta{Name: "resolver-dc13", Namespace: "default"},
+			Spec:       amb.ConsulResolverSpec{Address: "consul-dc13:8500", Datacenter: "dc13"},
+		},
+	}
+	mappings := []consulMapping{
+		{Service: "shared", Resolver: "resolver-dc12"},
+		{Service: "shared", Resolver: "resolver-dc13"},
+	}
+
+	tw := &testWatcher{t: t, events: make(map[string]bool)}
+	c := newConsulWatcher(tw.Watch)
+	require.NoError(t, c.reconcile(ctx, resolvers, mappings))
+	tw.Assert(
+		"resolver-dc12.default:shared:watch",
+		"resolver-dc13.default:shared:watch",
+	)
+
+	c.updateEndpoints(consulwatch.Endpoints{Id: "dc12", Service: "shared", Endpoints: []consulwatch.Endpoint{{Address: "10.0.0.12", Port: 80}}})
+	assert.False(t, c.isBootstrapped(), "dc13's watch has not reported yet")
+
+	c.updateEndpoints(consulwatch.Endpoints{Id: "dc13", Service: "shared", Endpoints: []consulwatch.Endpoint{{Address: "10.0.0.13", Port: 80}}})
+	assert.True(t, c.isBootstrapped())
+
+	snap := &snapshotTypes.ConsulSnapshot{}
+	c.update(snap)
+	addrs := map[string]string{}
+	for _, ep := range snap.Endpoints {
+		require.Len(t, ep.Endpoints, 1)
+		addrs[ep.Id] = ep.Endpoints[0].Address
+	}
+	assert.Equal(t, map[string]string{"dc12": "10.0.0.12", "dc13": "10.0.0.13"}, addrs)
+}
+
 func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consulWatcher, tw *testWatcher) {
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithCancel(dlog.NewTestContext(t, false))
