@@ -121,8 +121,8 @@ func TestBootstrap(t *testing.T) {
 	//
 	// In order for consul to be considered bootstrapped, both the service referenced by
 	// a Mapping and the one refereced by a TCPMapping should have Endpoints{
-	c.endpoints["consultest-consul-service"] = consulwatch.Endpoints{}
-	c.endpoints["consultest-consul-service-tcp"] = consulwatch.Endpoints{}
+	c.endpoints["dc1/consultest-consul-service"] = consulwatch.Endpoints{}
+	c.endpoints["dc1/consultest-consul-service-tcp"] = consulwatch.Endpoints{}
 	assert.True(t, c.isBootstrapped())
 }
 
