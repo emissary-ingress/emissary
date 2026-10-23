@@ -13,7 +13,7 @@ include build-aux/tools.mk
 TEST_CLUSTER ?= emissary-test
 
 # Default Envoy image to use when building Emissary.
-ENVOY_IMAGE ?= envoyproxy/envoy:distroless-v1.39.0
+ENVOY_IMAGE ?= envoyproxy/envoy:distroless-v1.40.0
 
 # Bootstrapping the build env
 #
