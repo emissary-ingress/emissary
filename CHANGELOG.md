@@ -59,6 +59,14 @@ from the Helm charts.
   share, so a pair weighted 70 and 30 actually split about 77/23. If you had tuned
   weights around the old behaviour, your split will change.
 
+- Fix: The Helm chart no longer declares the same `containerPort` twice when several
+  `service.ports` share a `targetPort` (for example `http` and `https` both targeting 8080
+  when TLS is terminated at the load balancer). Duplicate entries can make the Deployment fail to apply.
+  A `hostPort` set on any of those service ports is kept, and different `hostPort` values for the
+  same `targetPort` are rejected. ([#5802])
+
+[#5802]: https://github.com/emissary-ingress/emissary/issues/5802
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
