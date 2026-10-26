@@ -2,6 +2,8 @@ package dtest
 
 import (
 	dtest_k3s "github.com/datawire/dtest"
+
+	"github.com/emissary-ingress/emissary/v3/pkg/dtest/k3s"
 )
 
 type KubeVersion = dtest_k3s.KubeVersion
@@ -9,7 +11,7 @@ type KubeVersion = dtest_k3s.KubeVersion
 var Kube22 = dtest_k3s.Kube22
 
 var DockerRegistry = dtest_k3s.DockerRegistry
-var KubeVersionConfig = dtest_k3s.KubeVersionConfig
+var KubeVersionConfig = k3s.KubeVersionConfig
 var GetKubeconfig = dtest_k3s.GetKubeconfig
 var K3sVersionUp = dtest_k3s.K3sVersionUp
 var K3sDown = dtest_k3s.K3sDown
