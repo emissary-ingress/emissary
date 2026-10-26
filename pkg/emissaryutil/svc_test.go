@@ -2,6 +2,7 @@ package emissaryutil
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -61,6 +62,9 @@ func TestQualifyService(t *testing.T) {
 		Input  tcInput
 		Output string
 		Err    string
+		// ErrPrefix is for inputs Go's own parsers reject with wording that changes
+		// between Go patch releases; only Emissary's prefix is checked.
+		ErrPrefix string
 	}
 	normalizeServiceName := func(service, namespace, resolverKind string) tcInput {
 		return tcInput{
@@ -280,19 +284,19 @@ func TestQualifyService(t *testing.T) {
 		{Input: normalizeServiceName("//foo.ns:1234", "otherns", "ConsulResolver"), Output: "foo.ns:1234"},               // we tell people "URL-ish", actually support URL-ish
 		{Input: normalizeServiceName("foo.ns:1234", "otherns", "ConsulResolver"), Output: "foo.ns:1234"},
 
-		{Input: qualifyServiceName("https://bad-service:443:443", "otherns"), Err: `service "https://bad-service:443:443": address bad-service:443:443: too many colons in address`},
-		{Input: qualifyServiceName("bad-service:443:443", "otherns"), Err: `service "bad-service:443:443": address bad-service:443:443: too many colons in address`},
+		{Input: qualifyServiceName("https://bad-service:443:443", "otherns"), ErrPrefix: `service "https://bad-service:443:443": `},
+		{Input: qualifyServiceName("bad-service:443:443", "otherns"), ErrPrefix: `service "bad-service:443:443": `},
 		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4:443", "otherns"), Err: `service "https://[fe80::e022:9cff:fecc:c7c4:443": parse "https://[fe80::e022:9cff:fecc:c7c4:443": missing ']' in host`},
 		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4", "otherns"), Err: `service "https://[fe80::e022:9cff:fecc:c7c4": parse "https://[fe80::e022:9cff:fecc:c7c4": missing ']' in host`},
-		{Input: qualifyServiceName("https://fe80::e022:9cff:fecc:c7c4", "otherns"), Err: `service "https://fe80::e022:9cff:fecc:c7c4": parse "https://fe80::e022:9cff:fecc:c7c4": invalid port ":c7c4" after host`},
+		{Input: qualifyServiceName("https://fe80::e022:9cff:fecc:c7c4", "otherns"), Err: `service "https://fe80::e022:9cff:fecc:c7c4": parse "https://fe80::e022:9cff:fecc:c7c4": invalid port "::e022:9cff:fecc:c7c4" after host`},
 		{Input: qualifyServiceName("https://bad-service:-1", "otherns"), Err: `service "https://bad-service:-1": parse "https://bad-service:-1": invalid port ":-1" after host`},
 		{Input: qualifyServiceName("https://bad-service:70000", "otherns"), Err: `service "https://bad-service:70000": port 70000: strconv.ParseUint: parsing "70000": value out of range`},
 
-		{Input: normalizeServiceName("https://bad-service:443:443", "otherns", "ConsulResolver"), Err: `service "https://bad-service:443:443": address bad-service:443:443: too many colons in address`},
-		{Input: normalizeServiceName("bad-service:443:443", "otherns", "ConsulResolver"), Err: `service "bad-service:443:443": address bad-service:443:443: too many colons in address`},
+		{Input: normalizeServiceName("https://bad-service:443:443", "otherns", "ConsulResolver"), ErrPrefix: `service "https://bad-service:443:443": `},
+		{Input: normalizeServiceName("bad-service:443:443", "otherns", "ConsulResolver"), ErrPrefix: `service "bad-service:443:443": `},
 		{Input: normalizeServiceName("https://[fe80::e022:9cff:fecc:c7c4:443", "otherns", "ConsulResolver"), Err: `service "https://[fe80::e022:9cff:fecc:c7c4:443": parse "https://[fe80::e022:9cff:fecc:c7c4:443": missing ']' in host`},
 		{Input: normalizeServiceName("https://[fe80::e022:9cff:fecc:c7c4", "otherns", "ConsulResolver"), Err: `service "https://[fe80::e022:9cff:fecc:c7c4": parse "https://[fe80::e022:9cff:fecc:c7c4": missing ']' in host`},
-		{Input: normalizeServiceName("https://fe80::e022:9cff:fecc:c7c4", "otherns", "ConsulResolver"), Err: `service "https://fe80::e022:9cff:fecc:c7c4": parse "https://fe80::e022:9cff:fecc:c7c4": invalid port ":c7c4" after host`},
+		{Input: normalizeServiceName("https://fe80::e022:9cff:fecc:c7c4", "otherns", "ConsulResolver"), Err: `service "https://fe80::e022:9cff:fecc:c7c4": parse "https://fe80::e022:9cff:fecc:c7c4": invalid port "::e022:9cff:fecc:c7c4" after host`},
 		{Input: normalizeServiceName("https://bad-service:-1", "otherns", "ConsulResolver"), Err: `service "https://bad-service:-1": parse "https://bad-service:-1": invalid port ":-1" after host`},
 		{Input: normalizeServiceName("https://bad-service:70000", "otherns", "ConsulResolver"), Err: `service "https://bad-service:70000": port 70000: strconv.ParseUint: parsing "70000": value out of range`},
 		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4%zone]:443", "other"), Err: `service "https://[fe80::e022:9cff:fecc:c7c4%zone]:443": parse "https://[fe80::e022:9cff:fecc:c7c4%zone]:443": invalid URL escape "%zo"`},
@@ -302,7 +306,12 @@ func TestQualifyService(t *testing.T) {
 		t.Run(fmt.Sprintf("%v: %v", i, tc), func(t *testing.T) {
 			t.Parallel()
 			actVal, actErr := NormalizeServiceName(ir, tc.Input.Svc, tc.Input.Namespace, tc.Input.ResolverKind)
-			if tc.Err == "" {
+			if tc.ErrPrefix != "" {
+				assert.Equal(t, "", actVal)
+				if assert.Error(t, actErr) {
+					assert.True(t, strings.HasPrefix(actErr.Error(), tc.ErrPrefix), actErr.Error())
+				}
+			} else if tc.Err == "" {
 				assert.Equal(t, tc.Output, actVal)
 				assert.NoError(t, actErr)
 			} else {
