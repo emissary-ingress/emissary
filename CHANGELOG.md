@@ -59,6 +59,15 @@ from the Helm charts.
   share, so a pair weighted 70 and 30 actually split about 77/23. If you had tuned
   weights around the old behaviour, your split will change.
 
+- Fix: A TLS `TCPMapping` now only takes its certificate from a `Host` that its
+  `Listener`'s `hostBinding` selects, the same way HTTP `Mapping`s already do.
+  Previously every `Host` was considered, so the `Listener` could serve the
+  certificate of a `Host` it doesn't bind. If no bound `Host` matches, a
+  matching `TLSContext` is still used; otherwise the `TCPMapping` is disabled
+  with an error. ([#5732])
+
+[#5732]: https://github.com/emissary-ingress/emissary/issues/5732
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
