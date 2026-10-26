@@ -1,0 +1,35 @@
+---
+# Port of KAT's tests/kat/t_ip_allow_deny.py::IPDeny.
+#
+# `exclusive` because a Module is instance-global, and because it patches the
+# slot's own 8080 Listener (a second Listener on that port would conflict).
+# `l7Depth: 1` makes Envoy trust one X-Forwarded-For hop, so the probe can
+# fake a client address. The /localhost/ Mapping loops back to the slot's own
+# 8080 with the XFF hop already consumed, so only the `peer: 127.0.0.1` rule
+# can refuse it.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: ip-deny
+spec:
+  steps:
+    - name: trust one XFF hop, apply and probe
+      try:
+        - script:
+            content: |
+              kubectl -n "emissary-${SLOT}" patch listener "emissary-${SLOT}-http-listener" --type merge -p '{"spec":{"l7Depth":1}}'
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'no client address'      '[.[0,1] | .result.status] == [200, 403]' \
+                'denied address'         '[.[2,3] | .result.status] == [403, 403]' \
+                'other address'          '[.[4,5] | .result.status] == [200, 403]'
+      finally:
+        - script:
+            content: |
+              kubectl -n "emissary-${SLOT}" patch listener "emissary-${SLOT}-http-listener" --type merge -p '{"spec":{"l7Depth":null}}'
