@@ -1,0 +1,23 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_default.py::RejectRequestsWithEscapedSlashesEnabled.
+# reject_requests_with_escaped_slashes is a Module setting, hence `slot: exclusive`.
+# A request Envoy rejects never reaches kat-server, so the response carries no
+# X-Envoy-Upstream-Service-Time.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: mapping-reject-escaped-slashes-enabled
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'plain path routes'              '.[1].result.status == 200 and .[1].result.json.backend == "mapping-reject-escaped-slashes-enabled"' \
+                'escaped slash rejected by envoy' '.[0].result.status == 400 and (.[0].result.headers | has("X-Envoy-Upstream-Service-Time") | not)'
