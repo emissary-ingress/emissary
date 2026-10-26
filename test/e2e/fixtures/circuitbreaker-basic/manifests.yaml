@@ -1,0 +1,115 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+---
+# test-stats is built from this repo for the runner's own architecture, so it is
+# derived from the kat-server image reference. It counts only the clusters named
+# in STATSD_TEST_CLUSTER.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stats-sink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stats-sink
+  template:
+    metadata:
+      labels:
+        app: stats-sink
+    spec:
+      containers:
+        - name: test-stats
+          image: (replace(env('KAT_SERVER_IMAGE'), 'kat-server', 'test-stats', `-1`))
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: STATSD_TEST_CLUSTER
+              value: (join('_', ['target', replace($namespace, '-', '_', `-1`), '8080']))
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stats-sink
+spec:
+  selector:
+    app: stats-sink
+  ports:
+    - name: statsd-metrics
+      protocol: UDP
+      port: 8125
+    - name: statsd-http
+      protocol: TCP
+      port: 80
+      targetPort: 3000
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: http://target:8080
+  circuit_breakers:
+    - priority: default
+      max_pending_requests: 1
+      max_connections: 1
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: sink-reset
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  case_sensitive: false
+  prefix: /reset/
+  rewrite: /RESET/
+  service: stats-sink:80
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: sink-dump
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  case_sensitive: false
+  prefix: /dump/
+  rewrite: /DUMP/
+  service: stats-sink:80

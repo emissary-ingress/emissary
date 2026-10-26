@@ -1,0 +1,71 @@
+---
+# Port of KAT's tests/kat/t_stats.py::DogstatsdTest.
+#
+# `exclusive` because it sets STATSD_ENABLED, STATSD_HOST and DOGSTATSD on the
+# slot's Emissary. The sink Service has to exist before the env is set, since
+# Emissary resolves STATSD_HOST while generating config.
+#
+# The sink folds both wire formats into the same JSON, so the DogStatsD format
+# is checked on the datagrams the sink logs as it receives them.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: dogstatsd
+spec:
+  steps:
+    - name: set the env vars, apply and probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: stats-sink
+              status:
+                availableReplicas: 1
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" STATSD_ENABLED=true DOGSTATSD=true "STATSD_HOST=stats-sink.${NAMESPACE}" || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+        - script:
+            timeout: 2m
+            content: |
+              s=$(printf %s "$NAMESPACE" | tr - _)
+              ../../probe.sh warmup.json \
+                'target answers' '.[0].result.status == 200' || exit 1
+              ../../probe.sh dump.json \
+                'cluster seen by the sink' ".[0].result.json[\"target_${s}_8080\"].upstream_rq_200 >= 1" || exit 1
+              ../../probe.sh reset.json \
+                'sink reset' '.[0].result.status == 200' || exit 1
+              ../../probe.sh dump.json \
+                'no requests counted since the reset' '[.[0].result.json[] | to_entries[] | select(.key | test("upstream_rq")) | .value] | all(. == 0)' || exit 1
+        - script:
+            timeout: 5m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[range(1000) | {url: "/target/", method: "GET"}]' > "$queries"
+              PROBE_ATTEMPTS=1 ../../probe.sh "$queries" \
+                'all 1000 answered' 'length == 1000 and all(.[]; .result.status == 200)'
+        - script:
+            timeout: 2m
+            content: |
+              s=$(printf %s "$NAMESPACE" | tr - _)
+              c="target_${s}_8080"
+              # StatsD is UDP and the sink drops datagrams under load, so its counts are lower bounds.
+              ../../probe.sh dump.json \
+                'cluster: most requests counted' ".[0].result.json[\"${c}\"].upstream_rq_total >= 500" \
+                'cluster: no 5xx counted' "(.[0].result.json[\"${c}\"].upstream_rq_5xx // 0) == 0" || exit 1
+              kubectl -n "$NAMESPACE" logs deploy/stats-sink | grep -F "envoy.cluster.upstream_rq:" | grep -qF "|c|#envoy.response_code:200,envoy.cluster_name:${c}"
+      finally:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" STATSD_ENABLED- STATSD_HOST- DOGSTATSD- || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s

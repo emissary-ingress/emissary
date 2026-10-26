@@ -1,0 +1,75 @@
+---
+# Port of KAT's tests/kat/t_circuitbreaker.py::CircuitBreakingTest.
+#
+# `exclusive` because it sets STATSD_ENABLED and STATSD_HOST on the slot's
+# Emissary. The sink Service has to exist before the env is set, since Emissary
+# resolves STATSD_HOST while generating config.
+#
+# The mapping allows one connection and one pending request, and the backend
+# holds each request for a second. The burst is sent once after a warm-up and a
+# sink reset (PROBE_ATTEMPTS=1), in two batches of 200.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: circuitbreaker-basic
+spec:
+  steps:
+    - name: set the env vars, apply and probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: stats-sink
+              status:
+                availableReplicas: 1
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" STATSD_ENABLED=true "STATSD_HOST=stats-sink.${NAMESPACE}" || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+        - script:
+            timeout: 2m
+            content: |
+              s=$(printf %s "$NAMESPACE" | tr - _)
+              ../../probe.sh warmup.json \
+                'target answers' '.[0].result.status == 200' || exit 1
+              ../../probe.sh dump.json \
+                'cluster seen by the sink' ".[0].result.json[\"target_${s}_8080\"].upstream_rq_200 >= 1" || exit 1
+              ../../probe.sh reset.json \
+                'sink reset' '.[0].result.status == 200' || exit 1
+              ../../probe.sh dump.json \
+                'no requests counted since the reset' '[.[0].result.json[] | to_entries[] | select(.key | test("upstream_rq")) | .value] | all(. == 0)' || exit 1
+        - script:
+            timeout: 5m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[range(200) | {url: "/target/", method: "GET", headers: {"Kat-Req-Http-Requested-Backend-Delay": "1000"}}]' > "$queries"
+              for batch in 1 2; do
+                PROBE_ATTEMPTS=1 ../../probe.sh "$queries" \
+                  'all 200 answered' 'length == 200' \
+                  'no connection errors' '([.[] | select(.result.error != null)] | length) == 0' \
+                  'most are shed by the breaker' '([.[] | select(.result.headers["X-Envoy-Overloaded"] != null)] | length) as $o | $o > 150 and $o < 200'
+              done
+        - script:
+            timeout: 2m
+            content: |
+              s=$(printf %s "$NAMESPACE" | tr - _)
+              # StatsD is UDP and the sink drops datagrams under load, so its counts are lower bounds.
+              ../../probe.sh dump.json \
+                'most requests completed' ".[0].result.json[\"target_${s}_8080\"].upstream_rq_completed >= 200" \
+                'pending overflow was counted' ".[0].result.json[\"target_${s}_8080\"].upstream_rq_pending_overflow >= 150" \
+                'overflow answered with 503' ".[0].result.json[\"target_${s}_8080\"].upstream_rq_503 >= 150"
+      finally:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" STATSD_ENABLED- STATSD_HOST- || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s

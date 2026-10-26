@@ -1,0 +1,79 @@
+---
+# Port of KAT's tests/kat/t_stats.py::StatsdTest.
+#
+# `exclusive` because it sets STATSD_ENABLED and STATSD_HOST on the slot's
+# Emissary. The sink Service has to exist before the env is set, since Emissary
+# resolves STATSD_HOST while generating config.
+#
+# The Prometheus check reads envoy_cluster_upstream_rq, which counts internal
+# and external origins alike; kat-client's requests arrive from outside.
+#
+# Both targets are warmed up and the sink reset before the 1000 + 1000
+# requests are sent once, so the sink's totals are exact. Envoy flushes stats
+# every second, so the sink is polled rather than read once.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: statsd
+spec:
+  steps:
+    - name: set the env vars, apply and probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: stats-sink
+              status:
+                availableReplicas: 1
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" STATSD_ENABLED=true "STATSD_HOST=stats-sink.${NAMESPACE}" || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+        - script:
+            timeout: 2m
+            content: |
+              s=$(printf %s "$NAMESPACE" | tr - _)
+              ../../probe.sh warmup.json \
+                'both targets answer' '.[0].result.status == 200 and .[1].result.status == 200' || exit 1
+              ../../probe.sh dump.json \
+                'both clusters seen by the sink' ".[0].result.json[\"target_${s}_8080\"].upstream_rq_200 >= 1 and .[0].result.json[\"short-stats-name\"].upstream_rq_200 >= 1" || exit 1
+              ../../probe.sh reset.json \
+                'sink reset' '.[0].result.status == 200' || exit 1
+              ../../probe.sh dump.json \
+                'no requests counted since the reset' '[.[0].result.json[] | to_entries[] | select(.key | test("upstream_rq")) | .value] | all(. == 0)' || exit 1
+        - script:
+            timeout: 5m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[range(1000) | {url: "/target/", method: "GET"}, {url: "/target-alt/", method: "GET"}]' > "$queries"
+              PROBE_ATTEMPTS=1 ../../probe.sh "$queries" \
+                'all 2000 answered' 'length == 2000 and all(.[]; .result.status == 200)'
+        - script:
+            timeout: 2m
+            content: |
+              s=$(printf %s "$NAMESPACE" | tr - _)
+              c="target_${s}_8080"
+              # StatsD is UDP and the sink drops datagrams under load, so its counts are lower bounds.
+              ../../probe.sh dump.json \
+                'target cluster: most requests counted' ".[0].result.json[\"${c}\"].upstream_rq_total >= 500" \
+                'target cluster: no 5xx counted' "(.[0].result.json[\"${c}\"].upstream_rq_5xx // 0) == 0" \
+                'stats_name cluster: most requests counted' '.[0].result.json["short-stats-name"].upstream_rq_total >= 500' \
+                'stats_name cluster: no 5xx counted' '(.[0].result.json["short-stats-name"].upstream_rq_5xx // 0) == 0' || exit 1
+              ../../probe.sh metrics.json \
+                'prometheus lists the target cluster' "(.[0].result.text | split(\"\n\") | any(.[]; contains(\"envoy_cluster_upstream_rq{\") and contains(\"envoy_response_code=\\\"200\\\"\") and contains(\"envoy_cluster_name=\\\"${c}\\\"\")))" \
+                'prometheus lists the stats_name cluster' '(.[0].result.text | split("\n") | any(.[]; contains("envoy_cluster_upstream_rq{") and contains("envoy_response_code=\"200\"") and contains("envoy_cluster_name=\"short-stats-name\"")))'
+      finally:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" STATSD_ENABLED- STATSD_HOST- || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
