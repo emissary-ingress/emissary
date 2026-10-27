@@ -29,6 +29,30 @@ from the Helm charts.
 ## [TBD] TBD
 [TBD]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...TBD
 
+- Update: Upgrade from Envoy 1.37.2 to Envoy 1.40.2 ([1.38.0 release notes],
+  [1.39.0 release notes], [1.40.0 release notes], [1.40.2 release notes]). Envoy
+  1.40 changes some defaults that are visible through Emissary:
+  - When `ENVOY_CONCURRENCY` is not set, Envoy now sizes its worker threads to
+    the container's cgroup CPU limit rather than to the node's CPU count. Set
+    `ENVOY_CGROUP_CPU_DETECTION=false` on the Emissary container to keep the old
+    behaviour.
+  - The `x-envoy-upstream-stream-duration-ms` request header is now stripped from
+    external requests, like the other `x-envoy-*` timeout and retry headers.
+  - The HTTP/1 `QUERY` method is now forwarded upstream rather than rejected with
+    a 400.
+  - Regular expressions in `Mapping`s (`prefix_regex`, `regex_headers`,
+    `regex_rewrite`, and so on) are now matched in Latin-1 mode rather than UTF-8
+    (CVE-2026-73552).
+  - `X25519MLKEM768` is now one of the default TLS ECDH curves for `Host`s and
+    `TLSContext`s that do not set `ecdh_curves`.
+  - The image's CA bundle no longer trusts the compromised eMudhra intermediate
+    CAs.
+
+[1.38.0 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.38/v1.38.0
+[1.39.0 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.39/v1.39.0
+[1.40.0 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.40/v1.40.0
+[1.40.2 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.40/v1.40.2
+
 - Security: `diagd`'s internal API -- most importantly `POST /_internal/v0/watt`,
   which hands Emissary a new configuration snapshot -- is no longer reachable
   through the admin port (8877). `diagd` now listens on a Unix-domain socket
