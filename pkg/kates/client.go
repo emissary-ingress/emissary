@@ -258,8 +258,10 @@ func (c *Client) InvalidateCache() error {
 	if err != nil {
 		return err
 	}
+	c.mutex.Lock()
 	c.mapper = mapper
 	c.disco = disco
+	c.mutex.Unlock()
 	return nil
 }
 
