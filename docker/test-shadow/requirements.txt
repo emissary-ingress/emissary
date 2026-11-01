@@ -20,5 +20,5 @@ markupsafe==3.0.2
     #   werkzeug
 typing-extensions==4.8.0
     # via test-shadow (pyproject.toml)
-werkzeug==3.1.6
+werkzeug==3.1.9
     # via flask
