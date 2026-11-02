@@ -59,6 +59,12 @@ from the Helm charts.
   share, so a pair weighted 70 and 30 actually split about 77/23. If you had tuned
   weights around the old behaviour, your split will change.
 
+- Fix: A `ConsulResolver`'s `datacenter` is now honored. It was being ignored, so
+  every lookup went to the datacenter of the Consul agent at `address`, and a
+  resolver naming a datacenter that agent does not serve (or serves under another
+  name) still resolved. Lookups now query the named datacenter; if you had a
+  wrong `datacenter` that happened to work, it will stop resolving.
+
 - Fix: The Helm chart no longer declares the same `containerPort` twice when several
   `service.ports` share a `targetPort` (for example `http` and `https` both targeting 8080
   when TLS is terminated at the load balancer). Duplicate entries can make the Deployment fail to apply.

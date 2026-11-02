@@ -1,0 +1,7 @@
+[
+  {
+    "url": "/mapping-remove-request-headers/",
+    "method": "GET",
+    "headers": { "zoo": "ZooZ", "aoo": "AooA", "foo": "FooF" }
+  }
+]

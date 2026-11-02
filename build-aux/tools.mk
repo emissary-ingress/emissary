@@ -175,11 +175,14 @@ $(tools/ct).d/bin/kubectl: $(tools/kubectl)
 $(tools/ct).d/dir.txt: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	mkdir -p $(@D)
 	cd $(<D) && GOFLAGS='-mod=readonly' go list -f='{{ .Module.Dir }}' "$$(sed -En 's,^import _ "(.*)".*,\1,p' pin.go)" >$(abspath $@)
+# ct's Dockerfile pins yamale but takes yamllint from the distro, so
+# yamllint is pinned here to keep lint results stable across runners.
+tools/ct.yamllint-version = 1.38.0
 $(tools/ct).d/venv: %/venv: %/dir.txt
 	rm -rf $@
 	python3 -m venv $@
 	$@/bin/pip3 install \
-	  yamllint==$$(sed -n 's/ARG yamllint_version=//p' "$$(cat $<)/Dockerfile") \
+	  yamllint==$(tools/ct.yamllint-version) \
 	  yamale==$$(sed -n 's/ARG yamale_version=//p' "$$(cat $<)/Dockerfile") \
 	  || (rm -rf $@; exit 1)
 $(tools/ct).d/home: %/home: %/dir.txt

@@ -1,0 +1,23 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_default.py::MergeSlashesEnabled.
+# merge_slashes is a Module setting, hence `slot: exclusive`.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: mapping-merge-slashes-enabled
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'plain path routes'        '.[0].result.status == 200 and .[0].result.json.backend == "mapping-merge-slashes-enabled"' \
+                'leading slash merged'     '.[1].result.status == 200 and .[1].result.json.backend == "mapping-merge-slashes-enabled"' \
+                'leading and inner merged' '.[2].result.status == 200 and .[2].result.json.backend == "mapping-merge-slashes-enabled"' \
+                'inner slash merged'       '.[3].result.status == 200 and .[3].result.json.backend == "mapping-merge-slashes-enabled"'

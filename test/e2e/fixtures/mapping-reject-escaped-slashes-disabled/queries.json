@@ -1,0 +1,4 @@
+[
+  { "url": "/mapping-reject-escaped-slashes-disabled/status/%2F200", "method": "GET" },
+  { "url": "/mapping-reject-escaped-slashes-disabled/status/200", "method": "GET" }
+]
