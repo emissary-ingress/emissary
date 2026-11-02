@@ -6,6 +6,11 @@
 # Registration goes through the API server's service proxy, since Consul is only
 # reachable inside the cluster. consul-node is registered without a
 # Service.Address, so its endpoint must fall back to the node's Address.
+#
+# consul-dc13 asks for a datacenter Consul does not have, so it must never
+# resolve even though consul-dc13-service is registered in dc12. It uses its own
+# service name because endpoints are keyed by service name alone, and is
+# registered first so it has the longest head start to (wrongly) resolve.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
@@ -29,7 +34,7 @@ spec:
               kubectl -n "$NAMESPACE" rollout status deploy/consul --timeout=90s || exit 1
               ../../probe.sh queries.json \
                 'k8s backend serves'              '.[0].result.status == 200 and .[0].result.json.backend == "k8s"' \
-                'unregistered services are 503'   '[.[1:4][].result.status] == [503, 503, 503]'
+                'unregistered services are 503'   '[.[1:5][].result.status] == [503, 503, 503, 503]'
         - script:
             timeout: 2m
             content: |
@@ -40,6 +45,11 @@ spec:
               register() {
                 kubectl replace --raw "$proxy" -f "$dir/body.json" >/dev/null
               }
+              cat > "$dir/body.json" <<JSON
+              {"Datacenter": "dc12", "Node": "consul-dc13-service", "Address": "k8s.${NAMESPACE}",
+               "Service": {"Service": "consul-dc13-service", "Address": "k8s.${NAMESPACE}", "Port": 8080}}
+              JSON
+              register
               cat > "$dir/body.json" <<JSON
               {"Datacenter": "dc12", "Node": "consul-service", "Address": "k8s.${NAMESPACE}",
                "Service": {"Service": "consul-service", "Address": "k8s.${NAMESPACE}", "Port": 8080}}
@@ -62,4 +72,5 @@ spec:
                 'k8s backend serves'                 '.[0].result.status == 200 and .[0].result.json.backend == "k8s"' \
                 'consul-resolved service'            '.[1].result.status == 200 and .[1].result.json.backend == "k8s"' \
                 'consul-resolved cross-namespace'    '.[2].result.status == 200 and .[2].result.json.backend == "k8s-ns"' \
-                'consul-resolved via node address'   '.[3].result.status == 200 and .[3].result.json.backend == "k8s"'
+                'consul-resolved via node address'   '.[3].result.status == 200 and .[3].result.json.backend == "k8s"' \
+                'wrong datacenter does not resolve'  '.[4].result.status == 503'

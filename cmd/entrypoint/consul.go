@@ -314,6 +314,9 @@ func watchConsul(
 	// XXX: should this part be shared?
 	consulConfig := consulapi.DefaultConfig()
 	consulConfig.Address = resolver.Spec.Address
+	// The watch plan ignores its own datacenter when run with a caller-supplied
+	// client, so the client has to carry it.
+	consulConfig.Datacenter = resolver.Spec.Datacenter
 	consul, err := consulapi.NewClient(consulConfig)
 	if err != nil {
 		return nil, err

@@ -2,5 +2,6 @@
   {"url": "/k8s/", "method": "GET"},
   {"url": "/consul/", "method": "GET"},
   {"url": "/consul_ns/", "method": "GET"},
-  {"url": "/consul_node/", "method": "GET"}
+  {"url": "/consul_node/", "method": "GET"},
+  {"url": "/consul_dc13/", "method": "GET"}
 ]
