@@ -112,7 +112,12 @@ func image(ctx context.Context, dir, dockerfile string) (string, error) {
 	}
 
 	dockerCtx := filepath.Dir(filepath.Join(dir, dockerfile))
-	cmd := dexec.CommandContext(ctx, "docker", "build", "-f", filepath.Base(dockerfile), ".", "--iidfile", iidfile.Name())
+	// The image ID must be a pure function of the build inputs so that
+	// repeated builds of the same Dockerfile tag the same image. With the
+	// containerd image store the ID is the digest of a manifest list that
+	// also covers the provenance attestation, and that attestation carries
+	// build timestamps, so provenance is turned off.
+	cmd := dexec.CommandContext(ctx, "docker", "build", "-f", filepath.Base(dockerfile), ".", "--provenance=false", "--iidfile", iidfile.Name())
 	cmd.Dir = dockerCtx
 	err = cmd.Run()
 	if err != nil {
