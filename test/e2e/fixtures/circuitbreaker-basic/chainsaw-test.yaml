@@ -41,10 +41,14 @@ spec:
                 'target answers' '.[0].result.status == 200' || exit 1
               ../../probe.sh dump.json \
                 'cluster seen by the sink' ".[0].result.json[\"target_${s}_8080\"].upstream_rq_200 >= 1" || exit 1
-              ../../probe.sh reset.json \
-                'sink reset' '.[0].result.status == 200' || exit 1
-              ../../probe.sh dump.json \
-                'no requests counted since the reset' '[.[0].result.json[] | to_entries[] | select(.key | test("upstream_rq")) | .value] | all(. == 0)' || exit 1
+              # A count from the warm-up can reach the sink after a reset, so reset until a dump is clean.
+              clean=
+              for i in 1 2 3 4 5 6 7 8 9 10; do
+                PROBE_ATTEMPTS=1 ../../probe.sh reset.json 'sink reset' '.[0].result.status == 200' || exit 1
+                sleep 2
+                if PROBE_ATTEMPTS=1 ../../probe.sh dump.json 'no requests counted since the reset' '[.[0].result.json[] | to_entries[] | select(.key | test("upstream_rq")) | .value] | all(. == 0)'; then clean=1; break; fi
+              done
+              [ -n "$clean" ] || exit 1
         - script:
             timeout: 5m
             content: |
