@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-merge-slashes-disabled
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-merge-slashes-disabled
+  template:
+    metadata:
+      labels:
+        app: mapping-merge-slashes-disabled
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-merge-slashes-disabled
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-merge-slashes-disabled
+spec:
+  selector:
+    app: mapping-merge-slashes-disabled
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-merge-slashes-disabled
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-merge-slashes-disabled/status/
+  rewrite: /status/
+  service: mapping-merge-slashes-disabled:8080

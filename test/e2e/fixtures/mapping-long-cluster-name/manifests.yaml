@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-long-cluster-name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-long-cluster-name
+  template:
+    metadata:
+      labels:
+        app: mapping-long-cluster-name
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-long-cluster-name
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-long-cluster-name
+spec:
+  selector:
+    app: mapping-long-cluster-name
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thisisaverylongservicenameoverwithsixythreecharacters123456789
+spec:
+  type: ExternalName
+  externalName: (join('.', ['mapping-long-cluster-name', $namespace, 'svc.cluster.local']))
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-long-cluster-name
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-long-cluster-name/
+  service: thisisaverylongservicenameoverwithsixythreecharacters123456789

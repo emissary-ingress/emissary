@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-remove-request-headers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-remove-request-headers
+  template:
+    metadata:
+      labels:
+        app: mapping-remove-request-headers
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-remove-request-headers
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-remove-request-headers
+spec:
+  selector:
+    app: mapping-remove-request-headers
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-remove-request-headers
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-remove-request-headers/
+  service: mapping-remove-request-headers:8080
+  remove_request_headers:
+    - zoo
+    - aoo

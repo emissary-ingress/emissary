@@ -1,0 +1,8 @@
+[
+  {"url": "/target/00", "method": "GET"},
+  {"url": "/localhost/01", "method": "GET"},
+  {"url": "/target/10", "method": "GET", "headers": {"X-Forwarded-For": "99.98.0.1"}},
+  {"url": "/localhost/11", "method": "GET", "headers": {"X-Forwarded-For": "99.98.0.1"}},
+  {"url": "/target/20", "method": "GET", "headers": {"X-Forwarded-For": "99.99.0.1"}},
+  {"url": "/localhost/21", "method": "GET", "headers": {"X-Forwarded-For": "99.99.0.1"}}
+]
