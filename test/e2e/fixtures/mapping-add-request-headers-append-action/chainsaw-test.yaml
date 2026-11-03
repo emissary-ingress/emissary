@@ -1,0 +1,31 @@
+---
+# A Mapping's add_request_headers with each append_action. The query sends the
+# "present" headers, so each assertion shows how the action treats a header
+# the client already set, and the "missing" ones show what it does when the
+# client did not.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-add-request-headers-append-action
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'reached the backend'                 '.[0].result.status == 200 and .[0].result.json.backend == "mapping-add-request-headers-append-action"' \
+                'APPEND_IF_EXISTS_OR_ADD appends'     '.[0].result.json.request.headers["x-append-present"] == ["Client", "Mapping"]' \
+                'APPEND_IF_EXISTS_OR_ADD adds'        '.[0].result.json.request.headers["x-append-missing"] == ["Mapping"]' \
+                'ADD_IF_ABSENT keeps the client'      '.[0].result.json.request.headers["x-add-if-absent-present"] == ["Client"]' \
+                'ADD_IF_ABSENT adds'                  '.[0].result.json.request.headers["x-add-if-absent-missing"] == ["Mapping"]' \
+                'OVERWRITE_IF_EXISTS_OR_ADD replaces' '.[0].result.json.request.headers["x-overwrite-or-add-present"] == ["Mapping"]' \
+                'OVERWRITE_IF_EXISTS_OR_ADD adds'     '.[0].result.json.request.headers["x-overwrite-or-add-missing"] == ["Mapping"]' \
+                'OVERWRITE_IF_EXISTS replaces'        '.[0].result.json.request.headers["x-overwrite-present"] == ["Mapping"]' \
+                'OVERWRITE_IF_EXISTS does not add'    '.[0].result.json.request.headers | has("x-overwrite-missing") | not' \
+                'append_action wins over append'      '.[0].result.json.request.headers["x-both-present"] == ["Client"]'

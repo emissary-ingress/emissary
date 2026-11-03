@@ -18,7 +18,7 @@ from typing import cast as typecast
 from ...cache import Cacheable
 from ...ir.irbasemapping import IRBaseMapping
 from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
-from ...ir.irutils import hostglob_matches
+from ...ir.irutils import generate_headers_to_add, hostglob_matches
 from ..common import EnvoyRoute
 from .v3ratelimitaction import V3RateLimitAction
 
@@ -371,11 +371,15 @@ class V3Route(Cacheable):
 
         request_headers_to_add = group.get("add_request_headers", None)
         if request_headers_to_add:
-            self["request_headers_to_add"] = self.generate_headers_to_add(request_headers_to_add)
+            self["request_headers_to_add"] = generate_headers_to_add(
+                self.logger, request_headers_to_add
+            )
 
         response_headers_to_add = group.get("add_response_headers", None)
         if response_headers_to_add:
-            self["response_headers_to_add"] = self.generate_headers_to_add(response_headers_to_add)
+            self["response_headers_to_add"] = generate_headers_to_add(
+                self.logger, response_headers_to_add
+            )
 
         request_headers_to_remove = group.get("remove_request_headers", None)
         if request_headers_to_remove:
@@ -743,31 +747,6 @@ class V3Route(Cacheable):
                     hash_policy["connection_properties"] = {"source_ip": source_ip}
 
         return hash_policy
-
-    def generate_headers_to_add(self, header_dict: dict) -> List[dict]:
-        headers = []
-        for k, v in header_dict.items():
-            append = True
-            if isinstance(v, dict):
-                if "append" in v:
-                    append = bool(v["append"])
-                value = v.get("value")
-                if value is None:
-                    # e.g. add_response_headers: {cache-control: {append: true}} (no value).
-                    # Never crash the sidecar on this; skip the header and log the error.
-                    self.logger.error(
-                        f"generate_headers_to_add: header {k!r} has no value; skipping"
-                    )
-                    continue
-                headers.append({"header": {"key": k, "value": value}, "append": append})
-            else:
-                headers.append(
-                    {
-                        "header": {"key": k, "value": v},
-                        "append": append,  # Default append True, for backward compatability
-                    }
-                )
-        return headers
 
     @staticmethod
     def generate_regex_rewrite(config: "V3Config", mapping_group: IRHTTPMappingGroup) -> dict:
