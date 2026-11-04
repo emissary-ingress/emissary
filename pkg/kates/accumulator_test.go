@@ -186,8 +186,8 @@ func TestNotifyNotInfinitelyBlocked(t *testing.T) {
 	ctx2, cancel := context.WithCancel(ctx2)
 	var wg sync.WaitGroup
 	// Create a new Configmap every 2 seconds < 5 second interval to simulate a constant changes
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		var i int
 		ticker := time.NewTicker(2 * time.Second)

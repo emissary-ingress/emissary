@@ -21,7 +21,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/big"
 	math_rand "math/rand"
 	"net"
@@ -138,7 +137,7 @@ func Main(ctx context.Context, args CLIArgs) (err error) {
 	var caKey *rsa.PrivateKey
 	if args.SignedBy != "self" {
 		parts := strings.Split(args.SignedBy, ",")
-		caCertPEMBytes, err := ioutil.ReadFile(parts[0])
+		caCertPEMBytes, err := os.ReadFile(parts[0])
 		if err != nil {
 			return fmt.Errorf("read CA cert: %w", err)
 		}
@@ -151,7 +150,7 @@ func Main(ctx context.Context, args CLIArgs) (err error) {
 			return fmt.Errorf("parse CA cert: %w", err)
 		}
 
-		caKeyPEMBytes, err := ioutil.ReadFile(parts[1])
+		caKeyPEMBytes, err := os.ReadFile(parts[1])
 		if err != nil {
 			return fmt.Errorf("read CA key: %w", err)
 		}
@@ -197,12 +196,12 @@ func Main(ctx context.Context, args CLIArgs) (err error) {
 		return err
 	}
 
-	if err := ioutil.WriteFile(args.OutCert, pubBytes, 0666); err != nil {
+	if err := os.WriteFile(args.OutCert, pubBytes, 0666); err != nil {
 		return fmt.Errorf("writing cert to %q: %w", args.OutCert, err)
 	}
 	dlog.Printf(ctx, "%q: wrote cert to %q\n", name, args.OutCert)
 
-	if err := ioutil.WriteFile(args.OutKey, privKeyBytes, 0666); err != nil {
+	if err := os.WriteFile(args.OutKey, privKeyBytes, 0666); err != nil {
 		return fmt.Errorf("writing key to %q: %w", args.OutKey, err)
 	}
 	dlog.Printf(ctx, "%q: wrote key to %q\n", name, args.OutKey)
