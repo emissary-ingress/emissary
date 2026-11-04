@@ -3,7 +3,7 @@ following Free and Open Source software:
 
     Name                                                                                    Version                                        License(s)
     ----                                                                                    -------                                        ----------
-    the Go language standard library ("std")                                                v1.26.0                                        3-clause BSD license
+    the Go language standard library ("std")                                                v1.27.3                                        3-clause BSD license
     cel.dev/expr                                                                            v0.25.3                                        Apache License 2.0
     dario.cat/mergo                                                                         v1.0.2                                         3-clause BSD license
     github.com/Azure/go-ansiterm                                                            v0.0.0-20261013165250-51075c6ea6bc             MIT license
@@ -69,7 +69,7 @@ following Free and Open Source software:
     github.com/google/gnostic-models                                                        v0.7.1                                         Apache License 2.0
     github.com/google/uuid                                                                  v1.6.0                                         3-clause BSD license
     github.com/gorilla/websocket                                                            v1.5.4-0.20250319132907-e064f32e3674           2-clause BSD license
-    github.com/hashicorp/consul/api                                                         v1.34.4                                        Mozilla Public License 2.0
+    github.com/hashicorp/consul/api                                                         v1.35.0                                        Mozilla Public License 2.0
     github.com/hashicorp/errwrap                                                            v1.1.0                                         Mozilla Public License 2.0
     github.com/hashicorp/go-cleanhttp                                                       v0.5.2                                         Mozilla Public License 2.0
     github.com/hashicorp/go-hclog                                                           v1.6.3                                         MIT license
