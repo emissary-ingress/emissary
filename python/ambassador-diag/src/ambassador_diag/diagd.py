@@ -59,7 +59,7 @@ from prometheus_client import (
     ProcessCollector,
     generate_latest,
 )
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger import json as jsonlogger
 from typing import NotRequired, TypedDict
 
 from ambassador import IR, Cache, Config, Diagnostics, EnvoyConfig, Version

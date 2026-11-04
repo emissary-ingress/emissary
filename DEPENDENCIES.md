@@ -192,25 +192,24 @@ libraries:
     ----                -------     ----------
     Flask               3.1.3       3-clause BSD license
     Jinja2              3.1.6       3-clause BSD license
-    MarkupSafe          3.0.3       3-clause BSD license
-    PyYAML              6.0.2       MIT license
-    Werkzeug            3.1.3       3-clause BSD license
+    MarkupSafe          3.0.4       3-clause BSD license
+    PyYAML              6.0.3       MIT license
+    Werkzeug            3.1.9       3-clause BSD license
     blinker             1.9.0       MIT license
-    certifi             2025.11.12  Mozilla Public License 2.0
-    charset-normalizer  3.4.4       MIT license
-    click               8.3.0       3-clause BSD license
-    durationpy          0.10        MIT license
+    certifi             2026.10.23  Mozilla Public License 2.0
+    charset-normalizer  3.5.2       MIT license
+    click               8.5.0       3-clause BSD license
+    durationpy          0.11        MIT license
     expiringdict        1.2.2       Apache License 2.0
-    gunicorn            25.1.0      MIT license
-    idna                3.11        3-clause BSD license
+    gunicorn            26.2.0      MIT license
+    idna                3.20        3-clause BSD license
     itsdangerous        2.2.0       3-clause BSD license
-    jsonpatch           1.33        3-clause BSD license
-    jsonpointer         3.0.0       3-clause BSD license
-    orjson              3.11.1      Apache License 2.0, MIT license
-    packaging           24.2        2-clause BSD license, Apache License 2.0
-    pip                 26.0.1      MIT license
-    prometheus_client   0.22.1      2-clause BSD license, Apache License 2.0
-    python-json-logger  2.0.7       2-clause BSD license
-    requests            2.32.5      Apache License 2.0
+    jsonpatch           1.42        3-clause BSD license
+    jsonpointer         3.8         3-clause BSD license
+    orjson              3.13.0      Apache License 2.0, MIT license, Mozilla Public License 2.0
+    pip                 26.3        MIT license
+    prometheus_client   0.26.0      2-clause BSD license, Apache License 2.0
+    python-json-logger  4.2.0       2-clause BSD license
+    requests            2.34.2      Apache License 2.0
     semantic-version    2.10.0      2-clause BSD license
-    urllib3             2.5.0       MIT license
+    urllib3             2.8.0       MIT license
