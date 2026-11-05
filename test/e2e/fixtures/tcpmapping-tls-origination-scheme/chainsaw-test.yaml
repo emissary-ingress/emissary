@@ -2,9 +2,8 @@
 # Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingTLSOriginationV3SchemeTest.
 #
 # An "https://" prefix on the TCPMapping's `service` originates TLS to the
-# backend with no named TLSContext, same as the v2 apiVersion's bare
-# `tls: true` (see tcpmapping-tls-origination-bool). The downstream side of
-# the mapping stays plain TCP.
+# backend with no named TLSContext. The downstream side of the mapping stays
+# plain TCP.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:

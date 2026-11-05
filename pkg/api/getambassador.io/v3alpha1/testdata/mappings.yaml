@@ -575,7 +575,6 @@
 - apiVersion: getambassador.io/v3alpha1
   kind: Mapping
   metadata:
-    creationTimestamp: null
     name: linkerdheadermapping-http-addlinkerdonly
   spec:
     hostname: "*"
@@ -586,7 +585,6 @@
 - apiVersion: getambassador.io/v3alpha1
   kind: Mapping
   metadata:
-    creationTimestamp: null
     name:  errorresponseonstatuscode-invalidservice-empty
   spec:
     hostname: "*"
@@ -599,7 +597,6 @@
 - apiVersion: getambassador.io/v3alpha1
   kind: Mapping
   metadata:
-    creationTimestamp: null
     name:  errorresponseonstatuscode-invalidservice-empty
   spec:
     hostname: "*"
@@ -612,7 +609,6 @@
 - apiVersion: getambassador.io/v3alpha1
   kind: Mapping
   metadata:
-    creationTimestamp: null
     name:  multiple-headers-shouldnt-duplicate-values
   spec:
     hostname: "*"

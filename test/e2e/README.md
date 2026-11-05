@@ -123,6 +123,12 @@ since any of those would mean the fixture silently never runs.
 > stride that holds 15 slots, and going past that needs the range widened
 > *and* the cluster recreated.
 >
+> **Scratch ports.** `tcpmapping-multi-port` needs more TCP ports than a slot
+> publishes, so it adds a `LoadBalancer` Service in its slot's namespace on host
+> ports 8132-8134. Those are cluster-global, not per slot, and a ninth slot at
+> the current stride would take 8132-8135, so move the fixture's ports before
+> adding one.
+>
 > Slots install concurrently, so adding one costs wall-clock only if it pushes
 > the runner past its CPU budget. Sizing: at ~28s per fixture, N slots clear
 > the pinned backlog in `(count / N) * 28`s. Returns flatten past N=8, where
@@ -144,6 +150,20 @@ environment, and manifests call `(env('KAT_SERVER_IMAGE'))` and
 > `probe.sh` itself has a bash shebang and can use bash freely; this applies to
 > the inline `content` a fixture writes.
 
+### Reconfiguring the slot itself
+
+A few fixtures need the slot's Emissary changed, not just its CRDs:
+`host-loose-label-selector` and `lua-scripts` set an env var on the Deployment
+(`kubectl set env` plus `rollout status`), and `ip-allow` and `ip-deny` patch
+`l7Depth` onto the slot's own 8080 Listener (a second Listener on that port
+would conflict). All are `slot: exclusive`.
+
+The mutation and the work that depends on it go in **one step**, with the undo
+in that step's `finally`. A `finally` runs when its own step ends, pass or
+fail, so a later step's `finally` would never run if an earlier step failed.
+The restore must wait for the rollout (env) or clear the field (Listener), so
+the next fixture on the slot starts from the chart's state.
+
 ## The probe helper
 
 `probe.sh <queries.json> <jq-expr>` is the whole assertion mechanism:
@@ -158,7 +178,9 @@ environment, and manifests call `(env('KAT_SERVER_IMAGE'))` and
 - `queries.json` is a plain [kat-client][] input file. URLs starting with `/`
   are prefixed with `$PROBE_BASE` (defaults to `$GATEWAY_URL`); absolute URLs
   are left alone, so TLS and alternate-port fixtures spell out their own
-  scheme and host. A fixture that wants to probe the downstream HTTPS
+  scheme and host. A websocket query is written `"ws:/path"` and resolves
+  against an `http://` base with the scheme swapped to `ws`; kat-client does
+  not dial `wss`, so an `https://` base is an error. A fixture that wants to probe the downstream HTTPS
   listener sets `PROBE_BASE="$GATEWAY_HTTPS_URL"` in its `script` step;
   `slots.sh` and `e2e.mk` export `GATEWAY_HTTPS_URL` alongside `GATEWAY_URL`,
   `GATEWAY_TCP_URL` and `GATEWAY_TCP2_URL`, pointing at the slot's `+1` port

@@ -1,0 +1,65 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDLooseLabelSelector.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global, because it probes /ambassador/v0/diag/, which only a
+# numbered slot serves (see slots.sh), and because it sets
+# DISABLE_STRICT_LABEL_SELECTORS on the slot's Emissary.
+#
+# Same Hosts and Mappings as host-strict-label-selector. With strict matching
+# off, a Mapping is attached to a Host when it carries any one selector label
+# or its hostname equals the Host's. Each status assertion covers one Host, in
+# path order: target-1, target-2, shared-labels-all, shared-labels-one,
+# shared-hostname.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-loose-label-selector
+spec:
+  steps:
+    - name: generate the downstream certs
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              for n in 1 2; do
+                cn=tls-context-host-$n
+                openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                  -subj "/CN=$cn" \
+                  -addext basicConstraints=critical,CA:FALSE \
+                  -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                  -addext extendedKeyUsage=serverAuth \
+                  -addext "subjectAltName=DNS:$cn" \
+                  -keyout "$dir/$n.key" -out "$dir/$n.crt" 2>/dev/null
+                kubectl create secret tls "host-loose-label-selector-$n" \
+                  -n "$NAMESPACE" --cert="$dir/$n.crt" --key="$dir/$n.key"
+              done
+
+    - name: loosen the label selectors and probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" DISABLE_STRICT_LABEL_SELECTORS=true || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'no diag errors'            '.[0].result.status == 200 and .[0].result.json == []' \
+                'host-1 statuses'           '[.[1:6][].result.status] == [200, 404, 200, 200, 200]' \
+                'host-2 statuses'           '[.[6:11][].result.status] == [404, 200, 200, 200, 200]' \
+                'routed paths reach target' '[.[1,3,4,5,7,8,9,10] | .result.json.backend] | all(. == "target")' \
+                'each Host serves its cert' '[.[1:][] | select(.result.status == 200) | .result.tls[0].Subject.CommonName == .headers.Host] | all'
+      finally:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" DISABLE_STRICT_LABEL_SELECTORS- || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s

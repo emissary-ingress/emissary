@@ -5245,6 +5245,10 @@ func autoConvert_v2_TLSConfig_To_v3alpha1_TLSConfig(in *TLSConfig, out *v3alpha1
 		in, out := &in.V3CRLSecret, &out.CRLSecret
 		*out = *in
 	}
+	if true {
+		in, out := &in.V3SignatureAlgorithms, &out.SignatureAlgorithms
+		*out = *in
+	}
 	return nil
 }
 
@@ -5296,6 +5300,10 @@ func autoConvert_v3alpha1_TLSConfig_To_v2_TLSConfig(in *v3alpha1.TLSConfig, out 
 	}
 	if true {
 		in, out := &in.ECDHCurves, &out.ECDHCurves
+		*out = *in
+	}
+	if true {
+		in, out := &in.SignatureAlgorithms, &out.V3SignatureAlgorithms
 		*out = *in
 	}
 	if true {
@@ -5477,6 +5485,10 @@ func autoConvert_v2_TLSContextSpec_To_v3alpha1_TLSContextSpec(in *TLSContextSpec
 		in, out := &in.V3CRLSecret, &out.CRLSecret
 		*out = *in
 	}
+	if true {
+		in, out := &in.V3SignatureAlgorithms, &out.SignatureAlgorithms
+		*out = *in
+	}
 	return nil
 }
 
@@ -5542,6 +5554,10 @@ func autoConvert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in *v3alpha1.TLSCo
 	}
 	if true {
 		in, out := &in.ECDHCurves, &out.ECDHCurves
+		*out = *in
+	}
+	if true {
+		in, out := &in.SignatureAlgorithms, &out.V3SignatureAlgorithms
 		*out = *in
 	}
 	if true {
