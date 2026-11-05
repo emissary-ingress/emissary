@@ -53,6 +53,13 @@ from the Helm charts.
 [1.40.0 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.40/v1.40.0
 [1.40.2 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.40/v1.40.2
 
+- Update: Emissary is now built with Go 1.27.3 and the Kubernetes 1.37 client
+  libraries, and its other Go and Python dependencies are updated to their
+  current releases. `diagd` now posts `Ingress` and other resource status
+  updates from threads rather than from forked worker processes, so the
+  Emissary pod no longer runs five extra `diagd` processes once the first
+  status update is posted.
+
 - Security: `diagd`'s internal API -- most importantly `POST /_internal/v0/watt`,
   which hands Emissary a new configuration snapshot -- is no longer reachable
   through the admin port (8877). `diagd` now listens on a Unix-domain socket
