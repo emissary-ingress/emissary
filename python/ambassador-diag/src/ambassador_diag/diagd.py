@@ -1281,14 +1281,23 @@ class SystemStatus:
 
 
 class KubeStatus:
-    pool: concurrent.futures.ProcessPoolExecutor
+    pool: concurrent.futures.ThreadPoolExecutor
 
     def __init__(self, app) -> None:
         self.app = app
         self.logger = app.logger
         self.live: Dict[str, bool] = {}
         self.current_status: Dict[str, str] = {}
-        self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
+        # Threads, not processes: each update just runs the kubestatus binary.
+        # Forked pool workers would inherit every descriptor open in the
+        # gunicorn worker at fork time, including the connection carrying the
+        # current snapshot from entrypoint. Holding that socket open means it
+        # never reaches EOF after gunicorn closes it, so entrypoint keeps it as
+        # an idle keep-alive connection and its next snapshot POST waits on a
+        # socket nobody reads.
+        self.pool = concurrent.futures.ThreadPoolExecutor(
+            max_workers=5, thread_name_prefix="kubestatus"
+        )
 
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
