@@ -63,13 +63,31 @@ class IRBaseMappingGroup(IRResource):
 
     def normalize_weights_in_mappings(self) -> bool:
         # If there's only one mapping in the group, it's automatically weighted
-        # at 100%.
+        # at 100%, so that Envoy doesn't drop the remainder of the traffic.
+        #
+        # The one exception is a mapping with an explicit weight of 0 (e.g. a
+        # canary that's been scaled down but not yet deleted): that stays at 0
+        # rather than being forced to 100, which would route traffic to it and
+        # report it as fully weighted in diagnostics, the opposite of what the
+        # explicit weight asked for. Any other explicit weight on a lone mapping
+        # (say 15) is still treated as 100, since honoring it would make Envoy
+        # drop the remaining traffic.
         if len(self.mappings) == 1:
-            self.logger.debug(
-                "Assigning weight 100 to single mapping %s in group",
-                self.mappings[0].name,
-            )
-            self.mappings[0]._weight = 100
+            mapping = self.mappings[0]
+
+            if "weight" in mapping and mapping.weight == 0:
+                self.logger.debug(
+                    "Honoring explicit weight 0 for single mapping %s in group",
+                    mapping.name,
+                )
+                mapping._weight = 0
+            else:
+                self.logger.debug(
+                    "Assigning weight 100 to single mapping %s in group",
+                    mapping.name,
+                )
+                mapping._weight = 100
+
             return True
 
         # For multiple mappings, we need to normalize the weights.
