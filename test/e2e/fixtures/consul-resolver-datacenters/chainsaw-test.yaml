@@ -1,0 +1,38 @@
+# Two ConsulResolvers in different datacenters, each watching a service with the
+# same name registered in its own Consul. Each Mapping must reach the backend
+# registered in its resolver's datacenter.
+#
+# `exclusive` because a ConsulResolver is instance-global.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: consul-resolver-datacenters
+spec:
+  steps:
+    - name: apply and register
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              kubectl -n "$NAMESPACE" rollout status deploy/consul-dc12 --timeout=90s
+              kubectl -n "$NAMESPACE" rollout status deploy/consul-dc13 --timeout=90s
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              for dc in dc12 dc13; do
+                cat > "$dir/body.json" <<JSON
+              {"Datacenter": "${dc}", "Node": "shared-${dc}", "Address": "k8s-${dc}.${NAMESPACE}",
+               "Service": {"Service": "shared-service", "Address": "k8s-${dc}.${NAMESPACE}", "Port": 8080}}
+              JSON
+                kubectl replace --raw "/api/v1/namespaces/${NAMESPACE}/services/consul-${dc}:consul/proxy/v1/catalog/register" -f "$dir/body.json" >/dev/null
+              done
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'dc12 mapping reaches the dc12 backend'  '.[0].result.status == 200 and .[0].result.json.backend == "dc12"' \
+                'dc13 mapping reaches the dc13 backend'  '.[1].result.status == 200 and .[1].result.json.backend == "dc13"'

@@ -105,6 +105,11 @@ from the Helm charts.
 
 [#4275]: https://github.com/emissary-ingress/emissary/issues/4275
 
+- Fix: Two `ConsulResolver`s in different datacenters that watch services with the
+  same name no longer overwrite each other's endpoints. Previously only one of
+  the two Mappings got endpoints (the other returned 503), and which one could
+  change as either watch updated.
+
 - Fix: A TLS `TCPMapping` now only takes its certificate from a `Host` that its
   `Listener`'s `hostBinding` selects, the same way HTTP `Mapping`s already do.
   Previously every `Host` was considered, so the `Listener` could serve the

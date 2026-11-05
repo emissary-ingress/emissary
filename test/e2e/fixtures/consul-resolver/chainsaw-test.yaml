@@ -8,8 +8,7 @@
 # Service.Address, so its endpoint must fall back to the node's Address.
 #
 # consul-dc13 asks for a datacenter Consul does not have, so it must never
-# resolve even though consul-dc13-service is registered in dc12. It uses its own
-# service name because endpoints are keyed by service name alone, and is
+# resolve even though consul-dc13-service is registered in dc12. It is
 # registered first so it has the longest head start to (wrongly) resolve.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
