@@ -220,7 +220,7 @@ func (s *WebhookServer) serveHTTPS(ctx context.Context, scheme *runtime.Scheme) 
 	errChan := make(chan error)
 
 	mux := http.NewServeMux()
-	mux.Handle(path.WebhooksCrdConvert, conversion.NewWebhookHandler(scheme))
+	mux.Handle(path.WebhooksCrdConvert, conversion.NewWebhookHandler(scheme, conversion.NewRegistry()))
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", s.httpsPort),

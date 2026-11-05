@@ -267,6 +267,11 @@ func (f *Fake) GetFeatures(ctx context.Context, features interface{}) error {
 func (f *Fake) Teardown() {
 	f.teardownOnce.Do(func() {
 		f.cancel()
+		// Cancelling kills only the diagd master process. Its gunicorn worker lingers for
+		// gunicorn's graceful timeout while any keep-alive connection is still open, and it holds
+		// diagd's output pipe, so the wait below would block until the worker exits. Closing our
+		// pooled connections lets the worker exit at once.
+		DiagdClient().CloseIdleConnections()
 		err := f.group.Wait()
 		if err != nil && err != context.Canceled {
 			f.T.Fatalf("fake Emissary errored out: %+v", err)

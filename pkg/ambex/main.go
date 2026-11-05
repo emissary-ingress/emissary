@@ -259,7 +259,7 @@ type Validatable interface {
 
 func Decode(ctx context.Context, name string) (proto.Message, error) {
 	any := &anypb.Any{}
-	contents, err := ioutil.ReadFile(name)
+	contents, err := os.ReadFile(name)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +346,7 @@ func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation in
 
 	csPath := path.Join(snapdirPath, "ambex-0.json")
 
-	err = ioutil.WriteFile(csPath, bs, 0644)
+	err = os.WriteFile(csPath, bs, 0644)
 
 	if err != nil {
 		dlog.Errorf(ctx, "CSNAP: write failure: %s", err)
@@ -687,7 +687,7 @@ func Main(
 
 	pid := os.Getpid()
 	file := "ambex.pid"
-	if err := ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644); err != nil {
+	if err := os.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644); err != nil {
 		dlog.Warn(ctx, err)
 	} else {
 		ctx := dlog.WithField(ctx, "pid", pid)

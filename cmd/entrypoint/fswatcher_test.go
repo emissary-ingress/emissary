@@ -44,7 +44,7 @@ func newMetadata(t *testing.T) (context.Context, *fswMetadata, error) {
 
 	var err error
 
-	m.dir, err = ioutil.TempDir("", "fswatcher_test")
+	m.dir, err = os.MkdirTemp("", "fswatcher_test")
 
 	if err != nil {
 		t.Errorf("could not create tempdir: %s", err)

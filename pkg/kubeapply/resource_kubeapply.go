@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	_path "path"
 	"path/filepath"
@@ -101,7 +100,7 @@ func isTemplate(input []byte) bool {
 }
 
 func image(ctx context.Context, dir, dockerfile string) (string, error) {
-	iidfile, err := ioutil.TempFile("", "iid")
+	iidfile, err := os.CreateTemp("", "iid")
 	if err != nil {
 		return "", err
 	}
@@ -123,7 +122,7 @@ func image(ctx context.Context, dir, dockerfile string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	content, err := ioutil.ReadFile(iidfile.Name())
+	content, err := os.ReadFile(iidfile.Name())
 	if err != nil {
 		return "", err
 	}
@@ -151,7 +150,7 @@ func image(ctx context.Context, dir, dockerfile string) (string, error) {
 // ExpandResource takes a path to a YAML file, and returns its
 // contents, with any kubeapply templating expanded.
 func ExpandResource(ctx context.Context, path string) (result []byte, err error) {
-	input, err := ioutil.ReadFile(path)
+	input, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %v", path, err)
 	}
@@ -234,7 +233,7 @@ func SaveResources(path string, resources []k8s.Resource) error {
 	if err != nil {
 		return fmt.Errorf("%s: %v", path, err)
 	}
-	err = ioutil.WriteFile(path, output, 0644)
+	err = os.WriteFile(path, output, 0644)
 	if err != nil {
 		return fmt.Errorf("%s: %v", path, err)
 	}

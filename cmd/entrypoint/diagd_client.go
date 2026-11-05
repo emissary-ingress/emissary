@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 )
 
 // DiagdURLOrigin is the origin to use when building URLs for diagd. diagd
@@ -36,7 +37,14 @@ func DiagdTransport() *http.Transport {
 // Unix-domain socket.
 func DiagdClient() *http.Client {
 	diagdClientOnce.Do(func() {
-		diagdClient = &http.Client{Transport: DiagdTransport()}
+		transport := DiagdTransport()
+		// gunicorn closes an idle keep-alive connection after 2 seconds. A
+		// snapshot POST that lands on a connection gunicorn is closing fails
+		// with EOF, Go does not replay a POST that was already sent, and
+		// notifyWebhookUrl treats that EOF as fatal. Dropping idle connections
+		// sooner than gunicorn does keeps every POST off a closing connection.
+		transport.IdleConnTimeout = time.Second
+		diagdClient = &http.Client{Transport: transport}
 	})
 
 	return diagdClient
