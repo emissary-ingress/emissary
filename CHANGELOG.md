@@ -114,6 +114,11 @@ from the Helm charts.
 
 [#4275]: https://github.com/emissary-ingress/emissary/issues/4275
 
+- Fix: Two `ConsulResolver`s in different datacenters that watch services with the
+  same name no longer overwrite each other's endpoints. Previously only one of
+  the two Mappings got endpoints (the other returned 503), and which one could
+  change as either watch updated.
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
