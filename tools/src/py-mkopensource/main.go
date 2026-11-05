@@ -41,7 +41,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"idna", "3.10", ""}:                              {BSD3},
 		{"itsdangerous", "2.2.0", ""}:                     {BSD3},
 		{"jsonpatch", "1.33", "Modified BSD License"}:     {BSD3},
-		{"jsonpointer", "3.0.0", "Modified BSD License"}:  {BSD3},
+		{"jsonpointer", "3.8", "Modified BSD License"}:    {BSD3},
 		{"packaging", "24.2", ""}:                         {BSD2, Apache2},
 		{"pathspec", "0.12.1", ""}:                        {MPL2},
 		{"ptyprocess", "0.7.0", "UNKNOWN"}:                {ISC},
@@ -55,8 +55,8 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// it's easier to just hard-code it.
 		{"cryptography", "45.0.6", "Apache-2.0 OR BSD-3-Clause"}:                             {Apache2, BSD3},
 		{"docutils", "0.19", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PSF, BSD2},
-		{"orjson", "3.11.1", "Apache-2.0 OR MIT"}:                                            {Apache2, MIT},
-		{"prometheus_client", "0.22.1", "Apache-2.0 AND BSD-2-Clause"}:                       {Apache2, BSD2},
+		{"orjson", "3.13.0", "MPL-2.0 AND (Apache-2.0 OR MIT)"}:                              {MPL2, Apache2, MIT},
+		{"prometheus_client", "0.26.0", "Apache-2.0 AND BSD-2-Clause"}:                       {Apache2, BSD2},
 		{"python-dateutil", "2.9.0.post0", "Dual License"}:                                   {Apache2, BSD3},
 	}[tuple{name, version, license}]
 	if ok {
