@@ -1330,7 +1330,9 @@ class KubeStatus:
 # effect, but updates to Ingress (for example) do.
 class KubeStatusNoMappings(KubeStatus):
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
-        pass
+        if kind == "Mapping":
+            return
+        super().mark_live(kind, name, namespace)
 
     def post(self, kind: str, name: str, namespace: str, text: str) -> None:
         # There's a path (via IRBaseMapping.check_status) where a Mapping
@@ -1343,6 +1345,13 @@ class KubeStatusNoMappings(KubeStatus):
 
         super().post(kind, name, namespace, text)
 
+def status_resource_name(key: str, namespace: str) -> str:
+    suffix = f".{namespace}"
+
+    if key.endswith(suffix):
+        return key[: -len(suffix)]
+
+    return key.split(".", 1)[0]
 
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
     cmd = [
@@ -1777,6 +1786,11 @@ class AmbassadorEventWatcher(threading.Thread):
                     mapping.get("namespace", Config.ambassador_namespace),
                 )
 
+        for key,(kind, namespace, _) in app.ir.k8s_status_updates.items():
+            if kind == "Host":
+                app.kubestatus.mark_live(kind, status_resource_name(key, namespace), namespace)
+
+
         app.kubestatus.prune()
 
         if app.ir.k8s_status_updates:
@@ -1784,9 +1798,8 @@ class AmbassadorEventWatcher(threading.Thread):
 
             for name in app.ir.k8s_status_updates.keys():
                 update_count += 1
-                # Strip off any namespace in the name.
-                resource_name = name.split(".", 1)[0]
                 kind, namespace, update = app.ir.k8s_status_updates[name]
+                resource_name = status_resource_name(name, namespace)
                 text = dump_json(update)
 
                 # self.logger.debug(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
