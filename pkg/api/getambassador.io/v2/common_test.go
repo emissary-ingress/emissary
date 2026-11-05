@@ -42,7 +42,7 @@ func TestStringOrStringList(t *testing.T) {
 		"listSingle":    {`field: ["single"]`, TestResource{crds.StringOrStringList{"single"}}, `{"field":["single"]}`, ``},
 		"listEmpty":     {`field: []`, TestResource{crds.StringOrStringList{}}, `{}`, ``},
 		"double":        {`field: ["first", "second"]`, TestResource{crds.StringOrStringList{"first", "second"}}, `{"field":["first","second"]}`, ``},
-		"number":        {`field: 12`, TestResource{}, `{}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go struct field TestResource.field of type []string"},
+		"number":        {`field: 12`, TestResource{}, `{}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go value of type []string"},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable
@@ -90,8 +90,8 @@ func TestBoolOrString(t *testing.T) {
 		"strTrue":       {`field: "true"`, TestResource{crds.BoolOrString{String: stringPtr("true")}}, `{"field":"true"}`, ``}, // quoted
 		"strTRue":       {`field: TRue`, TestResource{crds.BoolOrString{String: stringPtr("TRue")}}, `{"field":"TRue"}`, ``},   // capitalized wrong
 		"strBare":       {`field: bare`, TestResource{crds.BoolOrString{String: stringPtr("bare")}}, `{"field":"bare"}`, ``},
-		"number":        {`field: 12`, TestResource{}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go struct field TestResource.field of type string"},
-		"invalid":       {``, TestResource{crds.BoolOrString{Bool: boolPtr(true), String: stringPtr("foo")}}, ``, "json: error calling MarshalJSON for type v2.BoolOrString: invalid BoolOrString"},
+		"number":        {`field: 12`, TestResource{}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go value of type string"},
+		"invalid":       {``, TestResource{crds.BoolOrString{Bool: boolPtr(true), String: stringPtr("foo")}}, ``, "json: error calling MarshalJSON for type *v2.BoolOrString: invalid BoolOrString"},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable
@@ -145,7 +145,7 @@ func TestBoolOrStringPtr(t *testing.T) {
 		"strTrue":       {`field: "true"`, TestResource{&crds.BoolOrString{String: stringPtr("true")}}, `{"field":"true"}`, ``}, // quoted
 		"strTRue":       {`field: TRue`, TestResource{&crds.BoolOrString{String: stringPtr("TRue")}}, `{"field":"TRue"}`, ``},   // capitalized wrong
 		"strBare":       {`field: bare`, TestResource{&crds.BoolOrString{String: stringPtr("bare")}}, `{"field":"bare"}`, ``},
-		"number":        {`field: 12`, TestResource{&crds.BoolOrString{}}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go struct field TestResource.field of type string"},
+		"number":        {`field: 12`, TestResource{&crds.BoolOrString{}}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go value of type string"},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable
@@ -186,7 +186,7 @@ func TestMillisecondDuration(t *testing.T) {
 		"explicitTilde": {`field: ~`, TestResource{}, `{"field":0}`, ``},
 		"3000":          {`field: 3000`, TestResource{crds.MillisecondDuration{3 * time.Second}}, `{"field":3000}`, ``},
 		"overflow32":    {`field: 4320000000`, TestResource{crds.MillisecondDuration{50 * 24 * time.Hour}}, `{"field":4320000000}`, ``},
-		"string":        {`field: "30s"`, TestResource{crds.MillisecondDuration{0}}, `{"field":0}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go struct field TestResource.field of type int64"},
+		"string":        {`field: "30s"`, TestResource{crds.MillisecondDuration{0}}, `{"field":0}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type int64"},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable
@@ -227,7 +227,7 @@ func TestMillisecondDurationPtr(t *testing.T) {
 		"explicitTilde": {`field: ~`, TestResource{}, `{}`, ``},
 		"3000":          {`field: 3000`, TestResource{&crds.MillisecondDuration{3 * time.Second}}, `{"field":3000}`, ``},
 		"overflow32":    {`field: 4320000000`, TestResource{&crds.MillisecondDuration{50 * 24 * time.Hour}}, `{"field":4320000000}`, ``},
-		"string":        {`field: "30s"`, TestResource{&crds.MillisecondDuration{0}}, `{"field":0}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go struct field TestResource.field of type int64"},
+		"string":        {`field: "30s"`, TestResource{&crds.MillisecondDuration{0}}, `{"field":0}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type int64"},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable
@@ -267,7 +267,7 @@ func TestUntypedDict(t *testing.T) {
 		"explicitNULL":  {`field: NULL`, TestResource{}, `{"field":null}`, ``},
 		"explicitTilde": {`field: ~`, TestResource{}, `{"field":null}`, ``},
 		"basic":         {`field: {foo: "bar"}`, TestResource{crds.UntypedDict{map[string]json.RawMessage{"foo": json.RawMessage(`"bar"`)}}}, `{"field":{"foo":"bar"}}`, ``},
-		"string":        {`field: "str"`, TestResource{}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go struct field TestResource.field of type map[string]json.RawMessage"},
+		"string":        {`field: "str"`, TestResource{}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]jsontext.Value"},
 		"badkey": {`
 badkey: &anchor
   baz: qux
@@ -311,7 +311,7 @@ func TestUntypedDictPtr(t *testing.T) {
 		"explicitNULL":  {`field: NULL`, TestResource{}, `{}`, ``},
 		"explicitTilde": {`field: ~`, TestResource{}, `{}`, ``},
 		"basic":         {`field: {foo: "bar"}`, TestResource{&crds.UntypedDict{map[string]json.RawMessage{"foo": json.RawMessage(`"bar"`)}}}, `{"field":{"foo":"bar"}}`, ``},
-		"string":        {`field: "str"`, TestResource{&crds.UntypedDict{}}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go struct field TestResource.field of type map[string]json.RawMessage"},
+		"string":        {`field: "str"`, TestResource{&crds.UntypedDict{}}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]jsontext.Value"},
 		"badkey": {`
 badkey: &anchor
   baz: qux

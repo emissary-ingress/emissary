@@ -35,7 +35,7 @@ func TestHostState(t *testing.T) {
 		"Error":   {`field: "Error"`, TestResource{crds.HostState_Error}, `{"field":"Error"}`, ``},
 
 		"invalid-string": {`field: "invalid"`, TestResource{crds.HostState_Initial}, `{}`, ``}, // no error
-		"invalid-type":   {`field: {}`, TestResource{crds.HostState_Initial}, `{}`, `error unmarshaling JSON: while decoding JSON: json: cannot unmarshal object into Go struct field TestResource.field of type string`},
+		"invalid-type":   {`field: {}`, TestResource{crds.HostState_Initial}, `{}`, `error unmarshaling JSON: while decoding JSON: json: cannot unmarshal object into Go value of type string`},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable
@@ -82,7 +82,7 @@ func TestHostPhase(t *testing.T) {
 		"ACMECertificateChallenge":  {`field: "ACMECertificateChallenge"`, TestResource{crds.HostPhase_ACMECertificateChallenge}, `{"field":"ACMECertificateChallenge"}`, ``},
 
 		"invalid-string": {`field: "invalid"`, TestResource{crds.HostPhase_NA}, `{}`, ``}, // no error
-		"invalid-type":   {`field: {}`, TestResource{crds.HostPhase_NA}, `{}`, `error unmarshaling JSON: while decoding JSON: json: cannot unmarshal object into Go struct field TestResource.field of type string`},
+		"invalid-type":   {`field: {}`, TestResource{crds.HostPhase_NA}, `{}`, `error unmarshaling JSON: while decoding JSON: json: cannot unmarshal object into Go value of type string`},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable

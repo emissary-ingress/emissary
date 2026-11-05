@@ -3,6 +3,7 @@ package snapshot_test
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -19,7 +20,7 @@ func TestUnmarshal(t *testing.T) {
 		name := fileinfo.Name()
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			contents, err := ioutil.ReadFile(filepath.Join("testdata", name))
+			contents, err := os.ReadFile(filepath.Join("testdata", name))
 			if err != nil {
 				t.Fatal(err)
 			}
