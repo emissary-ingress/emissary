@@ -159,16 +159,7 @@ spec:
           image: {{ include "ambassador.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            {{- range .Values.service.ports }}
-            - name: {{ .name }}
-              containerPort: {{ int .targetPort }}
-              {{- if .protocol }}
-              protocol: {{ .protocol }}
-              {{- end }}
-              {{- if .hostPort }}
-              hostPort: {{ .hostPort }}
-              {{- end }}
-            {{- end}}
+            {{- include "ambassador.containerPorts" . | trim | nindent 12 }}
             - name: admin
               containerPort: {{ .Values.adminService.port }}
           env:
