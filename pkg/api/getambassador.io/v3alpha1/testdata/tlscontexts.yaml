@@ -52,3 +52,14 @@
       secret: "tlscontext-certreq-rcf-set"
       cert_required: true
       redirect_cleartext_from: 8080
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "TLSContext"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tlscontext-signature-algorithms"
+      namespace: "default"
+  spec:
+      secret: "tlscontext-signature-algorithms"
+      signature_algorithms:
+      - "ecdsa_secp256r1_sha256"
+      - "ed25519"

@@ -1,0 +1,22 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_default.py::RejectRequestsWithEscapedSlashesDisabled.
+# The base Emissary's Module sets no reject_requests_with_escaped_slashes, so
+# its default is under test. X-Envoy-Upstream-Service-Time shows the request
+# reached kat-server.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-reject-escaped-slashes-disabled
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'escaped slash reaches upstream' '.[0].result.status == 200 and .[0].result.json.backend == "mapping-reject-escaped-slashes-disabled" and (.[0].result.headers | has("X-Envoy-Upstream-Service-Time"))'

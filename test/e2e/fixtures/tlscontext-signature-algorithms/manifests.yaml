@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: tlscontext-signature-algorithms
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: ambassador.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: tlscontext-signature-algorithms-server
+  tlsContext:
+    name: tlscontext-signature-algorithms
+---
+# The list must include the server's own algorithm (its leaf is ECDSA
+# P-256), or Envoy can't sign its side of the handshake and every client
+# is refused.
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tlscontext-signature-algorithms
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hosts: [ambassador.example.com]
+  secret: tlscontext-signature-algorithms-server
+  ca_secret: tlscontext-signature-algorithms-ca
+  cert_required: true
+  signature_algorithms:
+    - ecdsa_secp256r1_sha256
+    - ed25519
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /
+  service: target:8080

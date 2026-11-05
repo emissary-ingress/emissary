@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"testing"
 
@@ -23,7 +23,7 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]RenderedLi
 	neededMappings := []v3alpha1.Mapping{}
 
 	// Read the expected rendering from a file.
-	content, err := ioutil.ReadFile(expectedFile)
+	content, err := os.ReadFile(expectedFile)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -120,13 +120,13 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 	actualJSON, err := JSONifyRenderedListeners(actualListeners)
 	require.NoError(t, err)
 
-	err = ioutil.WriteFile("/tmp/host-semantics-expected.json", []byte(expectedJSON), 0644)
+	err = os.WriteFile("/tmp/host-semantics-expected.json", []byte(expectedJSON), 0644)
 	if err == io.EOF {
 		err = nil
 	}
 	require.NoError(t, err)
 
-	err = ioutil.WriteFile("/tmp/host-semantics-actual.json", []byte(actualJSON), 0644)
+	err = os.WriteFile("/tmp/host-semantics-actual.json", []byte(actualJSON), 0644)
 	if err == io.EOF {
 		err = nil
 	}

@@ -1,0 +1,91 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingTest.
+#
+# `exclusive` because it needs a slot's Emissary to itself and four TCP ports.
+# A slot publishes only two (6789 and 6790), so 6789 carries the SNI port and
+# the other three ports (7654, 8765, 9876) are reached through a LoadBalancer
+# Service this fixture adds in the slot's namespace. k3s servicelb exposes it
+# on host ports 8132-8134, inside the 8100-8159 block k3d publishes. Those
+# scratch ports are cluster-global, so the precheck step fails fast if another
+# run already holds them.
+#
+# Port 9876 passes the client's TLS through to target1. Port 7654 is cleartext
+# in and TLS out to target2. Port 8765 is bound to loopback, so connections to
+# it must fail. Port 6789 terminates TLS and picks the backend by SNI.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-multi-port
+spec:
+  steps:
+    - name: scratch ports are free
+      try:
+        - script:
+            content: |
+              kubectl get svc -A -o json | jq -e '
+                [.items[] | select(.spec.type == "LoadBalancer") | .spec.ports[].port]
+                | any(. >= 8132 and . <= 8134) | not' >/dev/null \
+                || { echo "scratch ports 8132-8134 are held by another LoadBalancer Service" >&2; exit 1; }
+
+    - name: create the other namespace
+      try:
+        - apply:
+            file: namespace.yaml
+
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tls-context-host-1 \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:tls-context-host-1,DNS:tls-context-host-2,DNS:tls-context-host-3 \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls supersecret \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: each port routes and terminates TLS as configured
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              host="${GATEWAY_URL%:*}"
+              tcp_port="${GATEWAY_TCP_URL##*:}"
+              jq -n --arg host "${host#http://}" --arg tcp "$tcp_port" '
+                def sni($name): {url: "https://\($host):\($tcp)/", method: "GET",
+                  headers: {Host: $name}, sni: true, insecure: true};
+                [
+                  {url: "https://\($host):8134/", method: "GET", insecure: true},
+                  {url: "http://\($host):8132/", method: "GET"},
+                  sni("tls-context-host-1"),
+                  sni("tls-context-host-2"),
+                  sni("tls-context-host-3"),
+                  {url: "https://\($host):8133/", method: "GET", insecure: true}
+                ]' > "$queries"
+              ../../probe.sh "$queries" \
+                'passthrough reached target1'       '.[0].result.status == 200 and .[0].result.json.backend == "target1"' \
+                'passthrough kept the client TLS'   '.[0].result.json.request.tls.enabled == true' \
+                'cleartext in reached target2'      '.[1].result.status == 200 and .[1].result.json.backend == "target2"' \
+                'cleartext in used TLS out'         '.[1].result.json.request.tls.enabled == true' \
+                'host-1 reached target1'            '.[2].result.status == 200 and .[2].result.json.backend == "target1"' \
+                'host-1 terminated before backend'  '.[2].result.json.request.tls.enabled == false' \
+                'host-2 reached target2'            '.[3].result.status == 200 and .[3].result.json.backend == "target2"' \
+                'host-2 originated TLS'             '.[3].result.json.request.tls.enabled == true' \
+                'host-3 reached target3'            '.[4].result.status == 200 and .[4].result.json.backend == "target3"' \
+                'host-3 originated TLS'             '.[4].result.json.request.tls.enabled == true' \
+                'loopback-only port refuses'        '.[5].result.error | test("connection reset by peer|EOF|connection refused")'

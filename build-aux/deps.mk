@@ -7,7 +7,7 @@ go-mod-tidy:
 go-mod-tidy: go-mod-tidy/main
 go-mod-tidy/main: $(OSS_HOME)/build-aux/go-version.txt
 	rm -f go.sum
-	GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
+	GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cat $<)
 .PHONY: go-mod-tidy/main
 
 # Note that we use `uv pip list`, but `pip3 show` -- this is because `uv pip

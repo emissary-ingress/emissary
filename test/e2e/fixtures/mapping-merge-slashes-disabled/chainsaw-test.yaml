@@ -1,0 +1,23 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_default.py::MergeSlashesDisabled.
+# The base Emissary's Module sets no merge_slashes, so its default is under test.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-merge-slashes-disabled
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'plain path routes'             '.[0].result.status == 200 and .[0].result.json.backend == "mapping-merge-slashes-disabled"' \
+                'leading slash not matched'     '.[1].result.status == 404' \
+                'leading and inner not matched' '.[2].result.status == 404' \
+                'inner slash not matched'       '.[3].result.status == 404'

@@ -3,7 +3,6 @@ package entrypoint
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"time"
@@ -259,7 +258,7 @@ func (icert *IstioCert) SetReadPEM(readPEM pemReader) {
 func (icert *IstioCert) defaultReadPEM(ctx context.Context, dir string, name string) ([]byte, bool) {
 	pemPath := path.Join(dir, name)
 
-	pem, err := ioutil.ReadFile(pemPath)
+	pem, err := os.ReadFile(pemPath)
 
 	if err != nil {
 		dlog.Errorf(ctx, "%s: couldn't read %s: %s", icert, pemPath, err)

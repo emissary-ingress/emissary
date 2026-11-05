@@ -138,6 +138,7 @@ type TLSConfig struct {
 	MaxTLSVersion         string   `json:"max_tls_version,omitempty"`
 	CipherSuites          []string `json:"cipher_suites,omitempty"`
 	ECDHCurves            []string `json:"ecdh_curves,omitempty"`
+	SignatureAlgorithms   []string `json:"signature_algorithms,omitempty"`
 	RedirectCleartextFrom *int     `json:"redirect_cleartext_from,omitempty"`
 	SNI                   string   `json:"sni,omitempty"`
 }
