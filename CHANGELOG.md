@@ -96,6 +96,15 @@ from the Helm charts.
   name) still resolved. Lookups now query the named datacenter; if you had a
   wrong `datacenter` that happened to work, it will stop resolving.
 
+- Fix: `apiext` now eagerly generates its webhook server certificate for its
+  well-known Service hostname as part of its readiness check, rather than
+  generating it lazily on the first incoming TLS handshake. Previously, the
+  first CRD-conversion request from the Kubernetes apiserver after `apiext`
+  reported itself ready could be the one paying for certificate generation,
+  occasionally causing that request to time out ([#4275]).
+
+[#4275]: https://github.com/emissary-ingress/emissary/issues/4275
+
 - Fix: The Helm chart no longer declares the same `containerPort` twice when several
   `service.ports` share a `targetPort` (for example `http` and `https` both targeting 8080
   when TLS is terminated at the load balancer). Duplicate entries can make the Deployment fail to apply.
