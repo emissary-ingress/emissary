@@ -105,6 +105,11 @@ from the Helm charts.
 
 [#4275]: https://github.com/emissary-ingress/emissary/issues/4275
 
+- Fix: Two `ConsulResolver`s in different datacenters that watch services with the
+  same name no longer overwrite each other's endpoints. Previously only one of
+  the two Mappings got endpoints (the other returned 503), and which one could
+  change as either watch updated.
+
 - Fix: The Helm chart no longer declares the same `containerPort` twice when several
   `service.ports` share a `targetPort` (for example `http` and `https` both targeting 8080
   when TLS is terminated at the load balancer). Duplicate entries can make the Deployment fail to apply.
