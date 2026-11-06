@@ -904,6 +904,7 @@ func autoConvert_v2_AddedHeader_To_v3alpha1_AddedHeader(in *AddedHeader, out *v3
 func autoConvert_v3alpha1_AddedHeader_To_v2_AddedHeader(in *v3alpha1.AddedHeader, out *AddedHeader, s conversion.Scope) error {
 	// WARNING: in.Value requires manual conversion: does not exist in peer-type
 	// WARNING: in.Append requires manual conversion: does not exist in peer-type
+	// WARNING: in.AppendAction requires manual conversion: does not exist in peer-type
 	// WARNING: in.V2Representation requires manual conversion: does not exist in peer-type
 	return nil
 }

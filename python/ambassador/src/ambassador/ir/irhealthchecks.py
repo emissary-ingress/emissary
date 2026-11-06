@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from ..config import Config
 from .irresource import IRResource
+from .irutils import generate_headers_to_add, invalid_append_action
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
@@ -107,7 +108,14 @@ class IRHealthChecks(IRResource):
                             f"IRHealthChecks: add_request_headers must be a dict of header:value pairs. Ignoring field for health-check: {hc}",
                             log_level=logging.ERROR,
                         )
-                    addHeaders = self.generate_headers_to_add(request_headers_to_add)
+                    append_action_error = invalid_append_action(request_headers_to_add)
+                    if append_action_error is not None:
+                        self.post_error(
+                            f"IRHealthChecks: add_request_headers: {append_action_error}. Ignoring health-check {hc}",
+                            log_level=logging.ERROR,
+                        )
+                        continue
+                    addHeaders = generate_headers_to_add(self.logger, request_headers_to_add)
                     if len(addHeaders) > 0:
                         http_mapper["request_headers_to_add"] = addHeaders
                 request_headers_to_remove = http_health_check.get("remove_request_headers", None)
@@ -176,27 +184,3 @@ class IRHealthChecks(IRResource):
             )
             return None
         return all_mappers
-
-    def generate_headers_to_add(self, header_dict: dict) -> List[dict]:
-        headers = []
-        for k, v in header_dict.items():
-            append = True
-            if isinstance(v, dict):
-                if "append" in v:
-                    append = bool(v["append"])
-                value = v.get("value")
-                if value is None:
-                    # Never crash on a header with no value; skip it and log the error.
-                    self.logger.error(
-                        f"generate_headers_to_add: header {k!r} has no value; skipping"
-                    )
-                    continue
-                headers.append({"header": {"key": k, "value": value}, "append": append})
-            else:
-                headers.append(
-                    {
-                        "header": {"key": k, "value": v},
-                        "append": append,  # Default append True, for backward compatability
-                    }
-                )
-        return headers
