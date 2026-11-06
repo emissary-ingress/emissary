@@ -275,3 +275,140 @@ func makeSubset(args ...interface{}) (kates.EndpointSubset, error) {
 
 	return kates.EndpointSubset{Addresses: addrs, Ports: ports}, nil
 }
+
+// TestEndpointRoutingTCPMapping checks that a TCPMapping using the endpoint
+// resolver causes the watcher to track the Service's Endpoints, and that the
+// resulting Envoy cluster is an EDS cluster rather than a STRICT_DNS cluster
+// pointed at the Service's ClusterIP.
+//
+// Regression test for https://github.com/emissary-ingress/emissary/issues/3330
+func TestEndpointRoutingTCPMapping(t *testing.T) {
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: tcp-listener
+  namespace: default
+spec:
+  port: 9999
+  protocol: TCP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: foo
+  namespace: default
+spec:
+  port: 9999
+  service: foo:80
+  resolver: endpoint
+`))
+	assert.NoError(t, f.Upsert(makeService("default", "foo")))
+	subset, err := makeSubset(8080, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
+	f.Flush()
+
+	snap, err := f.GetSnapshot(HasTCPMapping("default", "foo"))
+	require.NoError(t, err)
+	assert.NotNil(t, snap)
+
+	// The watcher must have picked up the Endpoints for the TCPMapping's Service.
+	endpoints, err := f.GetEndpoints(HasEndpoints("k8s/default/foo/80"))
+	require.NoError(t, err)
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo/80"][0].Ip)
+	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo/80"][0].Port)
+
+	// The Envoy cluster for the TCPMapping must use EDS, keyed on the endpoint path above.
+	config, err := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+		return FindCluster(config, ClusterNameContains("foo_80")) != nil
+	})
+	require.NoError(t, err)
+	cluster := FindCluster(config, ClusterNameContains("foo_80"))
+	require.NotNil(t, cluster)
+	assert.Equal(t, v3cluster.Cluster_EDS, cluster.GetType())
+	require.NotNil(t, cluster.EdsClusterConfig)
+	assert.Equal(t, "k8s/default/foo/80", cluster.EdsClusterConfig.ServiceName)
+	assert.Nil(t, cluster.LoadAssignment)
+}
+
+// TestEndpointRoutingTCPMappingModuleDefault checks that a TCPMapping with no
+// explicit resolver inherits the endpoint resolver configured as the default in
+// the Ambassador Module.
+func TestEndpointRoutingTCPMappingModuleDefault(t *testing.T) {
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  config:
+    resolver: endpoint
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: foo
+  namespace: default
+spec:
+  port: 9999
+  service: foo:80
+`))
+	assert.NoError(t, f.Upsert(makeService("default", "foo")))
+	subset, err := makeSubset(8080, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
+	f.Flush()
+
+	endpoints, err := f.GetEndpoints(HasEndpoints("k8s/default/foo/80"))
+	require.NoError(t, err)
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo/80"][0].Ip)
+	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo/80"][0].Port)
+}
+
+// TestEndpointRoutingTCPMappingServiceResolver checks that a TCPMapping using
+// the default kubernetes-service resolver does NOT cause Endpoints to be watched.
+func TestEndpointRoutingTCPMappingServiceResolver(t *testing.T) {
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: foo
+  namespace: default
+spec:
+  port: 9999
+  service: foo:80
+`))
+	assert.NoError(t, f.Upsert(makeService("default", "foo")))
+	subset, err := makeSubset(8080, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
+	f.Flush()
+
+	snap, err := f.GetSnapshot(HasTCPMapping("default", "foo"))
+	require.NoError(t, err)
+	assert.NotNil(t, snap)
+	f.AssertEndpointsEmpty(timeout)
+}
+
+func HasTCPMapping(namespace, name string) func(snapshot *snapshot.Snapshot) bool {
+	return func(snapshot *snapshot.Snapshot) bool {
+		for _, m := range snapshot.Kubernetes.TCPMappings {
+			if m.Namespace == namespace && m.Name == name {
+				return true
+			}
+		}
+		return false
+	}
+}
