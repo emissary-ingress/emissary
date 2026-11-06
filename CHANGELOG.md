@@ -118,6 +118,30 @@ from the Helm charts.
 
 [#5802]: https://github.com/emissary-ingress/emissary/issues/5802
 
+- Fix: Two Mappings for the same service, one using the default Kubernetes service
+  resolver and one using an endpoint resolver, no longer share one Envoy cluster.
+  Whichever loaded first decided the cluster type for both, so one Mapping could lose
+  per-pod endpoints and its health checks, or gain them unasked. Clusters for Mappings
+  with a non-default resolver now include the resolver name, so Envoy recreates them
+  once on upgrade; stats names are unchanged.
+
+- Fix: An `add_request_headers` or `add_response_headers` entry written as an object
+  with no `value` (for example `cache-control: {append: true}`) no longer crashes
+  Emissary. The header is skipped and an error is logged ([#4760]).
+
+[#4760]: https://github.com/emissary-ingress/emissary/issues/4760
+
+- Feature: `TLSContext`s and the `tls` settings of a `Host` now accept
+  `signature_algorithms`, which is passed to Envoy alongside `cipher_suites` and
+  `ecdh_curves`. Envoy's default list leaves out `ed25519`, so this is how to accept
+  Ed25519 client certificates ([#5871]).
+
+[#5871]: https://github.com/emissary-ingress/emissary/issues/5871
+
+- Feature: The `emissary-crds` chart can now schedule the `emissary-apiext`
+  Deployment with `apiext.nodeSelector` and `apiext.tolerations`. Both default to
+  empty, so existing installs render the same.
+
 - Fix: A TLS `TCPMapping` now only takes its certificate from a `Host` that its
   `Listener`'s `hostBinding` selects, the same way HTTP `Mapping`s already do.
   Previously every `Host` was considered, so the `Listener` could serve the

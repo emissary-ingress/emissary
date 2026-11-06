@@ -370,6 +370,7 @@ spec:
             "name": "healthcheck_no_endpoint",
             "input": noEndpointYaml.format([{"health_check": {"http": {"path": "/health"}}}]),
             "expected": None,
+            "cluster": "cluster_coolsvcname_default",
         },
     ]
 
@@ -378,7 +379,9 @@ spec:
         testName = case["name"]
         econf = _get_envoy_config(caseYaml)
         assert hasattr(econf, "clusters")
-        cluster = _get_cluster_config(econf.clusters, "cluster_coolsvcname_default")
+        cluster = _get_cluster_config(
+            econf.clusters, case.get("cluster", "cluster_coolsvcname_endpoint_default")
+        )
         assert cluster is not False
 
         expectedChecks = case["expected"]

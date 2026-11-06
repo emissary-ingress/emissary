@@ -546,9 +546,16 @@ func (f *fakeK8sWatcher) Changed() <-chan struct{} {
 
 func (f *fakeK8sWatcher) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error) {
 	byname := map[string][]kates.Object{}
+	first := f.cursor.offset < 0
 	resources, newDeltas, err := f.cursor.Get()
 	if err != nil {
 		return false, err
+	}
+	// Like the real accumulator, leave target alone when nothing has changed. Rebuilding it
+	// would undo whatever the caller has since done to the objects in it, such as the
+	// watcher's expansion of environment variables in ConsulResolver addresses.
+	if !first && len(newDeltas) == 0 {
+		return false, nil
 	}
 	for _, obj := range resources {
 		for _, q := range f.queries {

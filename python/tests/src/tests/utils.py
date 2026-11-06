@@ -306,6 +306,7 @@ def econf_foreach_hcm(econf, fn, chain_count=2):
 
 
 def econf_foreach_cluster(econf, fn, name="cluster_httpbin_default"):
+    found_cluster = False
     for cluster in econf["static_resources"]["clusters"]:
         if cluster["name"] != name:
             continue
