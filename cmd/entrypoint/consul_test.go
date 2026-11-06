@@ -3,7 +3,11 @@ package entrypoint
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -117,9 +121,50 @@ func TestBootstrap(t *testing.T) {
 	//
 	// In order for consul to be considered bootstrapped, both the service referenced by
 	// a Mapping and the one refereced by a TCPMapping should have Endpoints{
-	c.endpoints["consultest-consul-service"] = consulwatch.Endpoints{}
-	c.endpoints["consultest-consul-service-tcp"] = consulwatch.Endpoints{}
+	c.endpoints["dc1/consultest-consul-service"] = consulwatch.Endpoints{}
+	c.endpoints["dc1/consultest-consul-service-tcp"] = consulwatch.Endpoints{}
 	assert.True(t, c.isBootstrapped())
+}
+
+func TestSameServiceInTwoDatacenters(t *testing.T) {
+	ctx := dlog.NewTestContext(t, false)
+	resolvers := []*amb.ConsulResolver{
+		{
+			ObjectMeta: kates.ObjectMeta{Name: "resolver-dc12", Namespace: "default"},
+			Spec:       amb.ConsulResolverSpec{Address: "consul-dc12:8500", Datacenter: "dc12"},
+		},
+		{
+			ObjectMeta: kates.ObjectMeta{Name: "resolver-dc13", Namespace: "default"},
+			Spec:       amb.ConsulResolverSpec{Address: "consul-dc13:8500", Datacenter: "dc13"},
+		},
+	}
+	mappings := []consulMapping{
+		{Service: "shared", Resolver: "resolver-dc12"},
+		{Service: "shared", Resolver: "resolver-dc13"},
+	}
+
+	tw := &testWatcher{t: t, events: make(map[string]bool)}
+	c := newConsulWatcher(tw.Watch)
+	require.NoError(t, c.reconcile(ctx, resolvers, mappings))
+	tw.Assert(
+		"resolver-dc12.default:shared:watch",
+		"resolver-dc13.default:shared:watch",
+	)
+
+	c.updateEndpoints(consulwatch.Endpoints{Id: "dc12", Service: "shared", Endpoints: []consulwatch.Endpoint{{Address: "10.0.0.12", Port: 80}}})
+	assert.False(t, c.isBootstrapped(), "dc13's watch has not reported yet")
+
+	c.updateEndpoints(consulwatch.Endpoints{Id: "dc13", Service: "shared", Endpoints: []consulwatch.Endpoint{{Address: "10.0.0.13", Port: 80}}})
+	assert.True(t, c.isBootstrapped())
+
+	snap := &snapshotTypes.ConsulSnapshot{}
+	c.update(snap)
+	addrs := map[string]string{}
+	for _, ep := range snap.Endpoints {
+		require.Len(t, ep.Endpoints, 1)
+		addrs[ep.Id] = ep.Endpoints[0].Address
+	}
+	assert.Equal(t, map[string]string{"dc12": "10.0.0.12", "dc13": "10.0.0.13"}, addrs)
 }
 
 func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consulWatcher, tw *testWatcher) {
@@ -207,4 +252,38 @@ type testStopper struct {
 
 func (ts *testStopper) Stop() {
 	ts.watcher.Logf("%s:%s:stop", ts.resolver, ts.service)
+}
+
+func TestWatchConsulQueriesResolverDatacenter(t *testing.T) {
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
+	defer cancel()
+
+	datacenters := make(chan string, 16)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case datacenters <- r.URL.Query().Get("dc"):
+		default:
+		}
+		w.Header().Set("X-Consul-Index", "1")
+		_, _ = w.Write([]byte("[]"))
+	}))
+	defer server.Close()
+
+	resolver := &amb.ConsulResolver{
+		Spec: amb.ConsulResolverSpec{
+			Address:    strings.TrimPrefix(server.URL, "http://"),
+			Datacenter: "dc13",
+		},
+	}
+
+	stopper, err := watchConsul(ctx, resolver, "consul-service", make(chan consulwatch.Endpoints, 16))
+	require.NoError(t, err)
+	defer stopper.Stop()
+
+	select {
+	case dc := <-datacenters:
+		assert.Equal(t, "dc13", dc)
+	case <-time.After(10 * time.Second):
+		t.Fatal("watch never queried consul")
+	}
 }

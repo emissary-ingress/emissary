@@ -122,6 +122,15 @@ spec:
   datacenter: dc12
 ---
 apiVersion: getambassador.io/v3alpha1
+kind: ConsulResolver
+metadata:
+  name: consul-resolver-dc13
+spec:
+  ambassador_id: [(env('SLOT'))]
+  address: (join('', ['consul.', $namespace, ':8500']))
+  datacenter: dc13
+---
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: k8s
@@ -154,6 +163,19 @@ spec:
   prefix: /consul_node/
   service: consul-node
   resolver: consul-resolver
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: consul-dc13
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /consul_dc13/
+  service: consul-dc13-service
+  resolver: consul-resolver-dc13
   load_balancer:
     policy: round_robin
 ---

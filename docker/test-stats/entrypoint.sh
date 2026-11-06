@@ -34,7 +34,7 @@ diediedie() {
         echo "STATS-TEST: $NAME exited with status $STATUS"
     fi
 
-    ambassador_exit 1
+    exit 1
 }
 
 handle_chld() {
@@ -67,12 +67,12 @@ trap "handle_int" INT
 ROOT=$$
 
 echo "STATS-TEST: starting stats-test service"
-/usr/bin/python3 "$APPDIR/stats-test.py" "$@" &
+python3 "$APPDIR/stats-test.py" "$@" &
 TEST_PID=$!
 pids="${pids:+${pids} }${TEST_PID}:stats-test"
 
 echo "STATS-TEST: starting stats-web service"
-/usr/bin/python3 "$APPDIR/stats-web.py" &
+python3 "$APPDIR/stats-web.py" &
 WEB_PID=$!
 pids="${pids:+${pids} }${WEB_PID}:stats-web"
 
