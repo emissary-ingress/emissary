@@ -265,6 +265,17 @@ type AddedHeader struct {
 	Value  string `json:"value,omitempty"`
 	Append *bool  `json:"append,omitempty"`
 
+	// AppendAction says what to do when the header is already present, as one
+	// of Envoy's HeaderValueOption.HeaderAppendAction values:
+	// APPEND_IF_EXISTS_OR_ADD appends to the existing values, ADD_IF_ABSENT
+	// leaves them alone, OVERWRITE_IF_EXISTS_OR_ADD replaces them, and
+	// OVERWRITE_IF_EXISTS replaces them but, unlike the others, does not add
+	// the header when it is absent. AppendAction takes the place of Append
+	// when both are set.
+	//
+	// +kubebuilder:validation:Enum={"APPEND_IF_EXISTS_OR_ADD","ADD_IF_ABSENT","OVERWRITE_IF_EXISTS_OR_ADD","OVERWRITE_IF_EXISTS"}
+	AppendAction string `json:"append_action,omitempty"`
+
 	// +kubebuilder:validation:Enum={"","string","null"}
 	V2Representation string `json:"v2Representation,omitempty"`
 }

@@ -142,6 +142,14 @@ from the Helm charts.
   Deployment with `apiext.nodeSelector` and `apiext.tolerations`. Both default to
   empty, so existing installs render the same.
 
+- Feature: A header in a `Mapping`'s `add_request_headers` or
+  `add_response_headers`, or in an HTTP health check's `add_request_headers`,
+  can now set `append_action` to any of Envoy's header append actions:
+  `APPEND_IF_EXISTS_OR_ADD`, `ADD_IF_ABSENT`, `OVERWRITE_IF_EXISTS_OR_ADD` or
+  `OVERWRITE_IF_EXISTS`. This allows, for example, supplying a default for a
+  header only when the client didn't send one. When set, `append_action` takes
+  the place of `append`, which keeps working as before.
+
 ## [4.1.0] 1 May 2026
 [4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 

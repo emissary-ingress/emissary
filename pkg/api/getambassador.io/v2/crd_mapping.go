@@ -299,6 +299,8 @@ type AddedHeader struct {
 type AddedHeaderFull struct {
 	Value  string `json:"value,omitempty"`
 	Append *bool  `json:"append,omitempty"`
+
+	V3AppendAction string `json:"v3AppendAction,omitempty"`
 }
 
 // MarshalJSON is important both so that we generate the proper
