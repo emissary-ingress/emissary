@@ -26,8 +26,8 @@ from the Helm charts.
 
 ## Emissary v4 Release Notes
 
-## [TBD] TBD
-[TBD]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...TBD
+## [4.2.0] 5 November 2026
+[4.2.0]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...v4.2.0
 
 - Update: Upgrade from Envoy 1.37.2 to Envoy 1.40.2 ([1.38.0 release notes],
   [1.39.0 release notes], [1.40.0 release notes], [1.40.2 release notes]). Envoy
