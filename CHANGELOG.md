@@ -26,6 +26,18 @@ from the Helm charts.
 
 ## Emissary v4 Release Notes
 
+## [TBD] TBD
+[TBD]: https://github.com/emissary-ingress/emissary/compare/v4.2.0...TBD
+
+- Fix: A TLS `TCPMapping` now only takes its certificate from a `Host` that its
+  `Listener`'s `hostBinding` selects, the same way HTTP `Mapping`s already do.
+  Previously every `Host` was considered, so the `Listener` could serve the
+  certificate of a `Host` it doesn't bind. If no bound `Host` matches, a
+  matching `TLSContext` is still used; otherwise the `TCPMapping` is disabled
+  with an error. ([#5732])
+
+[#5732]: https://github.com/emissary-ingress/emissary/issues/5732
+
 ## [4.2.0] 5 November 2026
 [4.2.0]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...v4.2.0
 
