@@ -1,0 +1,13 @@
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: loadbalancer-basic-7
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /loadbalancer-basic-7/
+  service: loadbalancer-basic-echo:8080
+  resolver: loadbalancer-basic-resolver
+  load_balancer:
+    policy: rr

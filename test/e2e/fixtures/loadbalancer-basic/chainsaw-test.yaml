@@ -1,0 +1,43 @@
+---
+# Port of KAT's tests/kat/t_loadbalancer.py::LoadBalancerTest.
+#
+# Checks which load_balancer configs Emissary accepts: valid ones route (200),
+# invalid ones (mixed hash keys, a cookie on round_robin or least_request)
+# drop the Mapping and fall through to 404. Each 404 is paired with 200s on
+# the valid Mappings, so a 404 from an Emissary that has not loaded the config
+# yet cannot satisfy it.
+#
+# The unknown policy "rr" cannot be applied here, because the CRD schema
+# rejects it. A step asserts that rejection, and its query still expects 404.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: loadbalancer-basic
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - apply:
+            file: rejected.yaml
+            expect:
+              - check:
+                  ($error != null): true
+                  (contains($error, 'Unsupported value')): true
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'default mapping routes'                   '.[0].result.status == 200 and .[0].result.json.backend == "loadbalancer-basic-echo"' \
+                'round_robin routes'                       '.[1].result.status == 200' \
+                'ring_hash on a header routes'             '.[2].result.status == 200' \
+                'ring_hash on source_ip routes'            '.[3].result.status == 200' \
+                'ring_hash on a cookie routes'             '.[4].result.status == 200' \
+                'ring_hash with every hash key is dropped' '.[5].result.status == 404' \
+                'round_robin with a cookie is dropped'     '.[6].result.status == 404' \
+                'unknown policy rr never routes'           '.[7].result.status == 404' \
+                'least_request routes'                     '.[8].result.status == 200' \
+                'least_request with a cookie is dropped'   '.[9].result.status == 404'

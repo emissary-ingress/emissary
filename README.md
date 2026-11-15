@@ -3,15 +3,17 @@ Emissary-ingress
 
 <!-- [![Alt Text][image-url]][link-url] -->
 [![Version][badge-version-img]][badge-version-link]
-[![Docker Repository][badge-docker-img]][badge-docker-link]
+[![Image Size][badge-ghcr-size]][badge-ghcr-link]
+[![Image Pulls][badge-ghcr-pulls]][badge-ghcr-link]
 [![Join Slack][badge-slack-img]][badge-slack-link]
 [![Core Infrastructure Initiative: Best Practices][badge-cii-img]][badge-cii-link]
 <!-- [![Artifact HUB][badge-artifacthub-img]][badge-artifacthub-link] -->
 
-[badge-version-img]: https://img.shields.io/docker/v/emissaryingress/emissary?sort=semver
+[badge-version-img]: https://ghcr-badge.egpl.dev/emissary-ingress/emissary/latest_tag?trim=major&label=version
 [badge-version-link]: https://github.com/emissary-ingress/emissary/releases
-[badge-docker-img]: https://img.shields.io/docker/pulls/emissaryingress/emissary
-[badge-docker-link]: https://hub.docker.com/r/emissaryingress/emissary
+[badge-ghcr-size]: https://ghcr-badge.egpl.dev/emissary-ingress/emissary/size
+[badge-ghcr-pulls]: https://img.shields.io/badge/dynamic/json?url=https://ghcr-badge.elias.eu.org/api/emissary-ingress/emissary/emissary&query=downloadCount&logo=docker&label=ghcr%20pulls&color=2496ed
+[badge-ghcr-link]: https://github.com/emissary-ingress/emissary/packages
 [badge-slack-img]: https://img.shields.io/badge/slack-join-orange.svg
 [badge-slack-link]: https://communityinviter.com/apps/cloud-native/cncf
 [badge-cii-img]: https://bestpractices.coreinfrastructure.org/projects/1852/badge

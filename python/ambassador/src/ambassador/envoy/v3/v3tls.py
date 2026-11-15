@@ -163,6 +163,7 @@ class V3TLSContext(Dict):
         for ctxkey, list_handler, hkey in [
             ("cipher_suites", self.update_tls_cipher, "cipher_suites"),
             ("ecdh_curves", self.update_tls_cipher, "ecdh_curves"),
+            ("signature_algorithms", self.update_tls_cipher, "signature_algorithms"),
         ]:
             value = ctx.get(ctxkey, None)
 

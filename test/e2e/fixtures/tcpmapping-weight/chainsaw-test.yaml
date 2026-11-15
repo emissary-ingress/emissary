@@ -1,0 +1,70 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingWeightTest.
+#
+# Asserting a distribution needs care with probe.sh, because it retries the
+# whole batch until every assertion passes. A probabilistic assertion under
+# that loop is not a check, it is thirty chances to roll a passing sample: a
+# deliberately broken 50/50 split still slips through about 2% of the time at
+# KAT's own sample size and margin, and far more often at smaller ones.
+#
+# So the distribution is measured exactly once. The first step retries on the
+# usual terms until both backends answer, which is what establishes that
+# Envoy has the weighted config; only then does the second step take its
+# single sample, with PROBE_ATTEMPTS=1 so there is no second roll.
+#
+# The split is judged as a proportion of the connections that reached a
+# backend, never as a count out of the 1000 requested. Some connections are
+# lost under load, more so on a CI runner than locally, and a count-based
+# window silently treats that loss as if it were a shift in the ratio: at one
+# point a run lost 95 connections, the tgt70 count fell from 769 to 690, and
+# 690 sat inside a window centred on 700, so a wrong split read as correct.
+#
+# The floor is there so the proportion is measured on a sample big enough to
+# mean something. Above 600 landed connections a 64 to 76 percent window passes
+# a correct 70/30 at least 99.8% of the time, while a 60/40 regression passes
+# under 2%. Finer drift such as 65/35 is not detected, which would need a much
+# larger sample or a genuinely flaky window, and neither is worth it here.
+#
+# Each query gets its own http.Transport in kat-client, so these are
+# independent connections rather than a few pooled ones, which is what makes a
+# binomial window the right tool.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-weight
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: both weighted backends answer
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="${GATEWAY_TCP_URL}" ../../probe.sh queries.json \
+                'every request succeeded'            'all(.[]; .result.status == 200)' \
+                'the 70-weighted backend was used'   'any(.[]; .result.json.backend == "tgt70")' \
+                'the 30-weighted backend was used'   'any(.[]; .result.json.backend == "tgt30")'
+
+    - name: connections split about 70/30
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[range(1000) | {url: "/", method: "GET"}]' > "$queries"
+              PROBE_ATTEMPTS=1 PROBE_BASE="${GATEWAY_TCP_URL}" \
+                ../../probe.sh "$queries" \
+                  'enough connections landed to measure' \
+                    '([.[] | select(.result.json.backend == "tgt70" or .result.json.backend == "tgt30")] | length) >= 600' \
+                  'nothing but the two weighted backends answered' \
+                    '([.[] | select(.result.status == 200 and (.result.json.backend | . != "tgt70" and . != "tgt30"))] | length) == 0' \
+                  'the 70/30 split holds' \
+                    '([.[] | select(.result.json.backend == "tgt70")] | length) as $a | ([.[] | select(.result.json.backend == "tgt30")] | length) as $b | (100 * $a / ($a + $b)) | . > 64 and . < 76'

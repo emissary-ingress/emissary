@@ -1,0 +1,125 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationHTTPPartialBufferTest.
+#
+# One target plus an HTTPS auth service. Both run kat-server with
+# INCLUDE_EXTAUTH_HEADER, which echoes the request each one received in an
+# `extauth` response header. The auth service buffers 7 bytes of body.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+            - name: INCLUDE_EXTAUTH_HEADER
+              value: "yes"
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: auth
+            - name: INCLUDE_EXTAUTH_HEADER
+              value: "yes"
+          ports:
+            - containerPort: 8080
+---
+# Port 443, not 8443: an AuthService's `auth_service` with no port defaults to 443
+# once a `tls` context is attached. kat-server always runs a TLS-terminating
+# listener on 8443 alongside its plain one on 8080.
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+spec:
+  selector:
+    app: auth
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: auth-partial-context
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: auth-partial-secret
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name: auth
+spec:
+  ambassador_id: [(env('SLOT'))]
+  auth_service: (join('.', ['auth', $namespace]))
+  path_prefix: "/extauth"
+  timeout_ms: 5000
+  tls: auth-partial-context
+  allowed_request_headers:
+    - Kat-Req-Http-Requested-Status
+    - Kat-Req-Http-Requested-Header
+  allowed_authorization_headers:
+    - Kat-Resp-Http-Request-Body
+  add_auth_headers:
+    X-Added-Auth: auth-added
+  include_body:
+    max_bytes: 7
+    allow_partial: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: (join('.', ['target', $namespace]))

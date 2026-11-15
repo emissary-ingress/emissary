@@ -1,0 +1,38 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_default.py::LinkerdHeaderMapping.
+#
+# `exclusive` because of the Module. Three Mappings, one per query: the
+# first inherits `add_linkerd_headers` from the Module, the second turns it
+# off, and the third empties its own header lists to drop the Module defaults.
+# Each query sends x-evil-header and x-evilness, which the Module and the
+# first Mapping respectively strip.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: mapping-linkerd-headers
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'inherited: reached the backend'            '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'inherited: linkerd header set'             '.[0].result.json.request.headers["l5d-dst-override"] == ["target." + env.NAMESPACE + ":8080"]' \
+                'inherited: Mapping fruit wins'             '.[0].result.json.request.headers["fruit"] == ["banana"]' \
+                'inherited: x-evil-header kept'             '.[0].result.json.request.headers["x-evil-header"] == ["evilness"]' \
+                'inherited: Mapping strips x-evilness'      '.[0].result.json.request.headers | has("x-evilness") | not' \
+                'opted out: reached the backend'            '.[1].result.status == 200 and .[1].result.json.backend == "target-no-header"' \
+                'opted out: no linkerd header'              '.[1].result.json.request.headers | has("l5d-dst-override") | not' \
+                'opted out: Module fruit'                   '.[1].result.json.request.headers["fruit"] == ["orange"]' \
+                'opted out: Module strips x-evil-header'    '.[1].result.json.request.headers | has("x-evil-header") | not' \
+                'opted out: x-evilness kept'                '.[1].result.json.request.headers["x-evilness"] == ["more evilness"]' \
+                'linkerd only: reached the backend'         '.[2].result.status == 200 and .[2].result.json.backend == "target-linkerd-only"' \
+                'linkerd only: linkerd header set'          '.[2].result.json.request.headers["l5d-dst-override"] == ["target-linkerd-only." + env.NAMESPACE + ":8080"]' \
+                'linkerd only: x-evil-header kept'          '.[2].result.json.request.headers["x-evil-header"] == ["evilness"]' \
+                'linkerd only: x-evilness kept'             '.[2].result.json.request.headers["x-evilness"] == ["more evilness"]'

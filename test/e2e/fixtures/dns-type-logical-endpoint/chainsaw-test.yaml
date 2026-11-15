@@ -1,0 +1,25 @@
+---
+# Port of KAT's tests/kat/t_dns_type.py::LogicalDnsTypeEndpoint.
+#
+# Confirms the endpoint resolver wins over dns_type when both are set. The
+# KubernetesEndpointResolver is named for this fixture rather than KAT's
+# literal "endpoint", since a Resolver is a named CRD like a Mapping, not a
+# singleton like a Module.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: dns-type-logical-endpoint
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'status is 200'         '.[0].result.status == 200' \
+                'reached the backend'   '.[0].result.json.backend == "dns-type-logical-endpoint-echo"'

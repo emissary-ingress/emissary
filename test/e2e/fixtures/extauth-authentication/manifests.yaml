@@ -1,0 +1,111 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationTest.
+#
+# One plain target plus one HTTP auth service: kat-server with
+# INCLUDE_EXTAUTH_HEADER echoes back what it received in an `extauth`
+# header.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: auth
+            - name: INCLUDE_EXTAUTH_HEADER
+              value: "yes"
+          ports:
+            - containerPort: 8080
+---
+# Port 80, not 8080: an AuthService's `auth_service` with no port defaults to 80.
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+spec:
+  selector:
+    app: auth
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name: auth
+spec:
+  ambassador_id: [(env('SLOT'))]
+  auth_service: (join('.', ['auth', $namespace]))
+  path_prefix: "/extauth"
+  allowed_request_headers:
+    - X-Foo
+    - X-Bar
+    - Kat-Req-Http-Requested-Location
+    - Kat-Req-Http-Requested-Status
+    - Kat-Req-Http-Requested-Header
+  allowed_authorization_headers:
+    - X-Foo
+    - X-Bar
+    - Extauth
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: (join('.', ['target', $namespace]))

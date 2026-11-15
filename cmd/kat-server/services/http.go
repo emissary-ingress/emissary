@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -149,7 +149,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if b, _ := ioutil.ReadAll(r.Body); b != nil {
+	if b, _ := io.ReadAll(r.Body); b != nil {
 		body := string(b)
 		if len(body) > 0 {
 			dlog.Printf(ctx, "received body: %s", body)

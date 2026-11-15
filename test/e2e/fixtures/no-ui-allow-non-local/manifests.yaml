@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: no-ui-allow-non-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: no-ui-allow-non-local
+  template:
+    metadata:
+      labels:
+        app: no-ui-allow-non-local
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: no-ui-allow-non-local
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: no-ui-allow-non-local
+spec:
+  selector:
+    app: no-ui-allow-non-local
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    diagnostics:
+      enabled: false
+      allow_non_local: true
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: no-ui-allow-non-local
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: no-ui-allow-non-local:8080

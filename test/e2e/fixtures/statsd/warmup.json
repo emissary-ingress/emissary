@@ -1,0 +1,4 @@
+[
+  {"url": "/target/", "method": "GET"},
+  {"url": "/target-alt/", "method": "GET"}
+]

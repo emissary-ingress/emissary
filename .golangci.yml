@@ -1,48 +1,71 @@
+version: "2"
 # Start with a very conservative configuration, and slowly turn things
 # back on.
 linters:
-  disable-all: true
+  default: none
   enable:
-    - gofmt
     - govet
     - depguard
     - unused
     - errcheck
-linters-settings:
-  gofmt:
-    simplify: true
-  depguard:
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: "github.com/datawire/dlib/dutil"
+              desc: "Use either `github.com/datawire/dlib/derror` or `github.com/datawire/dlib/dhttp` instead of `github.com/datawire/dlib/dutil`"
+            - pkg: "github.com/gogo/protobuf"
+              desc: "Use `google.golang.org/protobuf` instead of `github.com/gogo/protobuf`"
+            - pkg: "github.com/golang/protobuf"
+              desc: "Use `google.golang.org/protobuf` instead of `github.com/golang/protobuf`"
+            - pkg: "github.com/google/shlex"
+              desc: "Use `github.com/kballard/go-shellquote` instead of `github.com/google/shlex`"
+            - pkg: "golang.org/x/net/http2/h2c"
+              desc: "Use `github.com/datawire/dlib/dhttp` instead of `golang.org/x/net/http2/h2c`"
+    unused:
+      # treat code as a program (not a library) and report unused
+      # exported identifiers
+      exported-fields-are-used: false
+    errcheck:
+      exclude-functions:
+        - "(net/http.ResponseWriter).Write"
+  exclusions:
+    # These match the exclusions golangci-lint v1 applied by default:
+    # generated files, its built-in list of noisy issues, and these
+    # directory names.
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
     rules:
-      main:
-        deny:
-          - pkg: "github.com/datawire/dlib/dutil"
-            desc: "Use either `github.com/datawire/dlib/derror` or `github.com/datawire/dlib/dhttp` instead of `github.com/datawire/dlib/dutil`"
-          - pkg: "github.com/gogo/protobuf"
-            desc: "Use `google.golang.org/protobuf` instead of `github.com/gogo/protobuf`"
-          - pkg: "github.com/golang/protobuf"
-            desc: "Use `google.golang.org/protobuf` instead of `github.com/golang/protobuf`"
-          - pkg: "github.com/google/shlex"
-            desc: "Use `github.com/kballard/go-shellquote` instead of `github.com/google/shlex`"
-          - pkg: "golang.org/x/net/http2/h2c"
-            desc: "Use `github.com/datawire/dlib/dhttp` instead of `golang.org/x/net/http2/h2c`"
-  unused:
-    # treat code as a program (not a library) and report unused
-    # exported identifiers
-    check-exported: true
-  errcheck:
-    exclude-functions:
-      - "(net/http.ResponseWriter).Write"
-issues:
-  exclude-rules:
-    - linters: [govet, errcheck, unused]
-      path: pkg/envoy-control-plane/
-    - linters: [depguard]
-      path: "pkg/envoy-control-plane/(test/|.*_test\\.go)"
-    - linters: [depguard]
-      path: "pkg/envoy-control-plane/"
-      source: '"github\.com/golang/protobuf'
-    - linters: [govet]
-      text: "^tests: .* should return nothing$"
+      - linters: [govet, errcheck, unused]
+        path: pkg/envoy-control-plane/
+      - linters: [depguard]
+        path: "pkg/envoy-control-plane/(test/|.*_test\\.go)"
+      - linters: [depguard]
+        path: "pkg/envoy-control-plane/"
+        source: '"github\.com/golang/protobuf'
+      - linters: [govet]
+        text: "^tests: .* should return nothing$"
+formatters:
+  enable:
+    - gofmt
+  settings:
+    gofmt:
+      simplify: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 run:
   timeout: 9m # CircleCI is slow?
 

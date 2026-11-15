@@ -1,0 +1,51 @@
+# Port of KAT's tests/kat/t_no_ui_allow_non_local.py::NoUITestAllowNoLocal.
+#
+# `exclusive` because a Module is instance-global. KAT read the diag UI on
+# port 8877 from a kat pod; the same is done here from a pod in the test
+# namespace, because a request from inside the Emissary pod would count as
+# local. The target route proves the 404s come from the absent diag routes and
+# not from a listener that serves nothing.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: no-ui-allow-non-local
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: no-ui-allow-non-local
+              status:
+                availableReplicas: 1
+
+    - name: diag routes are absent
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'diag UI is 404'            '.[0].result.status == 404' \
+                'edge_stack admin is 404'   '.[1].result.status == 404' \
+                'target is routed'          '.[2].result.status == 200 and .[2].result.json.backend == "no-ui-allow-non-local"'
+
+    - name: diag on the admin port from a non-local client
+      try:
+        - apply:
+            file: client.yaml
+        - assert:
+            timeout: 2m
+            resource:
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: diag-client
+              status:
+                phase: Succeeded

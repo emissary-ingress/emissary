@@ -1,0 +1,67 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-status-across-namespaces-other
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ingress-status-across-namespaces-other
+  name: ingress-status-across-namespaces
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingress-status-across-namespaces
+  template:
+    metadata:
+      labels:
+        app: ingress-status-across-namespaces
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: ingress-status-across-namespaces
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ingress-status-across-namespaces-other
+  name: ingress-status-across-namespaces
+spec:
+  selector:
+    app: ingress-status-across-namespaces
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: ingress-status-across-namespaces-other
+  name: ingress-status-across-namespaces
+  annotations:
+    kubernetes.io/ingress.class: ambassador
+    getambassador.io/ambassador-id: (env('SLOT'))
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /ingress-status-across-namespaces/
+            pathType: Prefix
+            backend:
+              service:
+                name: ingress-status-across-namespaces
+                port:
+                  number: 8080

@@ -1,0 +1,38 @@
+[
+  {
+    "url": "/foo/4-200",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/foo/5-200",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "nonmatching-hostname"
+    }
+  },
+  {
+    "url": "/bar/6-404",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/bar/7-404",
+    "method": "GET",
+    "insecure": true,
+    "sni": true,
+    "headers": {
+      "Host": "nonmatching-hostname"
+    }
+  }
+]

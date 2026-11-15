@@ -1,0 +1,58 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDNo8080.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# KAT drops its default Listeners and declares only an HTTPS one on 8443, so
+# its cleartext query gets "connection refused". A slot always carries the
+# chart's default Listeners, whose 8443 one is identical to the KAT test's,
+# so the 8080 one is still there. What this fixture pins down instead is the
+# part the Host controls: with `insecure.action: Reject`, cleartext is not
+# redirected and does not reach the target.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-insecure-reject
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=localhost \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:localhost \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-insecure-reject-secret \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: https reaches the target
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'client got 200 over https'       '.[0].result.status == 200' \
+                'reached the target'               '.[0].result.json.backend == "target"'
+
+    - name: http is rejected, not redirected
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'client got 404, not a redirect'  '.[0].result.status == 404'

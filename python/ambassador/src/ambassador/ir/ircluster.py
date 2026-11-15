@@ -104,6 +104,14 @@ class IRCluster(IRResource):
         # Toss in the original service before we mess with it, too.
         name_fields.append(service)
 
+        # The resolver decides the cluster's type and endpoints, so Mappings that share a
+        # service but not a resolver must not share a cluster. The default Kubernetes
+        # service resolver stays out of the name so those clusters keep their names.
+        if resolver:
+            named_resolver = ir.get_resolver(resolver)
+            if named_resolver and named_resolver.kind != "KubernetesServiceResolver":
+                name_fields.append(resolver)
+
         # If we have a ctx_name, does it match a real context?
         if ctx_name:
             if ctx_name is True:

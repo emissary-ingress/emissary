@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: kat-server
-          image: ${KAT_SERVER_IMAGE}
+          image: (env('KAT_SERVER_IMAGE'))
           imagePullPolicy: IfNotPresent
           command: ["/work/kat-server"]
           env:
@@ -47,6 +47,7 @@ kind: Mapping
 metadata:
   name: grpc-echo
 spec:
+  ambassador_id: [(env('SLOT'))]
   hostname: "*"
   prefix: /echo.EchoService/
   rewrite: ""

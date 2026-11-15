@@ -88,7 +88,8 @@ runs:
         set -euo pipefail
 
         # install uv
-        curl -fsSL https://astral.sh/uv/install.sh | sudo -E bash
+        # sudo-rs (Ubuntu 26.04 runners) ignores -E, so pass the variable explicitly.
+        curl -fsSL https://astral.sh/uv/install.sh | sudo env UV_UNMANAGED_INSTALL="$UV_UNMANAGED_INSTALL" bash
 
         # install Python requirements
         uv sync --dev

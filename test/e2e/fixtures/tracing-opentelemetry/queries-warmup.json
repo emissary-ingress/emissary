@@ -1,0 +1,4 @@
+[
+  {"url": "/target/warmup", "method": "GET"},
+  {"url": "/jaeger/api/services", "method": "GET"}
+]

@@ -1,0 +1,6 @@
+[
+  {
+    "url": "/echo.EchoService/Echo",
+    "grpc_type": "real"
+  }
+]

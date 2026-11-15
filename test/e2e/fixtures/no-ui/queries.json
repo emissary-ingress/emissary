@@ -1,0 +1,5 @@
+[
+  {"url": "/ambassador/v0/diag/", "method": "GET"},
+  {"url": "/edge_stack/admin/", "method": "GET"},
+  {"url": "/target/", "method": "GET"}
+]

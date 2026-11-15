@@ -1,0 +1,130 @@
+[
+  {
+    "url": "/ambassador/v0/diag/?json=true&filter=errors",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-3/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/.well-known/acme-challenge/foo",
+    "headers": {
+      "Host": "tls-context-host-1"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-3/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/.well-known/acme-challenge/foo",
+    "headers": {
+      "Host": "tls-context-host-2"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "ambassador.example.com"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "ambassador.example.com"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-3/",
+    "headers": {
+      "Host": "ambassador.example.com"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/target-shared/",
+    "headers": {
+      "Host": "ambassador.example.com"
+    },
+    "insecure": true,
+    "sni": true
+  },
+  {
+    "url": "/.well-known/acme-challenge/foo",
+    "headers": {
+      "Host": "ambassador.example.com"
+    },
+    "insecure": true,
+    "sni": true
+  }
+]

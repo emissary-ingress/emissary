@@ -632,7 +632,6 @@
 - apiVersion: getambassador.io/v2
   kind: Mapping
   metadata:
-    creationTimestamp: null
     name: linkerdheadermapping-http-addlinkerdonly
   spec:
     prefix: /target_add_linkerd_header_only/
@@ -642,7 +641,6 @@
 - apiVersion: getambassador.io/v2
   kind: Mapping
   metadata:
-    creationTimestamp: null
     name:  errorresponseonstatuscode-invalidservice-empty
   spec:
     prefix: /target/invalidservice/empty
@@ -654,7 +652,6 @@
 - apiVersion: getambassador.io/v2
   kind: Mapping
   metadata:
-    creationTimestamp: null
     name:  errorresponseonstatuscode-invalidservice-empty
   spec:
     prefix: /target/invalidservice/empty

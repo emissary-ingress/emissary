@@ -135,10 +135,6 @@ func GetEnvoyFlags() []string {
 	return result
 }
 
-func GetDiagdBindAddress() string {
-	return env("AMBASSADOR_DIAGD_BIND_ADDREASS", "")
-}
-
 func IsDiagdOnly() bool {
 	return envbool("DIAGD_ONLY")
 }
@@ -149,8 +145,16 @@ func ForceEndpoints() bool {
 	return envbool("AMBASSADOR_FORCE_ENDPOINTS")
 }
 
-func GetDiagdBindPort() string {
-	return env("AMBASSADOR_DIAGD_BIND_PORT", "8004")
+// GetDiagdSocketPath returns the path of the Unix-domain socket that diagd
+// listens on. diagd deliberately has no TCP listener: its internal API (most
+// notably the WATT snapshot endpoint) must not be reachable from off-pod, and
+// a socket on the pod's filesystem is the only way to guarantee that. Note
+// that binding to 127.0.0.1 is _not_ sufficient, since `kubectl port-forward`
+// makes off-pod traffic appear to originate from 127.0.0.1.
+//
+// Keep this short: sockaddr_un.sun_path tops out at 108 bytes on Linux.
+func GetDiagdSocketPath() string {
+	return env("AMBASSADOR_DIAGD_SOCKET", path.Join(GetAmbassadorConfigBaseDir(), "diagd.sock"))
 }
 
 func GetDiagdBanner() string {
@@ -169,19 +173,13 @@ func GetDiagdFlags(ctx context.Context) []string {
 		result = append(result, "--debug")
 	}
 
-	diagdBind := GetDiagdBindAddress()
-	if diagdBind != "" {
-		result = append(result, "--host", diagdBind)
-	}
-
 	diagdBanner := GetDiagdBanner()
 
 	if diagdBanner != "" {
 		result = append(result, "--banner-endpoint", diagdBanner)
 	}
 
-	// XXX: this was not in entrypoint.sh
-	result = append(result, "--port", GetDiagdBindPort())
+	result = append(result, "--socket-path", GetDiagdSocketPath())
 
 	cdir := env("AMBASSADOR_CONFIG_DIR", path.Join(GetAmbassadorConfigBaseDir(), "ambassador-config"))
 
@@ -225,12 +223,8 @@ func GetLicenseSecretNamespace() string {
 	return env("AMBASSADOR_AES_SECRET_NAMESPACE", GetAmbassadorNamespace())
 }
 
-func GetEventHost() string {
-	return env("DEV_AMBASSADOR_EVENT_HOST", fmt.Sprintf("http://localhost:%s", GetDiagdBindPort()))
-}
-
 func GetEventPath() string {
-	return env("DEV_AMBASSADOR_EVENT_PATH", fmt.Sprintf("_internal/v0"))
+	return env("DEV_AMBASSADOR_EVENT_PATH", "_internal/v0")
 }
 
 func GetSidecarHost() string {
@@ -241,8 +235,11 @@ func GetSidecarPath() string {
 	return env("DEV_AMBASSADOR_SIDECAR_PATH", "_internal/v0")
 }
 
+// GetEventUrl is the URL used to hand a new WATT snapshot to diagd. The host
+// part is a placeholder: requests to diagd always go over the Unix-domain
+// socket named by GetDiagdSocketPath(), so the hostname is never resolved.
 func GetEventUrl() string {
-	return fmt.Sprintf("%s/%s/watt", GetEventHost(), GetEventPath())
+	return fmt.Sprintf("%s/%s/watt", DiagdURLOrigin, GetEventPath())
 }
 
 func GetSidecarUrl() string {

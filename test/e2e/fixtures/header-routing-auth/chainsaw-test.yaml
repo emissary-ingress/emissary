@@ -1,0 +1,36 @@
+# Port of KAT's tests/kat/t_headerrouting.py::AuthenticationHeaderRouting.
+#
+# `exclusive` because an AuthService is instance-global. test-auth answers 403
+# unless the path ends in /good/ (200 plus X-Auth-Route, so the header-matched
+# Mapping wins) or /nohdr/ (200 without it, so the plain Mapping wins).
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: header-routing-auth
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: auth
+              status:
+                availableReplicas: 1
+
+    - name: route on the header set by the auth service
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries.json \
+                'q0 denied by auth'               '.[0].result.status == 403 and .[0].result.json.backend == "auth"' \
+                'q1 good goes to target2'         '.[1].result.status == 200 and .[1].result.json.backend == "target2"' \
+                'q2 nohdr goes to target1'        '.[2].result.status == 200 and .[2].result.json.backend == "target1"' \
+                'q3 other path denied by auth'    '.[3].result.status == 403 and .[3].result.json.backend == "auth"'

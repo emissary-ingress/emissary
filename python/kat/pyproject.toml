@@ -4,9 +4,9 @@ version = "4.0.0-dev"
 readme = "README.md"
 dependencies = [
     "tests>=4.0",
-    "pytest==8.*",
+    "pytest==9.*",
     "pyyaml==6.*",
-    "packaging==24.*",
+    "packaging==26.*",
 ]
 
 

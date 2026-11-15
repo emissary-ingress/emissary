@@ -1,0 +1,52 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationHTTPFailureModeAllowTest.
+#
+# `exclusive` because an AuthService is instance-global. The AuthService
+# reaches the auth service over a TLSContext, so the client cert is generated
+# per run: it has to be a real leaf, since a default `openssl req -x509` cert
+# is a CA and BoringSSL rejects it at handshake time. A 5xx from the auth
+# service is an auth failure, so with failure_mode_allow the request goes on
+# to the target, which then returns the 503 itself.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: extauth-http-failure-mode-allow
+spec:
+  steps:
+    - name: generate the auth client cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tls-context-host-1 \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth,clientAuth \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls auth-failure-secret \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: auth failure is allowed through
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'q0 routed to the target'             '.[0].result.json.backend == "target"' \
+                'q0 target saw requested status'      '.[0].result.json.request.headers["kat-req-http-requested-status"] == ["200"]' \
+                'q0 client got 200'                   '.[0].result.status == 200' \
+                'q0 Server is envoy'                  '.[0].result.headers["Server"] == ["envoy"]' \
+                'q1 allowed through to the target'    '.[1].result.json.backend == "target"' \
+                'q1 target saw requested status'      '.[1].result.json.request.headers["kat-req-http-requested-status"] == ["503"]' \
+                'q1 client got the target 503'        '.[1].result.status == 503' \
+                'q1 Server is envoy'                  '.[1].result.headers["Server"] == ["envoy"]'

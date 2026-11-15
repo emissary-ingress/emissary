@@ -1,0 +1,100 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDClientCertCRLRevokeList.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# mTLS needs a CA, a server leaf, a client cert signed by that CA, and a
+# CRL revoking that same client cert, none of which may be committed (a
+# default `openssl req -x509` cert is a CA and BoringSSL rejects it as a
+# server leaf).
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-client-cert-crl-revoke
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: certs, crl and mtls probe
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+
+              # CA: signs the client cert below and the CRL that revokes it.
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=host-client-cert-crl-revoke-ca \
+                -addext basicConstraints=critical,CA:TRUE \
+                -addext keyUsage=critical,keyCertSign,cRLSign \
+                -keyout "$dir/ca.key" -out "$dir/ca.crt" 2>/dev/null
+
+              # Downstream server leaf, self-signed like every other fixture's cert.
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=ambassador.example.com \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:ambassador.example.com \
+                -keyout "$dir/server.key" -out "$dir/server.crt" 2>/dev/null
+
+              # Client cert signed by the CA. This is the one the CRL revokes.
+              openssl req -newkey rsa:2048 -nodes -subj /CN=revoked-client \
+                -keyout "$dir/client.key" -out "$dir/client.csr" 2>/dev/null
+              printf '%s\n' \
+                'basicConstraints=critical,CA:FALSE' \
+                'keyUsage=critical,digitalSignature' \
+                'extendedKeyUsage=clientAuth' > "$dir/client.ext"
+              openssl x509 -req -in "$dir/client.csr" -CA "$dir/ca.crt" -CAkey "$dir/ca.key" \
+                -CAcreateserial -days 3650 -extfile "$dir/client.ext" \
+                -out "$dir/client.crt" 2>/dev/null
+
+              # CRL revoking the client cert. `openssl ca` needs a config
+              # file and a database file even for a minimal revoke+gencrl.
+              printf '%s\n' \
+                '[ ca ]' \
+                'default_ca = CA_default' \
+                '[ CA_default ]' \
+                "database = $dir/index.txt" \
+                "certificate = $dir/ca.crt" \
+                "private_key = $dir/ca.key" \
+                'default_md = sha256' \
+                'policy = policy_any' \
+                'default_crl_days = 30' \
+                '[ policy_any ]' > "$dir/ca.cnf"
+              touch "$dir/index.txt"
+              openssl ca -config "$dir/ca.cnf" -revoke "$dir/client.crt" 2>/dev/null
+              openssl ca -config "$dir/ca.cnf" -gencrl -out "$dir/crl.pem" 2>/dev/null
+
+              kubectl create secret tls host-client-cert-crl-revoke-server \
+                -n "$NAMESPACE" --cert="$dir/server.crt" --key="$dir/server.key"
+              kubectl create secret generic host-client-cert-crl-revoke-ca \
+                -n "$NAMESPACE" --from-file=tls.crt="$dir/ca.crt"
+              kubectl create secret generic host-client-cert-crl-revoke-crl \
+                -n "$NAMESPACE" --from-file=crl.pem="$dir/crl.pem"
+
+              # insecure:true skips the client's verification of the
+              # server's own certificate chain; it has no bearing on
+              # Envoy's mTLS verification of the client cert below, which
+              # is what these queries actually exercise.
+              jq -n \
+                --rawfile ccrt "$dir/client.crt" \
+                --rawfile ckey "$dir/client.key" \
+                '[
+                  {url: "/", headers: {Host: "ambassador.example.com"}, sni: true, insecure: true},
+                  {url: "/", headers: {Host: "ambassador.example.com"}, sni: true, insecure: true, client_cert: $ccrt, client_key: $ckey}
+                ]' > "$dir/queries.json"
+
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh "$dir/queries.json" \
+                'no client cert is refused'         '.[0].result.status == null' \
+                'refused for lack of a certificate' '.[0].result.error | test("certificate required")' \
+                'revoked cert is refused'           '.[1].result.status == null' \
+                'refused because it is on the CRL'  '.[1].result.error | test("revoked certificate")'

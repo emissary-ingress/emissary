@@ -1,0 +1,5 @@
+[
+  { "url": "/mapping-add-response-headers/", "method": "GET", "headers": { "koo": "Koot", "Kat-Req-Http-Requested-Header": "koo" } },
+  { "url": "/mapping-add-response-headers/", "method": "GET", "headers": { "zoo": "Zoo", "Kat-Req-Http-Requested-Header": "zoo" } },
+  { "url": "/mapping-add-response-headers/", "method": "GET", "headers": { "test": "Test", "Kat-Req-Http-Requested-Header": "test" } }
+]

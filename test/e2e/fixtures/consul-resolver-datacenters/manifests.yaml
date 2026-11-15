@@ -1,0 +1,193 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consul-dc12
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consul-dc12
+  template:
+    metadata:
+      labels:
+        app: consul-dc12
+    spec:
+      containers:
+        - name: consul
+          image: hashicorp/consul:1.15.4
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CONSUL_LOCAL_CONFIG
+              value: '{"datacenter":"dc12"}'
+          ports:
+            - containerPort: 8500
+          readinessProbe:
+            httpGet:
+              path: /v1/status/leader
+              port: 8500
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul-dc12
+spec:
+  selector:
+    app: consul-dc12
+  ports:
+    - name: consul
+      port: 8500
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-dc12
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-dc12
+  template:
+    metadata:
+      labels:
+        app: k8s-dc12
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: dc12
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-dc12
+spec:
+  selector:
+    app: k8s-dc12
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: ConsulResolver
+metadata:
+  name: consul-resolver-dc12
+spec:
+  ambassador_id: [(env('SLOT'))]
+  address: (join('', ['consul-dc12.', $namespace, ':8500']))
+  datacenter: dc12
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: consul-dc12
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /consul_dc12/
+  service: shared-service
+  resolver: consul-resolver-dc12
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consul-dc13
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consul-dc13
+  template:
+    metadata:
+      labels:
+        app: consul-dc13
+    spec:
+      containers:
+        - name: consul
+          image: hashicorp/consul:1.15.4
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CONSUL_LOCAL_CONFIG
+              value: '{"datacenter":"dc13"}'
+          ports:
+            - containerPort: 8500
+          readinessProbe:
+            httpGet:
+              path: /v1/status/leader
+              port: 8500
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul-dc13
+spec:
+  selector:
+    app: consul-dc13
+  ports:
+    - name: consul
+      port: 8500
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-dc13
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-dc13
+  template:
+    metadata:
+      labels:
+        app: k8s-dc13
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: dc13
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-dc13
+spec:
+  selector:
+    app: k8s-dc13
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: ConsulResolver
+metadata:
+  name: consul-resolver-dc13
+spec:
+  ambassador_id: [(env('SLOT'))]
+  address: (join('', ['consul-dc13.', $namespace, ':8500']))
+  datacenter: dc13
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: consul-dc13
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /consul_dc13/
+  service: shared-service
+  resolver: consul-resolver-dc13
+  load_balancer:
+    policy: round_robin

@@ -19,7 +19,6 @@ from typing import cast as typecast
 from ...ir.irauth import IRAuth
 from ...ir.irbuffer import IRBuffer
 from ...ir.ircluster import IRCluster
-from ...ir.irerrorresponse import IRErrorResponse
 from ...ir.irfilter import IRFilter
 from ...ir.irgzip import IRGzip
 from ...ir.iripallowdeny import IRIPAllowDeny
@@ -146,14 +145,24 @@ def V3HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v3config: "V3Config"):
     del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return {"name": "envoy.filters.http.grpc_http1_bridge"}
+    return {
+        "name": "envoy.filters.http.grpc_http1_bridge",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.grpc_http1_bridge.v3.Config",
+        },
+    }
 
 
 def V3HTTPFilter_grpc_web(irfilter: IRFilter, v3config: "V3Config"):
     del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return {"name": "envoy.filters.http.grpc_web"}
+    return {
+        "name": "envoy.filters.http.grpc_web",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb",
+        },
+    }
 
 
 def V3HTTPFilter_grpc_stats(irfilter: IRFilter, v3config: "V3Config"):
@@ -335,66 +344,6 @@ end
     return auth_info
 
 
-# Careful: this function returns None to indicate that no Envoy response_map
-# filter needs to be instantiated, because either no Module nor Mapping
-# has error_response_overrides, or the ones that exist are not valid.
-#
-# By not instantiating the filter in those cases, we prevent adding a useless
-# filter onto the chain.
-@V3HTTPFilter.register
-def V3HTTPFilter_error_response(error_response: IRErrorResponse, v3config: "V3Config"):
-    # Error response configuration can come from the Ambassador module, on a
-    # a Mapping, or both. We need to use the response_map filter if either one
-    # of these sources defines error responses. First, check if any route
-    # has per-filter config for error responses. If so, we know a Mapping has
-    # defined error responses.
-    route_has_error_responses = False
-    for route in v3config.routes:
-        typed_per_filter_config = route.get("typed_per_filter_config", {})
-        if "envoy.filters.http.response_map" in typed_per_filter_config:
-            route_has_error_responses = True
-            break
-
-    filter_config: Dict[str, Any] = {
-        # The IRErrorResponse filter builds on the 'envoy.filters.http.response_map' filter.
-        "name": "envoy.filters.http.response_map"
-    }
-
-    module_config = error_response.config()
-    if module_config:
-        # Mappers are required, otherwise this the response map has nothing to do. We really
-        # shouldn't have a config with nothing in it, but we defend against this case anyway.
-        if "mappers" not in module_config or len(module_config["mappers"]) == 0:
-            error_response.post_error(
-                "ErrorResponse Module config has no mappers, cannot configure."
-            )
-            return None
-
-        # If there's module config for error responses, create config for that here.
-        # If not, there must be some Mapping config for it, so we'll just return
-        # a filter with no global config and let the Mapping's per-route config
-        # take action instead.
-        filter_config["typed_config"] = {
-            "@type": "type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMap",
-            # The response map filter supports an array of mappers for matching as well
-            # as default actions to take if there are no overrides on a mapper. We do
-            # not take advantage of any default actions, and instead ensure that all of
-            # the mappers we generate contain some action (eg: body_format_override).
-            "mappers": module_config["mappers"],
-        }
-        return filter_config
-    elif route_has_error_responses:
-        # Return the filter config as-is without global configuration. The mapping config
-        # has its own per-route config and simply needs this filter to exist.
-        return filter_config
-
-    # There is no module config nor mapping config that requires the response map filter,
-    # so we omit it. By returning None, the caller will omit this filter from the
-    # filter chain entirely, which is not the usual way of handling filter config,
-    # but it's valid.
-    return None
-
-
 @V3HTTPFilter.register
 def V3HTTPFilter_ratelimit(ratelimit: IRRateLimit, v3config: "V3Config"):
     config = dict(ratelimit.config)
@@ -463,43 +412,44 @@ def V3HTTPFilter_cors(cors: IRFilter, v3config: "V3Config"):
     del cors  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return {"name": "envoy.filters.http.cors"}
+    return {
+        "name": "envoy.filters.http.cors",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy",
+        },
+    }
 
 
 def V3HTTPFilter_router(router: IRFilter, v3config: "V3Config"):
     del v3config  # silence unused-variable warning
 
-    od: Dict[str, Any] = {"name": "envoy.filters.http.router"}
-
-    # Use this config base if we actually need to set config fields below. We don't set
-    # this on `od` by default because it would be an error to end up returning a typed
-    # config that has no real config fields, only a type.
-    typed_config_base = {
+    typed_config: Dict[str, Any] = {
         "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router",
     }
 
     if router.ir.tracing:
-        typed_config = od.setdefault("typed_config", typed_config_base)
         typed_config["start_child_span"] = True
 
     if parse_bool(router.ir.ambassador_module.get("suppress_envoy_headers", "false")):
-        typed_config = od.setdefault("typed_config", typed_config_base)
         typed_config["suppress_envoy_headers"] = True
 
-    return od
+    return {
+        "name": "envoy.filters.http.router",
+        "typed_config": typed_config,
+    }
 
 
 def V3HTTPFilter_lua(irfilter: IRFilter, v3config: "V3Config"):
     del v3config  # silence unused-variable warning
 
     config_dict = irfilter.config_dict()
-    config: Dict[str, Any]
-    config = {"name": "envoy.filters.http.lua"}
-
+    typed_config: Dict[str, Any] = {
+        "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua",
+    }
     if config_dict:
-        config["typed_config"] = config_dict
-        config["typed_config"]["@type"] = (
-            "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
-        )
+        typed_config.update(config_dict)
 
-    return config
+    return {
+        "name": "envoy.filters.http.lua",
+        "typed_config": typed_config,
+    }

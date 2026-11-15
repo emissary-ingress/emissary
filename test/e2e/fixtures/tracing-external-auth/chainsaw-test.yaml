@@ -1,0 +1,78 @@
+# Port of KAT's tests/kat/t_tracing.py::TracingExternalAuthTest.
+#
+# `exclusive` because a TracingService and an AuthService are instance-global.
+# The tracer is part of Envoy's bootstrap, which is read only at startup, so
+# the slot's Emissary is restarted once the TracingService is applied. Zipkin
+# is queried through a Mapping only to know when tracing is live. The auth
+# service is kat-server echoing what it received in an `extauth` header, which
+# is compared with the headers the target received. The auth request gets its
+# own span id and no x-request-id, so only trace id, parent span id and the
+# sampled flag are compared.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tracing-external-auth
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: zipkin
+              status:
+                availableReplicas: 1
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: auth
+              status:
+                availableReplicas: 1
+
+    - name: restart emissary to load the tracer
+      try:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" rollout restart "deploy/emissary-${SLOT}"
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+
+    - name: wait for tracing to be live
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-warmup.json \
+                'zipkin has received spans' '(.[1].result.json | length) > 0'
+
+    - name: auth receives the tracing headers
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              auth='(.[0].result.json.request.headers.extauth[0] | fromjson | .request.headers)'
+              target='.[0].result.json.request.headers'
+              ../../probe.sh queries-traced.json \
+                'client got 200'                 '.[0].result.status == 200' \
+                'Server is envoy'                '.[0].result.headers["Server"] == ["envoy"]' \
+                'routed to the target'           '.[0].result.json.backend == "target"' \
+                'auth saw the trace id'          "(${auth}[\"x-b3-traceid\"] | length) == 1 and ${auth}[\"x-b3-traceid\"] == ${target}[\"x-b3-traceid\"]" \
+                'auth saw the parent span id'    "(${auth}[\"x-b3-parentspanid\"] | length) == 1 and ${auth}[\"x-b3-parentspanid\"] == ${target}[\"x-b3-parentspanid\"]" \
+                'auth saw the sampled flag'      "${auth}[\"x-b3-sampled\"] == [\"1\"] and ${auth}[\"x-b3-sampled\"] == ${target}[\"x-b3-sampled\"]" \
+                'auth saw its own span id'       "(${auth}[\"x-b3-spanid\"] | length) == 1"

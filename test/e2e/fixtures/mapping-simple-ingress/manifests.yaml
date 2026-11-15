@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-simple-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-simple-ingress
+  template:
+    metadata:
+      labels:
+        app: mapping-simple-ingress
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-simple-ingress
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-simple-ingress
+spec:
+  selector:
+    app: mapping-simple-ingress
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mapping-simple-ingress
+  annotations:
+    kubernetes.io/ingress.class: ambassador
+    getambassador.io/ambassador-id: (env('SLOT'))
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /mapping-simple-ingress/
+            pathType: Prefix
+            backend:
+              service:
+                name: mapping-simple-ingress
+                port:
+                  number: 8080

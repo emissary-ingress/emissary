@@ -60,9 +60,9 @@ func WatchAllTheThings(
 
 	// **** SETUP DONE for the Kubernetes Watcher
 
-	notify := func(ctx context.Context, disposition SnapshotDisposition, _ []byte) error {
+	notify := func(ctx context.Context, disposition SnapshotDisposition, snapshotJSON []byte) error {
 		if disposition == SnapshotReady {
-			return notifyReconfigWebhooks(ctx, ambwatch)
+			return notifyReconfigWebhooks(ctx, ambwatch, snapshotJSON)
 		}
 		return nil
 	}

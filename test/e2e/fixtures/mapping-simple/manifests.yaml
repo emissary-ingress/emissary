@@ -1,0 +1,50 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-simple
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-simple
+  template:
+    metadata:
+      labels:
+        app: mapping-simple
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-simple
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-simple
+spec:
+  selector:
+    app: mapping-simple
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-simple
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-simple/
+  service: http://mapping-simple:8080

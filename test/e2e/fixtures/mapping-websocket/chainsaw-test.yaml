@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::WebSocketMapping.
+#
+# The echo backend sends a "Request served by <host>" frame before echoing
+# and answers a plain GET with 200.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-websocket
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'plain GET answered 200'         '.[0].result.status == 200' \
+                'plain GET hit the echo backend' '(.[0].result.text | startswith("Request served by"))' \
+                'upgrade succeeded'              '.[1].result.error == null' \
+                'greeting frame first'           '(.[1].result.messages[0] | startswith("Request served by"))' \
+                'messages echoed in order'       '.[1].result.messages[1:] == ["one", "two", "three"]'

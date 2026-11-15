@@ -1,0 +1,6 @@
+[
+  {
+    "url": "/ambassador/v0/diag/?json=true&filter=errors",
+    "method": "GET"
+  }
+]

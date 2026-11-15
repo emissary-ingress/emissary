@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-status-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingress-status-2
+  template:
+    metadata:
+      labels:
+        app: ingress-status-2
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: ingress-status-2
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-status-2
+spec:
+  selector:
+    app: ingress-status-2
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-status-2
+  annotations:
+    kubernetes.io/ingress.class: ambassador
+    getambassador.io/ambassador-id: (env('SLOT'))
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /ingress-status-2/
+            pathType: Prefix
+            backend:
+              service:
+                name: ingress-status-2
+                port:
+                  number: 8080

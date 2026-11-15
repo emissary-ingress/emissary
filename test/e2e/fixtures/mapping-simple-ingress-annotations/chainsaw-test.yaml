@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::SimpleIngressWithAnnotations.
+#
+# `shared`. Scoped to one Emissary by the Ingress's ambassador-id annotation
+# (see mapping-simple-ingress). The `getambassador.io/config` annotation is
+# a JSON object because it has to embed the slot's id.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-simple-ingress-annotations
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'ingress rule routes'        '.[0].result.status == 200 and .[0].result.json.backend == "mapping-simple-ingress-annotations"' \
+                'ingress rule normalizes'    '.[1].result.status == 200 and .[1].result.json.request.headers["x-envoy-original-path"][0] == "/mapping-simple-ingress-annotations/"' \
+                'annotation Mapping routes'  '.[2].result.status == 200 and .[2].result.json.backend == "mapping-simple-ingress-annotations" and .[2].result.json.request.headers["x-envoy-original-path"][0] == "/mapping-simple-ingress-annotations-nested/"' \
+                'unknown path is not routed' '.[3].result.status == 404'

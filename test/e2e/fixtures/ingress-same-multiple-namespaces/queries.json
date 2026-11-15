@@ -1,0 +1,10 @@
+[
+  {
+    "url": "/ingress-same-multiple-namespaces-target1/",
+    "method": "GET"
+  },
+  {
+    "url": "/ingress-same-multiple-namespaces-target2/",
+    "method": "GET"
+  }
+]

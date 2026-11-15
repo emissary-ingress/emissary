@@ -83,7 +83,7 @@ type Fake struct {
 
 	ambassadorMeta *snapshot.AmbassadorMetaInfo
 
-	DiagdBindPort string
+	DiagdSocketPath string
 }
 
 // FakeConfig provides option when constructing a new Fake.
@@ -159,17 +159,17 @@ func (f *Fake) Setup() {
 			f.T.Fatal("unable to find diagd, cannot run")
 		}
 
-		f.group.Go("snapshot_server", func(ctx context.Context) error {
-			return snapshotServer(ctx, f.currentSnapshot)
-		})
-
-		f.DiagdBindPort = GetDiagdBindPort()
-
 		err = os.MkdirAll(f.config.OutputDir, os.ModePerm)
 
 		if err != nil {
 			f.T.Fatalf("failed to create directory: %v", err)
 		}
+
+		// Keep diagd's socket alongside the rest of this Fake's output, so that
+		// concurrent Fakes don't collide and so that we don't need a writable
+		// /ambassador.
+		f.T.Setenv("AMBASSADOR_DIAGD_SOCKET", filepath.Join(f.config.OutputDir, "diagd.sock"))
+		f.DiagdSocketPath = GetDiagdSocketPath()
 
 		f.group.Go("diagd", func(ctx context.Context) error {
 			args := []string{
@@ -178,8 +178,7 @@ func (f *Fake) Setup() {
 				filepath.Join(f.config.OutputDir, "bootstrap-ads.json"),
 				filepath.Join(f.config.OutputDir, "envoy.json"),
 				"--no-envoy",
-				"--host", "127.0.0.1",
-				"--port", f.DiagdBindPort,
+				"--socket-path", f.DiagdSocketPath,
 			}
 
 			if f.config.DiagdDebug {
@@ -220,7 +219,7 @@ func (f *Fake) GetFeatures(ctx context.Context, features interface{}) error {
 	// at present.
 	//
 	// TODO(Flynn): That's a stupid reason and we should fix it.
-	featuresURL := fmt.Sprintf("http://localhost:%s/_internal/v0/features", f.DiagdBindPort)
+	featuresURL := fmt.Sprintf("%s/_internal/v0/features", DiagdURLOrigin)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", featuresURL, nil)
 
@@ -232,7 +231,7 @@ func (f *Fake) GetFeatures(ctx context.Context, features interface{}) error {
 	// so that diagd will trust the request.
 	req.Header.Set("X-Ambassador-Diag-IP", "127.0.0.1")
 	req.Header.Set("content-type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := DiagdClient().Do(req)
 
 	if err != nil {
 		return err
@@ -268,6 +267,11 @@ func (f *Fake) GetFeatures(ctx context.Context, features interface{}) error {
 func (f *Fake) Teardown() {
 	f.teardownOnce.Do(func() {
 		f.cancel()
+		// Cancelling kills only the diagd master process. Its gunicorn worker lingers for
+		// gunicorn's graceful timeout while any keep-alive connection is still open, and it holds
+		// diagd's output pipe, so the wait below would block until the worker exits. Closing our
+		// pooled connections lets the worker exit at once.
+		DiagdClient().CloseIdleConnections()
 		err := f.group.Wait()
 		if err != nil && err != context.Canceled {
 			f.T.Fatalf("fake Emissary errored out: %+v", err)
@@ -341,7 +345,7 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 	var irText []byte
 
 	if disp == SnapshotReady && f.config.EnvoyConfig {
-		if err := notifyReconfigWebhooks(ctx, &noopNotable{}); err != nil {
+		if err := notifyReconfigWebhooks(ctx, &noopNotable{}, snapJSON); err != nil {
 			return err
 		}
 
@@ -542,9 +546,16 @@ func (f *fakeK8sWatcher) Changed() <-chan struct{} {
 
 func (f *fakeK8sWatcher) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error) {
 	byname := map[string][]kates.Object{}
+	first := f.cursor.offset < 0
 	resources, newDeltas, err := f.cursor.Get()
 	if err != nil {
 		return false, err
+	}
+	// Like the real accumulator, leave target alone when nothing has changed. Rebuilding it
+	// would undo whatever the caller has since done to the objects in it, such as the
+	// watcher's expansion of environment variables in ConsulResolver addresses.
+	if !first && len(newDeltas) == 0 {
+		return false, nil
 	}
 	for _, obj := range resources {
 		for _, q := range f.queries {

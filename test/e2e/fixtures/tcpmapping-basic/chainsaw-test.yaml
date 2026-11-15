@@ -1,0 +1,20 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: tcpmapping-basic
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              # TCPMappings bind the slot's TCP edge port, not its HTTP one.
+              PROBE_BASE="${GATEWAY_TCP_URL}" ../../probe.sh queries.json '
+                .[0].result.status == 200 and
+                .[0].result.json.backend == "tcp-echo"
+              '

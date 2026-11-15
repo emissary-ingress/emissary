@@ -1,0 +1,24 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::HostHeaderMappingIngress.
+#
+# `shared`. Scoped to one Emissary by the Ingress's ambassador-id annotation
+# (see mapping-simple-ingress).
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-host-header-ingress
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'no Host header is not routed' '.[0].result.status == 404' \
+                'other host is not routed'     '.[1].result.status == 404' \
+                'matching host is routed'      '.[2].result.status == 200 and .[2].result.json.backend == "mapping-host-header-ingress"'

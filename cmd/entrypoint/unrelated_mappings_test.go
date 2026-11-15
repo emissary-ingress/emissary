@@ -88,7 +88,7 @@ func checkIR(f *entrypoint.Fake, what string, weights map[string]WeightCheck) {
 			} else if mapping.Weight == nil {
 				msg = fmt.Sprintf("%s: weight for %s should be %d but is not present", what, mapping.Name, *check.weight)
 			} else if *check.weight != *mapping.Weight {
-				msg = fmt.Sprintf("%s: unexpected weight for mapping %s: wanted %d, got %d", what, mapping.Name, *check.weight, mapping.Weight)
+				msg = fmt.Sprintf("%s: unexpected weight for mapping %s: wanted %d, got %d", what, mapping.Name, *check.weight, *mapping.Weight)
 			}
 
 			if msg != "" {

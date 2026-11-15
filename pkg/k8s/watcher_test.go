@@ -115,7 +115,6 @@ func TestWatchCustomCollision(t *testing.T) {
 }
 
 func TestWatchQuery(t *testing.T) {
-	t.Skip("FIXME(lukeshu): This test is notoriously flakey, and the code under test hasn't changed in ages.  Write better tests!")
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	w, err := k8s.NewWatcher(info(ctx))
@@ -131,6 +130,9 @@ func TestWatchQuery(t *testing.T) {
 		if err != nil {
 			return err
 		}
+		// The callback runs again whenever the Service changes, so keep only
+		// the latest list.
+		services = services[:0]
 		for _, r := range list {
 			services = append(services, r.QName())
 		}
@@ -141,5 +143,5 @@ func TestWatchQuery(t *testing.T) {
 		w.Stop()
 	})
 	require.NoError(t, w.Wait(ctx))
-	require.Equal(t, services, []string{"kubernetes.default"})
+	require.Equal(t, []string{"kubernetes.default"}, services)
 }

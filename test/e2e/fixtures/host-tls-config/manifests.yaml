@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+---
+# hostname is "*" for the same reason as in host-tls: the client's
+# ":authority" carries the slot's port, which a literal hostname won't match.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-tls-config
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host: host-tls-config
+  tlsSecret:
+    name: host-tls-config-secret
+  tls:
+    min_tls_version: v1.2
+    max_tls_version: v1.2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+  labels:
+    host: host-tls-config
+spec:
+  ambassador_id: [(env('SLOT'))]
+  prefix: /target/
+  service: target:8080

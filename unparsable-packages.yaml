@@ -1,2 +1,12 @@
 github.com/pelletier/go-toml:
   - MIT
+github.com/cyphar/filepath-securejoin:
+  - BSD-3-Clause
+github.com/cyphar/filepath-securejoin/internal/consts:
+  - BSD-3-Clause
+github.com/go-openapi/jsonpointer:
+  - Apache-2.0
+github.com/go-openapi/jsonreference:
+  - Apache-2.0
+github.com/go-openapi/swag:
+  - Apache-2.0

@@ -1,0 +1,92 @@
+[
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/target-3/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/target-shared/",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/.well-known/acme-challenge/foo",
+    "headers": {
+      "Host": "tls-context-host-1"
+    }
+  },
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    }
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    }
+  },
+  {
+    "url": "/target-3/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    }
+  },
+  {
+    "url": "/target-shared/",
+    "headers": {
+      "Host": "tls-context-host-2"
+    }
+  },
+  {
+    "url": "/.well-known/acme-challenge/foo",
+    "headers": {
+      "Host": "tls-context-host-2"
+    }
+  },
+  {
+    "url": "/target-1/",
+    "headers": {
+      "Host": "ambassador.example.com"
+    }
+  },
+  {
+    "url": "/target-2/",
+    "headers": {
+      "Host": "ambassador.example.com"
+    }
+  },
+  {
+    "url": "/target-3/",
+    "headers": {
+      "Host": "ambassador.example.com"
+    }
+  },
+  {
+    "url": "/target-shared/",
+    "headers": {
+      "Host": "ambassador.example.com"
+    }
+  },
+  {
+    "url": "/.well-known/acme-challenge/foo",
+    "headers": {
+      "Host": "ambassador.example.com"
+    }
+  }
+]

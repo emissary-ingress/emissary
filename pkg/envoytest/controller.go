@@ -3,8 +3,11 @@ package envoytest
 import (
 	// standard library
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
+	"sync/atomic"
 
 	// third-party libraries
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -41,8 +44,11 @@ type EnvoyController struct {
 	results     map[string]*errorInfo // Maps config version to error info related to that config
 	outstanding map[string]ackInfo    // Maps response nonce to config version and typeURL
 
-	// logCtx gets set when .Run() starts.
-	logCtx context.Context
+	// logCtx gets set when .Run() starts. The ecLogger callbacks have no context of
+	// their own, so we capture this one for them to use; it is stored and loaded
+	// atomically because the callbacks can fire on a different goroutine than the
+	// one running .Run().
+	logCtx atomic.Pointer[context.Context]
 }
 
 // ackInfo is used to correlate the nonce supplied in discovery responses to the error detail
@@ -83,6 +89,11 @@ func NewEnvoyController(address string) *EnvoyController {
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
 func (e *EnvoyController) Configure(ctx context.Context, node, version string, snapshot ecp_v3_cache.ResourceSnapshot) (*status.Status, error) {
+	if bs, err := json.MarshalIndent(snapshot, "", "  "); err != nil {
+		dlog.Errorf(ctx, "failed to marshal snapshot: %v", err)
+	} else if err := os.WriteFile(fmt.Sprintf("/tmp/envoy-snapshot-%s.json", version), bs, 0o644); err != nil {
+		dlog.Errorf(ctx, "failed to write snapshot to disk: %v", err)
+	}
 
 	err := e.configCache.SetSnapshot(ctx, node, snapshot)
 	if err != nil {
@@ -178,7 +189,7 @@ func (e *EnvoyController) waitFor(ctx context.Context, version string, typeURL s
 // Run the ADS server.
 func (e *EnvoyController) Run(ctx context.Context) error {
 	// The callbacks don't have access to a context, so we'll capture this one for them to use.
-	e.logCtx = ctx
+	e.logCtx.Store(&ctx)
 
 	srv := ecp_v3_server.NewServer(ctx,
 		e.configCache,      // config
@@ -301,22 +312,31 @@ type ecLogger struct {
 
 var _ ecp_log.Logger = ecLogger{}
 
+// logCtx returns the context captured by EnvoyController.Run, or context.Background if Run
+// hasn't started yet.
+func (ecl ecLogger) logCtx() context.Context {
+	if ctx := ecl.ec.logCtx.Load(); ctx != nil {
+		return *ctx
+	}
+	return context.Background()
+}
+
 // Debugf implements ecp_log.Logger.
 func (ecl ecLogger) Debugf(format string, args ...interface{}) {
-	dlog.Debugf(ecl.ec.logCtx, format, args...)
+	dlog.Debugf(ecl.logCtx(), format, args...)
 }
 
 // Infof implements ecp_log.Logger.
 func (ecl ecLogger) Infof(format string, args ...interface{}) {
-	dlog.Infof(ecl.ec.logCtx, format, args...)
+	dlog.Infof(ecl.logCtx(), format, args...)
 }
 
 // Warnf implements ecp_log.Logger.
 func (ecl ecLogger) Warnf(format string, args ...interface{}) {
-	dlog.Warnf(ecl.ec.logCtx, format, args...)
+	dlog.Warnf(ecl.logCtx(), format, args...)
 }
 
 // Errorf implements ecp_log.Logger.
 func (ecl ecLogger) Errorf(format string, args ...interface{}) {
-	dlog.Errorf(ecl.ec.logCtx, format, args...)
+	dlog.Errorf(ecl.logCtx(), format, args...)
 }

@@ -1,0 +1,58 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationDisabledOnRedirectTest.
+#
+# `exclusive` because an AuthService and a Host are instance-global. Both
+# queries carry kat-req-http-requested-status: 401 and the AuthService
+# forwards it, so a redirect that ran the auth check first would come back
+# 401, and the 301 proves the check was skipped.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: extauth-disabled-on-redirect
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=localhost \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:localhost \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-secret \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: http redirects to https without auth
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'client got 301'                  '.[0].result.status == 301' \
+                'redirect did not reach a backend' '(.[0].result.json.backend? == null)' \
+                'Location is https'               '(.[0].result.headers["Location"][0] | startswith("https://"))' \
+                'Location keeps the path'         '(.[0].result.headers["Location"][0] | endswith("/target/"))'
+
+    - name: https host_redirect without auth
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'client got 301'                  '.[0].result.status == 301' \
+                'redirect did not reach a backend' '(.[0].result.json.backend? == null)' \
+                "Location is the target host"     "(.[0].result.headers[\"Location\"][0] | startswith(\"https://target.${NAMESPACE}\"))" \
+                'Location keeps the path'         '(.[0].result.headers["Location"][0] | endswith("/target/"))'

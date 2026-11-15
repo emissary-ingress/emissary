@@ -1,0 +1,24 @@
+---
+# Port of KAT's tests/kat/t_grpc_bridge.py::AcceptanceGrpcBridgeTest.
+#
+# enable_grpc_http11_bridge is a Module setting, hence `slot: exclusive`. The
+# bridge converts gRPC trailers into a plain HTTP/1.1 response header, so
+# Grpc-Status reads straight off result.headers with no decoding step.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: grpc-bridge
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'requested status 0 comes back' '.[0].result.headers["Grpc-Status"] == ["0"]' \
+                'requested status 7 comes back' '.[1].result.headers["Grpc-Status"] == ["7"]'

@@ -40,43 +40,43 @@ dependencies = [
 [dependency-groups]
 runtime = [
     # Production runtime dependencies - centrally managed versions
-    "click==8.3.0",
+    "click==8.5.0",
     "flask==3.1.3",
-    "requests==2.32.5",
-    "gunicorn==25.1.0",
-    "jsonpatch==1.33",
+    "requests==2.34.2",
+    "gunicorn==26.2.0",
+    "jsonpatch==1.42",
     "expiringdict==1.2.2",
-    "orjson==3.11.1",
-    "pyyaml==6.0.2",
-    "durationpy==0.10",
+    "orjson==3.13.0",
+    "pyyaml==6.0.3",
+    "durationpy==0.11",
     "semantic-version==2.10.0",
-    "prometheus-client==0.22.1",
-    "python-json-logger==2.0.7",
+    "prometheus-client==0.26.0",
+    "python-json-logger==4.2.0",
 ]
 dev = [
     # Project-Specific
     "kat==4.*",
     "tests==4.*",
     # Dev Requirements (critical - locked to current versions)
-    "mypy==1.17.1",
-    "ruff==0.15.2",
-    "pytest>=8.4.2",
-    "pytest-cov==7.0.0",
-    "cryptography==46.0.5",
+    "mypy==2.4.1",
+    "ruff==0.15.22",
+    "pytest>=9.2.0",
+    "pytest-cov==7.1.0",
+    "cryptography==50.0.2",
     # Dev Requirements (flexible)
     "pexpect>=4.9",
-    "packaging>=24",
-    "httpretty>=1.1",
-    "pytest-rerunfailures>=14",
+    "packaging>=26.3",
+    "httpretty>=1.1.4",
+    "pytest-rerunfailures>=16.7",
     # Type Stubs (flexible for latest improvements)
     "types-orjson>=3",
     "types-pyyaml>=6",
-    "types-protobuf>=5",
+    "types-protobuf>=7",
     "types-requests>=2",
-    "types-setuptools>=71",
+    "types-setuptools>=84",
 ]
 pip = [
-    "pip>=26.0.1",
+    "pip>=26.3",
 ]
 
 [project.urls]
@@ -127,7 +127,7 @@ packages = [
 
 
 [tool.pytest.ini_options]
-minversion = "8.4"
+minversion = "9.2"
 addopts = [
     "--tb=short",
     "--disable-pytest-warnings",

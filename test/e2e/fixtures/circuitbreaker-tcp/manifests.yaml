@@ -1,0 +1,128 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target1
+  template:
+    metadata:
+      labels:
+        app: target1
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target1
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target1
+spec:
+  selector:
+    app: target1
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target2
+  template:
+    metadata:
+      labels:
+        app: target2
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target2
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target2
+spec:
+  selector:
+    app: target2
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: tcp-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  protocol: TCP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: tcp2-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6790
+  protocol: TCP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: default-limit
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  service: target1:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: low-limit
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6790
+  service: target2:8080
+  circuit_breakers:
+    - priority: default
+      max_pending_requests: 1
+      max_connections: 1

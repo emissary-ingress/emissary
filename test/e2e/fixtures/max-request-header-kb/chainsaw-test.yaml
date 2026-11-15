@@ -1,0 +1,33 @@
+---
+# Port of KAT's tests/kat/t_max_req_header_kb.py::MaxRequestHeaderKBTest.
+#
+# max_request_headers_kb is a Module setting, hence `slot: exclusive`.
+# The oversized headers are 30KB+ of literal filler, so queries.json is built
+# into a temp file at probe time instead of checking in that much filler.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: max-request-header-kb
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              queries="$(mktemp)"
+              big=$(head -c $((31 * 1024)) < /dev/zero | tr '\0' 'i')
+              small=$(head -c $((29 * 1024)) < /dev/zero | tr '\0' 'i')
+              jq -n --arg big "$big" --arg small "$small" '
+                [
+                  {url: "/target/", method: "GET", headers: {big: $big}},
+                  {url: "/target/", method: "GET", headers: {small: $small}}
+                ]
+              ' > "$queries"
+              ../../probe.sh "$queries" \
+                'oversized headers rejected' '.[0].result.status == 431' \
+                'headers under the cap pass' '.[1].result.status == 200'

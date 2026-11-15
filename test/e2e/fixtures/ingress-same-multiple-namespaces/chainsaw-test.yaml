@@ -1,0 +1,50 @@
+---
+# Port of KAT's tests/kat/t_ingress.py::SameIngressMultipleNamespaces.
+#
+# `exclusive` because the assertion reads the slot's own Service status, and
+# Emissary copies that Service's status onto the Ingress. KAT writes a fake
+# status onto the Service with kubestatus; here the Ingress is compared with
+# the Service's real status instead, since k3s's service LB owns that field.
+# Two Ingresses with one name, one in each of two extra namespaces (applied like
+# any other resource so chainsaw deletes them on cleanup), each routing to its
+# own backend. The routing checks go beyond KAT, which only asserts the status.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: ingress-same-multiple-namespaces
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'first namespace routes'  '.[0].result.status == 200 and .[0].result.json.backend == "ingress-same-multiple-namespaces-target1"' \
+                'second namespace routes' '.[1].result.status == 200 and .[1].result.json.backend == "ingress-same-multiple-namespaces-target2"'
+    - name: ingress status matches the Service
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              # Compare addresses only: newer Kubernetes adds ipMode to a Service's
+              # status, and an Ingress status has no such field.
+              want=$(kubectl get svc -A -o json \
+                -l "app.kubernetes.io/component=ambassador-service,app.kubernetes.io/instance=emissary-$SLOT" \
+                | jq -c '[.items[0].status.loadBalancer.ingress[]? | {ip, hostname} | with_entries(select(.value != null))]')
+              echo "$want" | jq -e 'length > 0' >/dev/null \
+                || { echo "Service has no load balancer status: $want" >&2; exit 1; }
+              for ns in ingress-same-multiple-namespaces-1 ingress-same-multiple-namespaces-2; do
+                for i in $(seq 1 30); do
+                  got=$(kubectl -n "$ns" get ingress ingress-same-multiple-namespaces -o json | jq -c '[.status.loadBalancer.ingress[]? | {ip, hostname} | with_entries(select(.value != null))]')
+                  [ "$got" = "$want" ] && break
+                  sleep 2
+                done
+                [ "$got" = "$want" ] || { echo "Ingress in $ns has status $got, want $want" >&2; exit 1; }
+                echo "ok: Ingress in $ns has status $got"
+              done

@@ -1,0 +1,28 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_default.py::HostHeaderMappingStripMatchingHostPort.
+#
+# `exclusive` because of the Module. The Mapping sets `host` (an exact
+# :authority match) and no `hostname`. Envoy's listener port is the container
+# port 8080 whatever port the slot publishes, so that is the port that counts
+# as "matching" and the one the queries put in the Host header.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: mapping-strip-matching-host-port
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'no Host header is not routed'                '.[0].result.status == 404' \
+                'other host is not routed'                    '.[1].result.status == 404' \
+                'matching host is routed'                     '.[2].result.status == 200 and .[2].result.json.backend == "mapping-strip-matching-host-port"' \
+                'listener port is stripped and host matches'  '.[3].result.status == 200 and .[3].result.json.backend == "mapping-strip-matching-host-port"' \
+                'other port is kept and host does not match'  '.[4].result.status == 404'

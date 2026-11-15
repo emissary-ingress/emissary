@@ -1,0 +1,65 @@
+---
+# kat-server always listens on 8080 (cleartext) and 8443 (TLS, its own
+# baked-in leaf cert) for any BACKEND it's given, so no Secret is needed
+# here: the origination side just points at the secure port.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: tcp-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  protocol: TCP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  service: https://target:443

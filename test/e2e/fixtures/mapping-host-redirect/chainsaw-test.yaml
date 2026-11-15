@@ -1,0 +1,30 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::HostRedirectMapping.
+#
+# `shared`. No backend: every Mapping redirects to foobar.com. Assertions are
+# numbered by Mapping: 1 plain, 2 case-insensitive, 3 path_redirect,
+# 4 prefix_redirect, 5 regex_redirect.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-host-redirect
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                '1 redirects, keeping path and query' '.[0].result.status == 301 and .[0].result.headers["Location"] == ["http://foobar.com/mapping-host-redirect/anything?itworked=true"]' \
+                '1 is case-sensitive'                 '.[1].result.status == 404' \
+                '2 redirects'                         '.[2].result.status == 301 and .[2].result.headers["Location"] == ["http://foobar.com/mapping-host-redirect-2/anything?itworked=true"]' \
+                '2 matches case-insensitively'        '.[3].result.status == 301 and .[3].result.headers["Location"] == ["http://foobar.com/MAPPING-HOST-REDIRECT-2/anything?itworked=true"]' \
+                '3 uses path_redirect'                '.[4].result.status == 302 and .[4].result.headers["Location"] == ["http://foobar.com/redirect/"]' \
+                '4 uses prefix_redirect'              '.[5].result.status == 307 and .[5].result.headers["Location"] == ["http://foobar.com/foobar/baz/anything"]' \
+                '5 uses regex_redirect'               '.[6].result.status == 308 and .[6].result.headers["Location"] == ["http://foobar.com/images/abcd0000f123"]' \
+                '5 keeps the query string'            '.[7].result.status == 308 and .[7].result.headers["Location"] == ["http://foobar.com/images/abcd0000f123?itworked=true"]'

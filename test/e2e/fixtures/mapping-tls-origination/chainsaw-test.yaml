@@ -1,0 +1,23 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::TLSOrigination.
+#
+# `shared`. kat-server serves TLS on 8443 with its own baked-in cert, so no
+# Secret is needed.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-tls-origination
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'reached the backend'  '.[0].result.status == 200 and .[0].result.json.backend == "mapping-tls-origination"' \
+                'origination used TLS' '.[0].result.json.request.tls.enabled == true'

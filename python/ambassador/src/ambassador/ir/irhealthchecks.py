@@ -177,15 +177,21 @@ class IRHealthChecks(IRResource):
             return None
         return all_mappers
 
-    @staticmethod
-    def generate_headers_to_add(header_dict: dict) -> List[dict]:
+    def generate_headers_to_add(self, header_dict: dict) -> List[dict]:
         headers = []
         for k, v in header_dict.items():
             append = True
             if isinstance(v, dict):
                 if "append" in v:
                     append = bool(v["append"])
-                headers.append({"header": {"key": k, "value": v["value"]}, "append": append})
+                value = v.get("value")
+                if value is None:
+                    # Never crash on a header with no value; skip it and log the error.
+                    self.logger.error(
+                        f"generate_headers_to_add: header {k!r} has no value; skipping"
+                    )
+                    continue
+                headers.append({"header": {"key": k, "value": value}, "append": append})
             else:
                 headers.append(
                     {

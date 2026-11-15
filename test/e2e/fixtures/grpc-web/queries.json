@@ -1,0 +1,20 @@
+[
+  {
+    "url": "/echo.EchoService/Echo",
+    "grpc_type": "web",
+    "headers": {
+      "content-type": "application/grpc-web-text",
+      "accept": "application/grpc-web-text",
+      "kat-req-echo-requested-status": "0"
+    }
+  },
+  {
+    "url": "/echo.EchoService/Echo",
+    "grpc_type": "web",
+    "headers": {
+      "content-type": "application/grpc-web-text",
+      "accept": "application/grpc-web-text",
+      "kat-req-echo-requested-status": "7"
+    }
+  }
+]

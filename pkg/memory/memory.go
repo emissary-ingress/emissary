@@ -221,7 +221,7 @@ func (m *MemoryUsage) percentUsed() int {
 // The GetCmdline helper returns the command line for a pid. If the pid does not exist or we don't
 // have access to read /proc/<pid>/cmdline, then it returns the empty string.
 func GetCmdline(ctx context.Context, pid int) []string {
-	bytes, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/cmdline", pid))
+	bytes, err := os.ReadFile(fmt.Sprintf("/proc/%d/cmdline", pid))
 	if err != nil {
 		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
 			// Don't complain if we don't have permission or the info doesn't exist.
@@ -272,7 +272,7 @@ func readUsage(ctx context.Context) (memory, memory) {
 
 // Read an int64 from a file and convert it to memory.
 func readMemory(fpath string) (memory, error) {
-	contentAsB, err := ioutil.ReadFile(fpath)
+	contentAsB, err := os.ReadFile(fpath)
 	if err != nil {
 		return 0, err
 	}
@@ -301,7 +301,7 @@ func readPerProcess(ctx context.Context) map[int]*ProcessUsage {
 			continue
 		}
 
-		bytes, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/smaps_rollup", pid))
+		bytes, err := os.ReadFile(fmt.Sprintf("/proc/%d/smaps_rollup", pid))
 		if err != nil {
 			if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) || errors.Is(err, syscall.ESRCH) {
 				// Don't complain if we don't have permission or the info doesn't exist.
@@ -341,7 +341,7 @@ type memoryStat struct {
 }
 
 func readMemoryStat(fpath string) (memoryStat, error) {
-	bytes, err := ioutil.ReadFile(fpath)
+	bytes, err := os.ReadFile(fpath)
 	if err != nil {
 		return memoryStat{}, err
 	}

@@ -1,0 +1,25 @@
+---
+# Port of KAT's tests/kat/t_request_header.py::EnvoyHeadersTest.
+#
+# Sanity check that Envoy's own request headers show up at the backend when
+# nothing suppresses them. x-envoy-original-path carries the pre-rewrite path,
+# so it's asserted against this Mapping's own prefix.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: request-header-envoy-headers
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'status is 200'          '.[0].result.status == 200' \
+                'timeout header set'     '.[0].result.json.request.headers["x-envoy-expected-rq-timeout-ms"] == ["5001"]' \
+                'original path preserved' '.[0].result.json.request.headers["x-envoy-original-path"] == ["/request-header-envoy-headers/"]'

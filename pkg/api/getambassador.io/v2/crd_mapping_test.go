@@ -31,7 +31,7 @@ func TestMappingLabelSpecifier(t *testing.T) {
 		"list": {`field: ["foo"]`, TestResource{}, `{"field":null}`,
 			"error unmarshaling JSON: while decoding JSON: could not unmarshal MappingLabelSpecifier: invalid input"},
 		"invalid": {``, TestResource{crds.MappingLabelSpecifier{String: stringPtr("foo"), Generic: &crds.MappingLabelSpecGeneric{GenericKey: "foo"}}}, ``,
-			"json: error calling MarshalJSON for type v2.MappingLabelSpecifier: invalid MappingLabelSpecifier"},
+			"json: error calling MarshalJSON for type *v2.MappingLabelSpecifier: invalid MappingLabelSpecifier"},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable
@@ -64,7 +64,7 @@ func TestAddedHeader(t *testing.T) {
 		Field crds.AddedHeader `json:"field,omitempty"`
 	}
 	assert.EqualError(t, yaml.Unmarshal([]byte(`field: ["foo"]`), &testResource),
-		"error unmarshaling JSON: while decoding JSON: json: cannot unmarshal array into Go struct field .field of type v2.AddedHeaderFull")
+		"error unmarshaling JSON: while decoding JSON: json: cannot unmarshal array into Go value of type v2.AddedHeaderFull")
 }
 
 func TestOriginList(t *testing.T) {
@@ -86,7 +86,7 @@ func TestOriginList(t *testing.T) {
 		"explicitNULL":  {`field: NULL`, TestResource{}, `{"field":null}`, ``},
 		"explicitTilde": {`field: ~`, TestResource{}, `{"field":null}`, ``},
 		"object": {`field: {"foo": "bar"}`, TestResource{}, `{"field":null}`,
-			"error unmarshaling JSON: while decoding JSON: json: cannot unmarshal object into Go struct field TestResource.field of type []string"},
+			"error unmarshaling JSON: while decoding JSON: json: cannot unmarshal object into Go value of type []string"},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable

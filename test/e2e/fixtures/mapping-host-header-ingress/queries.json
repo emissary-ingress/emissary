@@ -1,0 +1,20 @@
+[
+  {
+    "url": "/mapping-host-header-ingress/",
+    "method": "GET"
+  },
+  {
+    "url": "/mapping-host-header-ingress/",
+    "method": "GET",
+    "headers": {
+      "Host": "inspector.internal"
+    }
+  },
+  {
+    "url": "/mapping-host-header-ingress/",
+    "method": "GET",
+    "headers": {
+      "Host": "inspector.external"
+    }
+  }
+]

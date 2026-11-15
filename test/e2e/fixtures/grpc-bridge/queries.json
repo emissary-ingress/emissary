@@ -1,0 +1,18 @@
+[
+  {
+    "url": "/echo.EchoService/Echo",
+    "grpc_type": "bridge",
+    "headers": {
+      "content-type": "application/grpc",
+      "kat-req-echo-requested-status": "0"
+    }
+  },
+  {
+    "url": "/echo.EchoService/Echo",
+    "grpc_type": "bridge",
+    "headers": {
+      "content-type": "application/grpc",
+      "kat-req-echo-requested-status": "7"
+    }
+  }
+]

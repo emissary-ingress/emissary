@@ -1,0 +1,83 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: annotations
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: AuthService
+      name: as-bad1-annotation
+      ambassador_id: ["@SLOT@"]
+      service_bad: "target:8080"
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: Mapping
+      name: m-good-annotation
+      ambassador_id: ["@SLOT@"]
+      hostname: "*"
+      prefix: "/good-annotation/"
+      service: "target:8080"
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: Mapping
+      name: m-bad-annotation
+      ambassador_id: ["@SLOT@"]
+      hostname: "*"
+      prefix_bad: "/bad-annotation/"
+      service: "target:8080"
+      ---
+      kind: Mapping
+      name: m-bad-no-apiversion-annotation
+      ambassador_id: ["@SLOT@"]
+      hostname: "*"
+      prefix_bad: "/bad-annotation/"
+      service: "target:8080"
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: Module
+      name: md-bad-annotation
+      ambassador_id: ["@SLOT@"]
+      config_bad: []
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: RateLimitService
+      name: r-bad-annotation
+      ambassador_id: ["@SLOT@"]
+      service_bad: "target:8080"
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: TCPMapping
+      name: tm-bad1-annotation
+      ambassador_id: ["@SLOT@"]
+      service: "target:8080"
+      port_bad: 8888
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: TCPMapping
+      name: tm-bad2-annotation
+      ambassador_id: ["@SLOT@"]
+      service_bad: "target:8080"
+      port: 8888
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: TracingService
+      name: ts-bad1-annotation
+      ambassador_id: ["@SLOT@"]
+      driver_bad: "zipkin"
+      service: "target:8080"
+      ---
+      apiVersion: getambassador.io/v3alpha1
+      kind: TracingService
+      name: ts-bad2-annotation
+      ambassador_id: ["@SLOT@"]
+      driver: "zipkin"
+      service_bad: "target:8080"
+spec:
+  selector:
+    app: annotations
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

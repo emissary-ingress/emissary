@@ -1,0 +1,50 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingTLSOriginationContextTest.
+#
+# A TCPMapping's "tls" pointed at a TLSContext originates TLS using that
+# context's settings, here just an "sni" override; kat-server echoes back
+# whatever ServerName it saw in the ClientHello, which is what proves the
+# override reached the origination handshake.
+#
+# The client cert is generated at runtime rather than committed: it is
+# never actually requested by kat-server, but Emissary requires the
+# TLSContext to name a resolvable secret regardless. extendedKeyUsage is
+# clientAuth since nothing here plays the server role for this cert.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-tls-origination-context
+spec:
+  steps:
+    - name: generate the client cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tcpmapping-tls-origination-context \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature \
+                -addext extendedKeyUsage=clientAuth \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls tlsclient-cert \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: origination sent the TLSContext's sni override
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="${GATEWAY_TCP_URL}" ../../probe.sh queries.json \
+                'reached the target'   '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'origination used TLS' '.[0].result.json.request.tls.enabled == true' \
+                'sni override reached the backend' '.[0].result.json.request.tls["server-name"] == "my-funny-name"'

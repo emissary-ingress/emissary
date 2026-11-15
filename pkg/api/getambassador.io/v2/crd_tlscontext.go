@@ -47,6 +47,9 @@ type TLSContextSpec struct {
 
 	// +k8s:conversion-gen:rename=CRLSecret
 	V3CRLSecret string `json:"v3CRLSecret,omitempty"`
+
+	// +k8s:conversion-gen:rename=SignatureAlgorithms
+	V3SignatureAlgorithms []string `json:"v3SignatureAlgorithms,omitempty"`
 }
 
 // TLSContext is the Schema for the tlscontexts API

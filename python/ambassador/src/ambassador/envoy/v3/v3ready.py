@@ -53,7 +53,7 @@ class V3Ready(dict):
                         "headers": [{"name": ":path", "string_match": {"exact": "/ready"}}],
                     },
                 },
-                {"name": "envoy.filters.http.router"},
+                {"name": "envoy.filters.http.router", "typed_config": {"@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"}},
             ],
         }
         if ambassador_ready_log:

@@ -1,0 +1,84 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationHTTPBufferedTest.
+#
+# `exclusive` because an AuthService and a Module are instance-global. The
+# AuthService reaches the auth service over a TLSContext, so the client cert is
+# generated per run: it has to be a real leaf, since a default
+# `openssl req -x509` cert is a CA and BoringSSL rejects it at handshake time.
+# The fixture asserts the headers the auth service saw, the headers Envoy
+# returns on 401/302/200 (including Set-Cookie from the auth response), and
+# the linkerd header added upstream.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: extauth-http-buffered
+spec:
+  steps:
+    - name: generate the auth client cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tls-context-host-1 \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth,clientAuth \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls auth-buffered-secret \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: buffered auth service
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'q0 answered by auth'                 '.[0].result.json.backend == "auth"' \
+                'q0 auth saw the prefixed path'       '.[0].result.json.request.url.path == "/extauth/target/"' \
+                'q0 auth saw xfp http'                '.[0].result.json.request.headers["x-forwarded-proto"] == ["http"]' \
+                'q0 auth saw content-length'          '.[0].result.json.request.headers["content-length"] == ["0"]' \
+                'q0 auth saw x-forwarded-for'         '(.[0].result.json.request.headers | has("x-forwarded-for"))' \
+                'q0 auth saw user-agent'              '(.[0].result.json.request.headers | has("user-agent"))' \
+                'q0 baz was not forwarded'            '(.[0].result.status == 401 and (.[0].result.json.request.headers | has("baz") | not))' \
+                'q0 client got 401'                   '.[0].result.status == 401' \
+                'q0 Server is envoy'                  '.[0].result.headers["Server"] == ["envoy"]' \
+                'q1 answered by auth'                 '.[1].result.json.backend == "auth"' \
+                'q1 auth saw requested status'        '.[1].result.json.request.headers["kat-req-http-requested-status"] == ["302"]' \
+                'q1 auth saw requested header'        '.[1].result.json.request.headers["kat-req-http-requested-header"] == ["location"]' \
+                'q1 auth saw location'                '.[1].result.json.request.headers["location"] == ["foo"]' \
+                'q1 client got 302'                   '.[1].result.status == 302' \
+                'q1 Server is envoy'                  '.[1].result.headers["Server"] == ["envoy"]' \
+                'q1 Location came back'               '.[1].result.headers["Location"] == ["foo"]' \
+                'q1 Set-Cookie came back'             '.[1].result.headers["Set-Cookie"] == ["foo=foo", "bar=bar", "baz=baz"]' \
+                'q2 answered by auth'                 '.[2].result.json.backend == "auth"' \
+                'q2 auth saw requested status'        '.[2].result.json.request.headers["kat-req-http-requested-status"] == ["401"]' \
+                'q2 auth saw requested header'        '.[2].result.json.request.headers["kat-req-http-requested-header"] == ["X-Foo"]' \
+                'q2 auth saw x-foo'                   '.[2].result.json.request.headers["x-foo"] == ["foo"]' \
+                'q2 client got 401'                   '.[2].result.status == 401' \
+                'q2 Server is envoy'                  '.[2].result.headers["Server"] == ["envoy"]' \
+                'q2 X-Foo returned'                   '.[2].result.headers["X-Foo"] == ["foo"]' \
+                'q3 answered by auth'                 '.[3].result.json.backend == "auth"' \
+                'q3 auth saw requested status'        '.[3].result.json.request.headers["kat-req-http-requested-status"] == ["401"]' \
+                'q3 auth saw requested header'        '.[3].result.json.request.headers["kat-req-http-requested-header"] == ["X-Bar"]' \
+                'q3 auth saw x-bar'                   '.[3].result.json.request.headers["x-bar"] == ["bar"]' \
+                'q3 client got 401'                   '.[3].result.status == 401' \
+                'q3 Server is envoy'                  '.[3].result.headers["Server"] == ["envoy"]' \
+                'q3 non-whitelisted X-Bar dropped'    '(.[3].result.status == 401 and (.[3].result.headers | has("X-Bar") | not))' \
+                'q4 routed to the target'             '.[4].result.json.backend == "target"' \
+                'q4 target saw requested status'      '.[4].result.json.request.headers["kat-req-http-requested-status"] == ["200"]' \
+                'q4 target saw requested header'      '.[4].result.json.request.headers["kat-req-http-requested-header"] == ["Authorization"]' \
+                'q4 target saw authorization'         '.[4].result.json.request.headers["authorization"] == ["foo-11111"]' \
+                "q4 target saw linkerd override"      ".[4].result.json.request.headers[\"l5d-dst-override\"] == [\"target.${NAMESPACE}:80\"]" \
+                'q4 client got 200'                   '.[4].result.status == 200' \
+                'q4 Server is envoy'                  '.[4].result.headers["Server"] == ["envoy"]' \
+                'q4 Authorization returned'           '.[4].result.headers["Authorization"] == ["foo-11111"]'

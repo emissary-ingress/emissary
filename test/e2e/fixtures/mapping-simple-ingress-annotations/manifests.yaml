@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-simple-ingress-annotations
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-simple-ingress-annotations
+  template:
+    metadata:
+      labels:
+        app: mapping-simple-ingress-annotations
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-simple-ingress-annotations
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-simple-ingress-annotations
+spec:
+  selector:
+    app: mapping-simple-ingress-annotations
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mapping-simple-ingress-annotations
+  annotations:
+    kubernetes.io/ingress.class: ambassador
+    getambassador.io/ambassador-id: (env('SLOT'))
+    getambassador.io/config: >-
+      (join('', ['{"apiVersion": "getambassador.io/v3alpha1", "kind": "Mapping", "name": "mapping-simple-ingress-annotations-nested", "hostname": "*", "prefix": "/mapping-simple-ingress-annotations-nested/", "service": "http://mapping-simple-ingress-annotations:8080", "ambassador_id": ["', env('SLOT'), '"]}']))
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /mapping-simple-ingress-annotations/
+            pathType: Prefix
+            backend:
+              service:
+                name: mapping-simple-ingress-annotations
+                port:
+                  number: 8080

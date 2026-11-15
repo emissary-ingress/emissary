@@ -1,0 +1,24 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::SimpleMapping.
+#
+# `shared`. The second query reaches the Mapping through a path that needs
+# normalizing.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-simple
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'both queries succeed'        '.[0].result.status == 200 and .[1].result.status == 200' \
+                'both reach the backend'      '[.[].result.json.backend] == ["mapping-simple", "mapping-simple"]' \
+                'original path is normalized' '[.[].result.json.request.headers["x-envoy-original-path"][0]] == ["/mapping-simple/", "/mapping-simple/"]'

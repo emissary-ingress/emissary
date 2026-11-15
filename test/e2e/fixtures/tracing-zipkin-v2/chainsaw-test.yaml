@@ -1,0 +1,83 @@
+# Port of KAT's tests/kat/t_tracing.py::TracingTestZipkinV2.
+#
+# `exclusive` because a TracingService is instance-global. The tracer is part
+# of Envoy's bootstrap, which is read only at startup, so the slot's Emissary
+# is restarted once the TracingService is applied. Zipkin is queried through a
+# Mapping so kat-client can reach it. Service and span names embed the slot id
+# and the test namespace, so the assertions are built from $SLOT/$NAMESPACE.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tracing-zipkin-v2
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: zipkin
+              status:
+                availableReplicas: 1
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: restart emissary to load the tracer
+      try:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" rollout restart "deploy/emissary-${SLOT}"
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+
+    - name: wait for tracing to be live
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              ../../probe.sh queries-warmup.json \
+                'zipkin has received spans' '(.[1].result.json | length) > 0'
+
+    - name: send traffic
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              q=$(mktemp)
+              jq -n '[range(100) | {url: "/target/\(.)", method: "GET"}]' > "$q"
+              ../../probe.sh "$q" \
+                'all 100 reached the target' '([.[].result.json.backend] | all(. == "target"))'
+
+    - name: spans reach zipkin
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              svc="${SLOT}-emissary-${SLOT}"
+              ns=$(echo "${NAMESPACE}" | tr - _)
+              host="${GATEWAY_URL#http://}"
+              q=$(mktemp)
+              jq -n --arg svc "$svc" '[
+                {url: "/zipkin/api/v2/services"},
+                {url: "/zipkin/api/v2/spans?serviceName=\($svc)"},
+                {url: "/zipkin/api/v2/traces?limit=1000&serviceName=\($svc)"},
+                {url: "/ambassador/v0/diag/"}
+              ] | map(. + {method: "GET"})' > "$q"
+              ../../probe.sh "$q" \
+                'zipkin sees only the emissary service' "(.[0].result.json == [\"${svc}\"])" \
+                'router egress span for the target'      "(.[1].result.json | index(\"router target_${ns}_8080 egress\") != null)" \
+                'root span is named for the host'         "(.[1].result.json | index(\"${host}\") != null)" \
+                'trace ids are 128 bit'                   '(.[2].result.json[0][0].traceId | length) == 32' \
+                'diag page loads'                         '.[3].result.status == 200'

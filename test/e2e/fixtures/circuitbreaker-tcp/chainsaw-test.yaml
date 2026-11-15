@@ -1,0 +1,57 @@
+---
+# Port of KAT's tests/kat/t_circuitbreaker.py::CircuitBreakingTCPTest.
+#
+# `exclusive` because it listens on 6790 as well as 6789, and only a slot has
+# a second TCP port (GATEWAY_TCP2_URL).
+#
+# 6789 keeps the default circuit breaker and 6790 allows one connection. Each
+# port gets 200 connections that the backend holds for a second,
+# so on 6790 most of those in flight are refused.
+#
+# The overload batch is sent once (PROBE_ATTEMPTS=1) after a warm-up step has
+# shown both mappings are live. Retrying a failure-count window until it
+# passes would turn it into repeated rolls of the dice.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: circuitbreaker-tcp
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: both mappings answer
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n --arg a "${GATEWAY_TCP_URL}/" --arg b "${GATEWAY_TCP2_URL}/" \
+                '[{url: $a, method: "GET"}, {url: $b, method: "GET"}]' > "$queries"
+              ../../probe.sh "$queries" \
+                'default-limit port reached its backend' '.[0].result.status == 200 and .[0].result.json.backend == "target1"' \
+                'low-limit port reached its backend'     '.[1].result.status == 200 and .[1].result.json.backend == "target2"'
+
+    - name: low limit sheds connections, default limit does not
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n --arg a "${GATEWAY_TCP_URL}/" --arg b "${GATEWAY_TCP2_URL}/" '
+                def q($u): {url: $u, method: "GET", headers: {"Kat-Req-Http-Requested-Backend-Delay": "1000"}};
+                [range(200) | q($a)] + [range(200) | q($b)]' > "$queries"
+              PROBE_ATTEMPTS=1 ../../probe.sh "$queries" \
+                'all 400 queries answered' 'length == 400' \
+                'no failures with the default limit' \
+                  '([.[0:200][] | select(.result.error != null)] | length) == 0' \
+                'between 100 and 200 failures with the low limit' \
+                  '([.[200:400][] | select(.result.error != null)] | length) as $f | $f > 100 and $f < 200'

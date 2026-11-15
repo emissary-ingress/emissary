@@ -3,7 +3,7 @@ package entrypoint
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -107,7 +107,7 @@ func (k *K8sStore) Delete(kind, namespace, name string) error {
 // UpsertFile will parse the yaml manifests in the referenced file and Upsert each resource from the
 // file.
 func (k *K8sStore) UpsertFile(filename string) error {
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}

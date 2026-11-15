@@ -1,0 +1,42 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDClearText.
+#
+# `exclusive` because a Host reconfigures the listeners, which are
+# instance-global.
+#
+# A Host with no TLS secret and `insecure.action: Route` serves cleartext
+# only. KAT drops its default HTTPS Listener to mimic a no-TLS install, so
+# its https query gets "connection refused". A slot keeps the chart's 8443
+# Listener, and with no Host supplying a cert Emissary gives it no TLS
+# filter chain, so a TLS client gets a plain HTTP answer back. Either way
+# nothing terminates TLS, which is what this asserts.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-cleartext
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: http reaches the target
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'client got 200 over http'        '.[0].result.status == 200' \
+                'reached the target'               '.[0].result.json.backend == "target"'
+
+    - name: nothing terminates tls
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'no response over https'          '.[0].result.status == null' \
+                'server spoke plain http'         '.[0].result.error | test("HTTP response to HTTPS client")'

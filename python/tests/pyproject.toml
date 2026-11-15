@@ -3,7 +3,7 @@ name = "tests"
 version = "4.0.0-dev"
 dependencies = [
     "requests==2.*",
-    "python-json-logger==2.*",
+    "python-json-logger==4.*",
 ]
 
 

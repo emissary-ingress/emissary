@@ -1,0 +1,105 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hr-target1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hr-target1
+  template:
+    metadata:
+      labels:
+        app: hr-target1
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: hr-target1
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hr-target1
+spec:
+  selector:
+    app: hr-target1
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hr-target2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hr-target2
+  template:
+    metadata:
+      labels:
+        app: hr-target2
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: hr-target2
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hr-target2
+spec:
+  selector:
+    app: hr-target2
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: header-routing-target1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /header-routing/
+  service: hr-target1:8080
+---
+# Same prefix, but only matches when X-Route: target2 is present. Envoy
+# evaluates the header-constrained route first, so unheadered requests fall
+# through to target1.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: header-routing-target2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /header-routing/
+  service: hr-target2:8080
+  headers:
+    X-Route: target2

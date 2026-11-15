@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_mappingtests_plain.py::AddReqHeadersMapping.
+#
+# `shared`. The query sends all four headers, so each assertion shows how the
+# Mapping's value combines with the client's.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: mapping-add-request-headers
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'reached the backend'   '.[0].result.status == 200 and .[0].result.json.backend == "mapping-add-request-headers"' \
+                'append false replaces' '.[0].result.json.request.headers["zoo"] == ["Zoo"]' \
+                'append true adds'      '.[0].result.json.request.headers["aoo"] == ["AooA", "aoo"]' \
+                'append unset adds'     '.[0].result.json.request.headers["boo"] == ["BooB", "boo"]' \
+                'client value is kept'  '.[0].result.json.request.headers["foo"] == ["FooF", "Foo"]'

@@ -1,0 +1,121 @@
+---
+# Port of KAT's tests/kat/t_extauth.py::AuthenticationDisabledOnRedirectTest.
+#
+# One target, one HTTP auth service, and a Host that terminates TLS. The
+# Mapping redirects with host_redirect, and the Host redirects cleartext to
+# https. The auth service answers 401 to any request that carries
+# kat-req-http-requested-status: 401, so a redirect that was authenticated
+# first would surface as a 401.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: auth
+            - name: INCLUDE_EXTAUTH_HEADER
+              value: "yes"
+          ports:
+            - containerPort: 8080
+---
+# Port 80, not 8080: an AuthService's `auth_service` with no port defaults to 80.
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+spec:
+  selector:
+    app: auth
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name: auth
+spec:
+  ambassador_id: [(env('SLOT'))]
+  auth_service: (join('.', ['auth', $namespace]))
+  proto: http
+  protocol_version: v3
+  allowed_request_headers:
+    - Kat-Req-Http-Requested-Status
+---
+# hostname is "*" because the client reaches the gateway as localhost on a
+# slot-specific port, which can't be hardcoded here.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-secret
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: (join('.', ['target', $namespace]))
+  host_redirect: true

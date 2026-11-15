@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.13.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   labels:
     app.kubernetes.io/part-of: emissary-ingress
     emissary-ingress.dev/control-plane-ns: {{ .Release.Namespace }}
@@ -30,13 +30,26 @@ spec:
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              of an object.
+  
+              Servers should convert recognized schemas to the latest internal value,
+              and
+  
+              may reject unrecognized values.
+  
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
             description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              object represents.
+  
+              Servers may infer this from the endpoint the client submits requests to.
+  
+              Cannot be updated.
+  
+              In CamelCase.
+  
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -103,9 +116,10 @@ spec:
                     envoy's `type.tracing.v3.CustomTag`
                   properties:
                     environment:
-                      description: Environment explicitly specifies the protocol stack
-                        to set up. Exactly one of Literal, Environment or Header must
-                        be supplied.
+                      description: 'Environment explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         default_value:
                           type: string
@@ -115,9 +129,10 @@ spec:
                       - name
                       type: object
                     literal:
-                      description: Literal explicitly specifies the protocol stack to
-                        set up. Exactly one of Literal, Environment or Header must be
-                        supplied.
+                      description: 'Literal explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         value:
                           type: string
@@ -125,9 +140,10 @@ spec:
                       - value
                       type: object
                     request_header:
-                      description: Header explicitly specifies the protocol stack to
-                        set up. Exactly one of Literal, Environment or Header must be
-                        supplied.
+                      description: 'Header explicitly specifies the protocol stack to
+                        set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         default_value:
                           type: string
@@ -160,13 +176,26 @@ spec:
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              of an object.
+  
+              Servers should convert recognized schemas to the latest internal value,
+              and
+  
+              may reject unrecognized values.
+  
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
             description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              object represents.
+  
+              Servers may infer this from the endpoint the client submits requests to.
+  
+              Cannot be updated.
+  
+              In CamelCase.
+  
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -233,9 +262,10 @@ spec:
                     envoy's `type.tracing.v3.CustomTag`
                   properties:
                     environment:
-                      description: Environment explicitly specifies the protocol stack
-                        to set up. Exactly one of Literal, Environment or Header must
-                        be supplied.
+                      description: 'Environment explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         default_value:
                           type: string
@@ -245,9 +275,10 @@ spec:
                       - name
                       type: object
                     literal:
-                      description: Literal explicitly specifies the protocol stack to
-                        set up. Exactly one of Literal, Environment or Header must be
-                        supplied.
+                      description: 'Literal explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         value:
                           type: string
@@ -255,9 +286,10 @@ spec:
                       - value
                       type: object
                     request_header:
-                      description: Header explicitly specifies the protocol stack to
-                        set up. Exactly one of Literal, Environment or Header must be
-                        supplied.
+                      description: 'Header explicitly specifies the protocol stack to
+                        set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         default_value:
                           type: string
@@ -290,13 +322,26 @@ spec:
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              of an object.
+  
+              Servers should convert recognized schemas to the latest internal value,
+              and
+  
+              may reject unrecognized values.
+  
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
             description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              object represents.
+  
+              Servers may infer this from the endpoint the client submits requests to.
+  
+              Cannot be updated.
+  
+              In CamelCase.
+  
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -305,8 +350,8 @@ spec:
             properties:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should\
-                  \ pay attention to this resource. If no value is provided, the default\
-                  \ is: \n ambassador_id: - \"default\""
+                  \ pay\nattention to this resource. If no value is provided, the default\
+                  \ is:\n\n\tambassador_id:\n\t- \"default\""
                 items:
                   type: string
                 type: array
@@ -348,9 +393,10 @@ spec:
                     envoy's `type.tracing.v3.CustomTag`
                   properties:
                     environment:
-                      description: Environment explicitly specifies the protocol stack
-                        to set up. Exactly one of Literal, Environment or Header must
-                        be supplied.
+                      description: 'Environment explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         default_value:
                           type: string
@@ -360,9 +406,10 @@ spec:
                       - name
                       type: object
                     literal:
-                      description: Literal explicitly specifies the protocol stack to
-                        set up. Exactly one of Literal, Environment or Header must be
-                        supplied.
+                      description: 'Literal explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         value:
                           type: string
@@ -370,9 +417,10 @@ spec:
                       - value
                       type: object
                     request_header:
-                      description: Header explicitly specifies the protocol stack to
-                        set up. Exactly one of Literal, Environment or Header must be
-                        supplied.
+                      description: 'Header explicitly specifies the protocol stack to
+                        set up. Exactly one of Literal,
+  
+                        Environment or Header must be supplied.'
                       properties:
                         default_value:
                           type: string
@@ -409,8 +457,10 @@ spec:
                 type: string
               tag_headers:
                 description: 'Deprecated: tag_headers is deprecated. Use custom_tags
-                  instead. `tag_headers: ["header"]` can be defined as `custom_tags:
-                  [{"request_header": {"name": "header"}}]`.'
+                  instead.
+  
+                  `tag_headers: ["header"]` can be defined as `custom_tags: [{"request_header":
+                  {"name": "header"}}]`.'
                 items:
                   type: string
                 type: array

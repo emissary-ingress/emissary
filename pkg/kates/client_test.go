@@ -16,13 +16,15 @@ import (
 
 	"github.com/datawire/dlib/dlog"
 	dtest_k3s "github.com/datawire/dtest"
+
+	"github.com/emissary-ingress/emissary/v3/pkg/dtest/k3s"
 )
 
 func testClient(t *testing.T, ctx context.Context) (context.Context, *Client) {
 	if ctx == nil {
 		ctx = dlog.NewTestContext(t, false)
 	}
-	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.KubeVersionConfig(ctx, dtest_k3s.Kube22)})
+	cli, err := NewClient(ClientConfig{Kubeconfig: k3s.KubeVersionConfig(ctx, dtest_k3s.Kube22)})
 	require.NoError(t, err)
 	return ctx, cli
 }

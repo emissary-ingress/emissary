@@ -1,0 +1,44 @@
+# Port of KAT's tests/kat/t_retrypolicy.py::RetryPolicyTest.
+#
+# `exclusive` because the Module sets a retry policy for the whole instance.
+# Retries are observed through timing: the backend takes 2s per attempt and
+# the route times out at 3s, so a retried request ends as a 504 that took at
+# least 2s, while an unretried failure comes back at once.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: retrypolicy-basic
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: retries
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              d='def ts: (.[0:19] + "Z" | fromdate) + (capture("\\.(?<f>[0-9]+)") | "0.\(.f)" | tonumber);
+                 def dur: (.result.headers["Client-End-Date"][0] | ts) - (.result.headers["Client-Start-Date"][0] | ts);'
+              ../../probe.sh queries.json \
+                'ok answers 200'                    '.[0].result.status == 200' \
+                'unretried 500 passes through'      '.[1].result.status == 500' \
+                'retried 5xx times out'             '.[2].result.status == 504' \
+                'module retriable-4xx times out'    '.[3].result.status == 504' \
+                'retry took at least 2s'            "${d} (.[2] | dur) >= 2" \
+                'conflict took at least 2s'         "${d} (.[3] | dur) >= 2" \
+                'unretried 500 is as fast as 200'   "${d} ((.[0] | dur) - (.[1] | dur) | fabs) <= 1" \
+                'retry is 2s slower than 500'       "${d} ((.[2] | dur) - (.[1] | dur)) >= 2" \
+                'conflict is 2s slower than 200'    "${d} ((.[3] | dur) - (.[0] | dur)) >= 2"

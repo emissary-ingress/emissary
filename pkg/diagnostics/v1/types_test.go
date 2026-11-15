@@ -3,7 +3,7 @@ package diagnostics
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -56,7 +56,7 @@ func TestUnmarshal(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.testName, func(t *testing.T) {
-			contents, err := ioutil.ReadFile(filepath.Join("testdata", tc.fileName))
+			contents, err := os.ReadFile(filepath.Join("testdata", tc.fileName))
 			if err != nil {
 				t.Fatal(err)
 			}

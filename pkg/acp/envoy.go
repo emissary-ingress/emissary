@@ -25,7 +25,7 @@ package acp
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -94,7 +94,7 @@ func (w *EnvoyWatcher) defaultFetcher(ctx context.Context) (*EnvoyFetcherRespons
 	// We're going to return the status code and the response body, so we
 	// need to grab those.
 	statusCode := resp.StatusCode
-	text, err := ioutil.ReadAll(resp.Body)
+	text, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		// This is a bit strange -- if we can't read the body, it implies

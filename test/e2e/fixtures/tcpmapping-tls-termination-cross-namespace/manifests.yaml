@@ -1,0 +1,77 @@
+---
+# The target backend stays in the test's own namespace; only the Secret and
+# TLSContext providing the downstream cert move to a literal other
+# namespace (created by namespace.yaml, applied before this file).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: tls-listener
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  protocol: TLS
+  securityModel: SECURE
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tlsserver
+  namespace: tcpmapping-tls-termination-cross-namespace-other
+spec:
+  ambassador_id: [(env('SLOT'))]
+  secret: tlsserver-cert
+  hosts:
+    - term-xns.example.com
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  port: 6789
+  host: term-xns.example.com
+  service: target:8080

@@ -4,7 +4,7 @@ import (
 	// standard library
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -32,7 +32,7 @@ func JSONify(obj interface{}) (string, error) {
 }
 
 func LoadYAML(path string) ([]kates.Object, error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

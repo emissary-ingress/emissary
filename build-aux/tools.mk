@@ -124,6 +124,14 @@ $(tools.bindir)/k3d: $(tools.mk)
 	curl -s --fail -L https://github.com/rancher/k3d/releases/download/v$(K3D_VERSION)/k3d-$(GOHOSTOS)-$(GOHOSTARCH) -o $@
 	chmod a+x $@
 
+tools/chainsaw   = $(tools.bindir)/chainsaw
+CHAINSAW_VERSION = 0.2.14
+$(tools.bindir)/chainsaw: $(tools.mk)
+	mkdir -p $(@D)
+	curl -s --fail -L https://github.com/kyverno/chainsaw/releases/download/v$(CHAINSAW_VERSION)/chainsaw_$(GOHOSTOS)_$(GOHOSTARCH).tar.gz \
+	    | tar -xz -C $(@D) chainsaw
+	chmod a+x $@
+
 # PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
 # invalid Python if you name an Enum member the same as a Python keyword.
 tools/protoc    = $(tools.bindir)/protoc
@@ -145,10 +153,10 @@ $(tools.bindir)/protoc-gen-grpc-web: $(tools.mk)
 	chmod 755 $@
 
 tools/kubectl = $(tools.bindir)/kubectl
-KUBECTL_VERSION ?= 1.22.17
+KUBECTL_VERSION ?= 1.35.6
 $(tools.bindir)/kubectl: $(tools.mk)
 	mkdir -p $(@D)
-	curl -o $@ -L --fail https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOHOSTOS)/$(GOHOSTARCH)/kubectl
+	curl -o $@ -L --fail https://dl.k8s.io/release/v$(KUBECTL_VERSION)/bin/$(GOHOSTOS)/$(GOHOSTARCH)/kubectl
 	chmod 755 $@
 
 tools/ct = $(tools.bindir)/ct
@@ -167,11 +175,14 @@ $(tools/ct).d/bin/kubectl: $(tools/kubectl)
 $(tools/ct).d/dir.txt: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	mkdir -p $(@D)
 	cd $(<D) && GOFLAGS='-mod=readonly' go list -f='{{ .Module.Dir }}' "$$(sed -En 's,^import _ "(.*)".*,\1,p' pin.go)" >$(abspath $@)
+# ct's Dockerfile pins yamale but takes yamllint from the distro, so
+# yamllint is pinned here to keep lint results stable across runners.
+tools/ct.yamllint-version = 1.38.0
 $(tools/ct).d/venv: %/venv: %/dir.txt
 	rm -rf $@
 	python3 -m venv $@
 	$@/bin/pip3 install \
-	  yamllint==$$(sed -n 's/ARG yamllint_version=//p' "$$(cat $<)/Dockerfile") \
+	  yamllint==$(tools/ct.yamllint-version) \
 	  yamale==$$(sed -n 's/ARG yamale_version=//p' "$$(cat $<)/Dockerfile") \
 	  || (rm -rf $@; exit 1)
 $(tools/ct).d/home: %/home: %/dir.txt

@@ -1,0 +1,28 @@
+---
+# Port of KAT's tests/kat/t_headerrouting.py::HeaderRoutingTest.
+#
+# KAT:      queries() yields two Query objects, check() asserts on
+#           results[N].backend.name.
+# Chainsaw: queries.json holds the same two queries, and the jq expression
+#           below is the check().
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: header-routing
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json '
+                .[0].result.status == 200 and
+                .[0].result.json.backend == "hr-target1" and
+                .[1].result.status == 200 and
+                .[1].result.json.backend == "hr-target2"
+              '

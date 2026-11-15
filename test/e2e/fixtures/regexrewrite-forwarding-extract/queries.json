@@ -1,0 +1,18 @@
+[
+  {
+    "url": "/regexrewrite-forwarding-extract/123456789/list",
+    "method": "GET"
+  },
+  {
+    "url": "/regexrewrite-forwarding-extract/987654321/list",
+    "method": "GET"
+  },
+  {
+    "url": "/xregexrewrite-forwarding-extract/123456789/list",
+    "method": "GET"
+  },
+  {
+    "url": "/regexrewrite-forwarding-extract/",
+    "method": "GET"
+  }
+]

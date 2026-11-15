@@ -1,0 +1,35 @@
+---
+# Port of KAT's tests/kat/t_tcpmapping.py::TCPMappingAddressTest.
+#
+# `exclusive` because it listens on 6790 as well as 6789, and only a slot has
+# a second TCP port (GATEWAY_TCP2_URL).
+#
+# The first TCPMapping binds 127.0.0.1 inside the pod, so a connection to the
+# slot's TCP port must be refused or reset. The second proxies to that
+# loopback listener, which is also what proves the first mapping exists.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tcpmapping-address
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n --arg local "${GATEWAY_TCP_URL}/" --arg proxy "${GATEWAY_TCP2_URL}/" \
+                '[{url: $local, method: "GET"}, {url: $proxy, method: "GET"}]' > "$queries"
+              ../../probe.sh "$queries" \
+                'loopback-only listener refuses outside connections' \
+                  '.[0].result.error | test("connection reset by peer|EOF|connection refused")' \
+                'proxy mapping reached the target through loopback' \
+                  '.[1].result.status == 200 and .[1].result.json.backend == "target"' \
+                'no TLS on the way in' '.[1].result.json.request.tls.enabled == false'

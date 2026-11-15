@@ -6,6 +6,7 @@ import (
 
 	// third-party libraries
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
@@ -14,6 +15,8 @@ import (
 	v3core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	v3listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	v3route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	v3cors "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/cors/v3"
+	v3router "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/router/v3"
 	v3httpman "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	v3matcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 
@@ -23,6 +26,14 @@ import (
 	// first-party libraries
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
+
+func mustAny(m proto.Message) *anypb.Any {
+	a, err := anypb.New(m)
+	if err != nil {
+		panic(err)
+	}
+	return a
+}
 
 func Compile_Gateway(gateway *gw.Gateway) (*CompiledConfig, error) {
 	src := SourceFromResource(gateway)
@@ -45,8 +56,14 @@ func Compile_Listener(parent Source, lst gw.Listener, name string) (*CompiledLis
 	hcm := &v3httpman.HttpConnectionManager{
 		StatPrefix: name,
 		HttpFilters: []*v3httpman.HttpFilter{
-			{Name: ecp_wellknown.CORS},
-			{Name: ecp_wellknown.Router},
+			{
+				Name:       ecp_wellknown.CORS,
+				ConfigType: &v3httpman.HttpFilter_TypedConfig{TypedConfig: mustAny(&v3cors.CorsPolicy{})},
+			},
+			{
+				Name:       ecp_wellknown.Router,
+				ConfigType: &v3httpman.HttpFilter_TypedConfig{TypedConfig: mustAny(&v3router.Router{})},
+			},
 		},
 		RouteSpecifier: &v3httpman.HttpConnectionManager_Rds{
 			Rds: &v3httpman.Rds{

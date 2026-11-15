@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-add-request-headers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-add-request-headers
+  template:
+    metadata:
+      labels:
+        app: mapping-add-request-headers
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-add-request-headers
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-add-request-headers
+spec:
+  selector:
+    app: mapping-add-request-headers
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-add-request-headers
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-add-request-headers/
+  service: http://mapping-add-request-headers:8080
+  add_request_headers:
+    zoo:
+      append: false
+      value: Zoo
+    aoo:
+      append: true
+      value: aoo
+    boo:
+      value: boo
+    foo:
+      value: Foo

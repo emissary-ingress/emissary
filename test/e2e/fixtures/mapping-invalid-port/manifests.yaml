@@ -1,0 +1,9 @@
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-invalid-port
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-invalid-port/
+  service: http://mapping-invalid-port:80.invalid

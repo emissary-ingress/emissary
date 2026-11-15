@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-status-annotations
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingress-status-annotations
+  template:
+    metadata:
+      labels:
+        app: ingress-status-annotations
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: ingress-status-annotations
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-status-annotations
+spec:
+  selector:
+    app: ingress-status-annotations
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-status-annotations
+  annotations:
+    kubernetes.io/ingress.class: ambassador
+    getambassador.io/ambassador-id: (env('SLOT'))
+    getambassador.io/config: >-
+      (join('', ['{"apiVersion": "getambassador.io/v3alpha1", "kind": "Mapping", "name": "ingress-status-annotations-nested", "hostname": "*", "prefix": "/ingress-status-annotations-nested/", "service": "http://ingress-status-annotations:8080", "ambassador_id": ["', env('SLOT'), '"]}']))
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /ingress-status-annotations/
+            pathType: Prefix
+            backend:
+              service:
+                name: ingress-status-annotations
+                port:
+                  number: 8080

@@ -1,0 +1,33 @@
+---
+# Port of KAT's tests/kat/t_max_req_header_kb.py::MaxRequestHeaderKBMaxTest.
+#
+# Same shape as max-request-header-kb, at the top of the allowed range
+# (max_request_headers_kb: 96) instead of a small override. See that fixture
+# for why queries.json is built at probe time instead of checked in.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: max-request-header-kb-max
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              queries="$(mktemp)"
+              big=$(head -c $((97 * 1024)) < /dev/zero | tr '\0' 'i')
+              small=$(head -c $((95 * 1024)) < /dev/zero | tr '\0' 'i')
+              jq -n --arg big "$big" --arg small "$small" '
+                [
+                  {url: "/target/", method: "GET", headers: {big: $big}},
+                  {url: "/target/", method: "GET", headers: {small: $small}}
+                ]
+              ' > "$queries"
+              ../../probe.sh "$queries" \
+                'oversized headers rejected' '.[0].result.status == 431' \
+                'headers under the cap pass' '.[1].result.status == 200'

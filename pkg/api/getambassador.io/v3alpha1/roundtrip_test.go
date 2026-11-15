@@ -2,7 +2,7 @@ package v3alpha1
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 
@@ -62,7 +62,7 @@ func TestTracingSvcRoundTrip(t *testing.T) {
 }
 
 func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
-	bytes, err := ioutil.ReadFile(path.Join("testdata", filename))
+	bytes, err := os.ReadFile(path.Join("testdata", filename))
 	require.NoError(t, err)
 
 	canonical := func() string {

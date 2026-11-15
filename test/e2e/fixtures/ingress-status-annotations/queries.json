@@ -1,0 +1,14 @@
+[
+  {
+    "url": "/ingress-status-annotations/",
+    "method": "GET"
+  },
+  {
+    "url": "/ingress-status-annotations-nested/",
+    "method": "GET"
+  },
+  {
+    "url": "/need-normalization/../ingress-status-annotations/",
+    "method": "GET"
+  }
+]

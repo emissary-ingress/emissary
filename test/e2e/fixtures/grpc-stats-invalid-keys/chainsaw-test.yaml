@@ -1,0 +1,43 @@
+# Port of KAT's tests/kat/t_grpc_stats.py::GrpcStatsTestNoUpstreamAllMethodsFalseInvalidKeys.
+#
+# `exclusive` because a Module is instance-global. With all_methods off and no
+# services, only the generic stats appear; the unknown key is ignored. Metrics
+# are read off Emissary's admin port (8877) through a Mapping to
+# 127.0.0.1:8877, since that port is not published. Envoy's counters lag the
+# traffic, so the read is retried, and only this fixture's own cluster is
+# looked at.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: grpc-stats-invalid-keys
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: grpc-stats-invalid-keys
+              status:
+                availableReplicas: 1
+
+    - name: gRPC stats
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              CLUSTER=$(printf 'grpc-stats-invalid-keys_%s_8080' "$NAMESPACE" | tr - _)
+              export CLUSTER
+              names='[.[20].result.body | @base64d | split("\n")[] | select(contains("envoy_cluster_name=\"" + $ENV.CLUSTER + "\"")) | split("{")[0]]'
+              ../../probe.sh queries.json \
+                'metrics are served'              '.[20].result.status == 200' \
+                'generic stats are present'       "(([\"envoy_cluster_grpc_0\", \"envoy_cluster_grpc_13\", \"envoy_cluster_grpc_request_message_count\", \"envoy_cluster_grpc_response_message_count\", \"envoy_cluster_grpc_success\", \"envoy_cluster_grpc_total\"] - ${names}) == [])" \
+                'upstream timing is absent'       "(${names} | any(.[]; contains(\"grpc\") and contains(\"upstream_rq_time\")) | not)" \
+                'EchoService stats are absent'    "(${names} | any(.[]; startswith(\"envoy_cluster_grpc_EchoService_0\")) | not)"

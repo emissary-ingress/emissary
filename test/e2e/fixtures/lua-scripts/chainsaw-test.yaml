@@ -1,0 +1,36 @@
+---
+# Port of KAT's tests/kat/t_lua_scripts.py::LuaTest.
+#
+# `exclusive` because a Module is instance-global, and because it sets
+# LUA_SCRIPTS_ENABLED on the slot's Emissary. The Module's script writes the
+# literal `$LUA_SCRIPTS_ENABLED` into a response header, which Emissary expands
+# from its own environment while reading the Module, so the header can only say
+# `Processed` if the expansion happened.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: lua-scripts
+spec:
+  steps:
+    - name: set the env var, apply and probe
+      try:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" LUA_SCRIPTS_ENABLED=Processed || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'env var expanded into the header' '.[0].result.status == 200 and .[0].result.headers["Lua-Scripts-Enabled"] == ["Processed"]'
+      finally:
+        - script:
+            timeout: 4m
+            content: |
+              kubectl -n "emissary-${SLOT}" set env "deploy/emissary-${SLOT}" LUA_SCRIPTS_ENABLED- || exit 1
+              kubectl -n "emissary-${SLOT}" rollout status "deploy/emissary-${SLOT}" --timeout=180s

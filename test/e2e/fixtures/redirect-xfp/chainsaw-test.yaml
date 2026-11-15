@@ -1,0 +1,38 @@
+# Port of KAT's tests/kat/t_redirect.py::XFPRedirect.
+#
+# `exclusive` because a Module is instance-global. The slot's http listener
+# already uses the XFP security model, so a Host with an insecure Redirect
+# policy redirects requests that claim X-Forwarded-Proto: http and serves
+# those that claim https. The client sends the header itself, since nothing
+# in front of the listener sets it.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: redirect-xfp
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: redirect on x-forwarded-proto
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'http is redirected'            '.[0].result.status == 301' \
+                'redirect goes to https'        '(.[0].result.headers["Location"][0] | test("^https://.*/xfp/target/$"))' \
+                'https reaches the target'      '.[1].result.status == 200 and .[1].result.json.backend == "target"' \
+                'diag reports no errors'        '.[2].result.status == 200 and (.[2].result.json | length) == 0'

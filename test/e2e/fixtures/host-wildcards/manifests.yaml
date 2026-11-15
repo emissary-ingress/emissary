@@ -1,0 +1,94 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+---
+# Three Hosts share one cert and are told apart by hostname glob precedence:
+# an exact match ("a.domain.com"), a suffix glob ("*.domain.com") and the
+# catch-all ("*"). All three carry the same tlsSecret, so the TLS handshake
+# always presents the same cert regardless of which one accepts the
+# connection; what differs per Host is the insecure.action applied once the
+# HTTP virtual host is picked by the ":authority"/Host match. Only the
+# suffix-glob Host sets insecure.action explicitly (Route); the other two
+# rely on the Host CRD default, which is Redirect.
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-wildcards-star
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-wildcards-tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-wildcards-suffix
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*.domain.com"
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-wildcards-tls
+  requestPolicy:
+    insecure:
+      action: Route
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host-wildcards-exact
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "a.domain.com"
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-wildcards-tls
+---
+# hostname: "*" makes this Mapping associate with every Host above.
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /foo/
+  service: target:8080

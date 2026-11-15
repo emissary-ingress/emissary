@@ -1,0 +1,70 @@
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name: as-bad1-crd
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service_bad: "target:8080"
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: m-bad-crd
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix_bad: "/bad-crd/"
+  service: "target:8080"
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: md-bad-crd
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config_bad: []
+---
+apiVersion: getambassador.io/v3alpha1
+kind: RateLimitService
+metadata:
+  name: r-bad-crd
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service_bad: "target:8080"
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: tm-bad1-crd
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service: "target:8080"
+  port_bad: 8888
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: tm-bad2-crd
+spec:
+  ambassador_id: [(env('SLOT'))]
+  service_bad: "target:8080"
+  port: 8888
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+metadata:
+  name: ts-bad1-crd
+spec:
+  ambassador_id: [(env('SLOT'))]
+  driver_bad: "zipkin"
+  service: "target:8080"
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+metadata:
+  name: ts-bad2-crd
+spec:
+  ambassador_id: [(env('SLOT'))]
+  driver: "zipkin"
+  service_bad: "target:8080"

@@ -1,0 +1,13 @@
+[
+  {
+    "url": "/target/",
+    "method": "GET",
+    "headers": {
+      "t_underscore": "foo"
+    }
+  },
+  {
+    "url": "/target/",
+    "method": "GET"
+  }
+]

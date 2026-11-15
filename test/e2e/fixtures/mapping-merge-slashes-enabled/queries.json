@@ -1,0 +1,6 @@
+[
+  { "url": "/mapping-merge-slashes-enabled/status/200", "method": "GET" },
+  { "url": "//mapping-merge-slashes-enabled/status/200", "method": "GET" },
+  { "url": "//mapping-merge-slashes-enabled//status/200", "method": "GET" },
+  { "url": "/mapping-merge-slashes-enabled//status/200", "method": "GET" }
+]

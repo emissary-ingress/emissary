@@ -1,0 +1,84 @@
+# Port of KAT's tests/kat/t_active_health_check.py::ActiveHealthCheckTest.
+#
+# `shared`. Health checks are per-Mapping and every name and prefix is
+# namespaced to the fixture. The loopback Mapping reads the shared Emissary's
+# Envoy admin, filtered to this fixture's own cluster.
+#
+# makeUnhealthy goes through the Service, so whichever of the five pods answers
+# is the one that turns unhealthy. The measured batch waits until Envoy reports
+# a host of the cluster as failing its active health check (up to 90s, since
+# on a quiet cluster the first 1s-interval check can take about a minute), and
+# runs once (PROBE_ATTEMPTS=1) so a retry cannot rescue a bad run. At least 995
+# of the 1000 must land, since a CI runner can drop the odd connection with
+# EOF, but no request may get an error status.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: active-health-check
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: active-health-check-backend
+              status:
+                availableReplicas: 5
+
+    - name: all five pods are known to Envoy
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[{url: "/active-health-check/", method: "GET"}, {url: "/active-health-check-clusters/?format=json", method: "GET"}]' > "$queries"
+              ../../probe.sh "$queries" \
+                'backend is routed' '.[0].result.status == 200' \
+                'five hosts in the cluster' '([.[1].result.json.cluster_statuses[] | select(.name | contains("cluster_active_health_check_backend")) | .host_statuses[]?] | length) == 5'
+
+    - name: make one pod unhealthy
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[{url: "/active-health-check/makeUnhealthy/", method: "GET"}]' > "$queries"
+              ../../probe.sh "$queries" 'one pod flipped' '.[0].result.status == 200'
+
+    - name: Envoy ejects the unhealthy pod
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[range(20) | {url: "/active-health-check/", method: "GET"}] + [{url: "/active-health-check-clusters/?format=json", method: "GET"}]' > "$queries"
+              PROBE_ATTEMPTS=45 ../../probe.sh "$queries" 'one host failing its health check' \
+                '([.[20].result.json.cluster_statuses[] | select(.name | contains("cluster_active_health_check_backend")) | .host_statuses[]? | select(.health_status.failed_active_health_check == true)] | length) >= 1'
+
+    - name: no request reaches the unhealthy pod
+      try:
+        - script:
+            timeout: 3m
+            content: |
+              set -eu
+              queries="$(mktemp)"
+              trap 'rm -f "$queries"' EXIT
+              jq -n '[range(1000) | {url: "/active-health-check/", method: "GET"}]' > "$queries"
+              PROBE_ATTEMPTS=1 ../../probe.sh "$queries" \
+                'no error status' \
+                  'all(.[]; .result.status == null or .result.status == 200)' \
+                'enough requests landed' \
+                  '([.[] | select(.result.status == 200)] | length) >= 995'

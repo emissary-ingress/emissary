@@ -1,0 +1,24 @@
+---
+# Port of KAT's tests/kat/t_headerswithunderscoresaction.py::RejectHeadersWithUnderscoresTest.
+#
+# headers_with_underscores_action is a Module setting, hence `slot: exclusive`.
+# Query [1] carries no underscored header, to confirm the Mapping is actually
+# up and that [0]'s 400 comes from the header, not a broken route.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: headers-underscores-reject
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'underscored header rejected' '.[0].result.status == 400' \
+                'plain request still works'   '.[1].result.status == 200'

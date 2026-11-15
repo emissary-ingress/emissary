@@ -1,0 +1,177 @@
+---
+# The Module is global to one Emissary instance, hence `slot: exclusive`.
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: [(env('SLOT'))]
+  config:
+    add_linkerd_headers: true
+    defaults:
+      httpmapping:
+        add_request_headers:
+          fruit:
+            append: false
+            value: orange
+        remove_request_headers:
+          - x-evil-header
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target
+  template:
+    metadata:
+      labels:
+        app: target
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target
+spec:
+  selector:
+    app: target
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target-no-header
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target-no-header
+  template:
+    metadata:
+      labels:
+        app: target-no-header
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target-no-header
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target-no-header
+spec:
+  selector:
+    app: target-no-header
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target-linkerd-only
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target-linkerd-only
+  template:
+    metadata:
+      labels:
+        app: target-linkerd-only
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target-linkerd-only
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target-linkerd-only
+spec:
+  selector:
+    app: target-linkerd-only
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target/
+  service: target:8080
+  add_request_headers:
+    fruit:
+      append: false
+      value: banana
+  remove_request_headers:
+    - x-evilness
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target-no-header
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target-no-header/
+  service: target-no-header:8080
+  add_linkerd_headers: false
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: target-linkerd-only
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /target-linkerd-only/
+  service: target-linkerd-only:8080
+  add_request_headers: {}
+  remove_request_headers: []

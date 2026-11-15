@@ -3,7 +3,7 @@ package gateway_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"runtime"
 	"testing"
@@ -286,7 +286,7 @@ func get(ctx context.Context, url string, expectedCode int, expectedBody string,
 		return fmt.Errorf("expected HTTP status code %d but got %d",
 			expectedCode, resp.StatusCode)
 	}
-	actualBody, err := ioutil.ReadAll(resp.Body)
+	actualBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

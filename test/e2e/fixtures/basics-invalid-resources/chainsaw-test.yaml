@@ -1,0 +1,47 @@
+---
+# Port of KAT's tests/kat/t_basics.py::InvalidResources.
+#
+# `exclusive` because it reads /ambassador/v0/diag/, which only a numbered
+# slot serves (see slots.sh), and because the invalid kinds are instance-global.
+#
+# The CRD schema rejects every bad CRD variant at apply time, so the step
+# asserts that rejection and their diag errors cannot exist. Their route
+# still has to 404. The bad annotation variants do reach diag, which is
+# filtered to this namespace's annotations Service. The one KAT variant with
+# no apiVersion exists only as an annotation, as in KAT.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: basics-invalid-resources
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - apply:
+            file: rejected.yaml
+            expect:
+              - check:
+                  ($error != null): true
+                  (contains($error, 'unknown field')): true
+        - script:
+            content: |
+              set -eu
+              sed "s/@SLOT@/$SLOT/g" annotations.yaml | kubectl apply -n "$NAMESPACE" -f -
+
+    - name: probe
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              e='(.[0].result.json | map({(.[0]): .[1]}) | add // {})'
+              ../../probe.sh queries.json \
+                'good annotation routes'           '.[1].result.status == 200 and .[1].result.json.backend == "target"' \
+                'bad annotation is not routed'     '.[2].result.status == 404' \
+                'good crd routes'                  '.[3].result.status == 200 and .[3].result.json.backend == "target"' \
+                'bad crd is not routed'            '.[4].result.status == 404' \
+                'each bad annotation has an error' "${e} as \$e | [1,3,4,5,6,7,8,9,10] | all(.[]; (\$e[\"annotations.${NAMESPACE}.\" + tostring] // \"\") | test(\"^.* in body is required\$|^apiVersion None/ unsupported\$|^spec\\\\.config in body must be of type object: \\\"null\\\"\$\"))" \
+                'only the bad ones have errors'    "[.[0].result.json[] | select(.[0] | startswith(\"annotations.${NAMESPACE}.\"))] | length == 9 and all(.[]; .[0] != \"annotations.${NAMESPACE}.2\")"

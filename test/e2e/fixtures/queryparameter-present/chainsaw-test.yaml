@@ -1,0 +1,26 @@
+---
+# Port of KAT's tests/kat/t_queryparameter_routing.py::QueryParameterPresentRoutingTest.
+#
+# KAT:      queries() yields two Query objects, check() asserts on
+#           results[0].backend.name; a bare ".*" regex_query_parameters
+#           value means "present with any value".
+# Chainsaw: queries.json holds the same two queries, and the jq expression
+#           below is the check().
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: queryparameter-present
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'param present reaches the target'  '.[0].result.status == 200 and .[0].result.json.backend == "qpr-present-target"' \
+                'param absent does not match'       '.[1].result.status == 404'

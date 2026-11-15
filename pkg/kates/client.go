@@ -598,6 +598,13 @@ func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
 	return iface, err
 }
 
+// IsWatchListSemanticsUnSupported makes client-go's Reflector use a plain List followed by a Watch
+// instead of a streaming watch-list. hasSynced depends on the item count from List, so a
+// watch-list, which never calls List, would never report the watch as synced.
+func (lw *lw) IsWatchListSemanticsUnSupported() bool {
+	return true
+}
+
 // ==
 
 func (c *Client) cliFor(mapping *meta.RESTMapping, namespace string) dynamic.ResourceInterface {

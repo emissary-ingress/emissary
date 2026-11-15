@@ -1,0 +1,23 @@
+---
+# Port of KAT's tests/kat/t_dns_type.py::DnsTtl.
+#
+# respect_dns_ttl only changes how long Envoy caches the resolved address; a
+# plain 200 confirms the request still reaches the backend with it set.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: shared
+  name: dns-type-ttl
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'status is 200'         '.[0].result.status == 200' \
+                'reached the backend'   '.[0].result.json.backend == "dns-type-ttl-echo"'

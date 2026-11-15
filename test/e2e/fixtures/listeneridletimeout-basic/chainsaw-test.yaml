@@ -1,0 +1,35 @@
+# Port of KAT's tests/kat/t_listeneridletimeout.py::ListenerIdleTimeout.
+#
+# `exclusive` because a Module is instance-global. Envoy's config dump is read
+# back through a Mapping to its local admin listener, and every listener's
+# HTTP connection manager must carry the configured idle timeout.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: listeneridletimeout-basic
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: idle timeout in the config dump
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              t='[.[0].result.json.configs[] | select(.["@type"] == "type.googleapis.com/envoy.admin.v3.ListenersConfigDump") | .dynamic_listeners[].active_state // empty | .listener.filter_chains[].filters[] | select(.name == "envoy.filters.network.http_connection_manager") | .typed_config.common_http_protocol_options.idle_timeout]'
+              ../../probe.sh queries.json \
+                'config dump is served'                           '.[0].result.status == 200' \
+                'every connection manager has a 30s idle timeout' "(${t} | length > 0 and all(. == \"30s\"))"

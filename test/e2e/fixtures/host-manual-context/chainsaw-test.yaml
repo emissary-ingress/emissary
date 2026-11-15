@@ -1,0 +1,64 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDManualContext.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# The Host carries its own tlsSecret, and a TLSContext named after it that
+# lists the same hostname caps it at TLS 1.2. The Host still redirects
+# cleartext, so this also probes http.
+#
+# KAT bounds these at 1.2-1.3, which is also Envoy's default, so its
+# queries pass whether or not the setting is applied. The cap here is 1.2
+# instead, and a TLS 1.3-only client has to be refused, which only happens
+# if the setting reached the listener.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-manual-context
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=localhost \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:localhost \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-manual-context-secret \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: tls versions are bounded
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'tls 1.2-1.3 gets 200'           '.[0].result.status == 200' \
+                'reached the target'              '.[0].result.json.backend == "target"' \
+                'tls 1.0 is refused'              '.[1].result.status == null' \
+                'refused over the version'        '.[1].result.error | test("protocol version|no supported versions")' \
+                'tls 1.3 is refused'              '.[2].result.status == null' \
+                'refused by the cap'              '.[2].result.error | test("protocol version")'
+
+    - name: http redirects to https
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'client got redirected to tls'    '.[0].result.status == 301'

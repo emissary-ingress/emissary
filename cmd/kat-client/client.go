@@ -744,6 +744,7 @@ func ExecuteQuery(ctx context.Context, query Query) error {
 		IdleConnTimeout: 30 * time.Second,
 		TLSClientConfig: &tls.Config{},
 	}
+	defer transport.CloseIdleConnections()
 	if query.Insecure() {
 		transport.TLSClientConfig.InsecureSkipVerify = true
 	}

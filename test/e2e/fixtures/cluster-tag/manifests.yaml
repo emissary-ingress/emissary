@@ -1,0 +1,139 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target1
+  template:
+    metadata:
+      labels:
+        app: target1
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target1
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target1
+spec:
+  selector:
+    app: target1
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target2
+  template:
+    metadata:
+      labels:
+        app: target2
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: target2
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target2
+spec:
+  selector:
+    app: target2
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: cluster-tag-1
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-1/
+  service: target1:8080
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: cluster-tag-2
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-2/
+  service: target1:8080
+  cluster_tag: tag-1
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: cluster-tag-3
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-3/
+  service: target1:8080
+  cluster_tag: tag-2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: cluster-tag-4
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-4/
+  service: target2:8080
+  cluster_tag: tag-2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: cluster-tag-5
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-5/
+  service: target1:8080
+  cluster_tag: some-really-long-tag-that-is-really-long
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: cluster-tag-6
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-6/
+  service: target2:8080
+  cluster_tag: some-really-long-tag-that-is-really-long

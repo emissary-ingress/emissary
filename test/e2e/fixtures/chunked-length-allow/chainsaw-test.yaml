@@ -1,0 +1,51 @@
+# Port of KAT's tests/kat/t_chunked_length.py::AllowChunkedLengthTestTrue.
+#
+# `exclusive` because a Module is instance-global. kat-client cannot send a
+# request carrying both Content-Length and Transfer-Encoding (Go's HTTP client
+# drops them), so that part is sent with curl.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: chunked-length-allow
+spec:
+  steps:
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+        - assert:
+            resource:
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: target
+              status:
+                availableReplicas: 1
+
+    - name: plain requests
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'request reaches the target' '.[0].result.status == 200 and .[0].result.json.backend == "target"' \
+                'diag request is served'     '.[1].result.status == 200'
+
+    - name: chunked length allowed
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              n=0
+              until [ "$(curl -s -o /dev/null -w '%{http_code}' -m 5 -X POST --data-binary hello \
+                  -H 'Content-Length: 5' -H 'Transfer-Encoding: chunked' "${GATEWAY_URL}/foo/")" = 200 ]; do
+                n=$((n + 1))
+                if [ "$n" -ge 30 ]; then
+                  echo "FAIL  a request with Content-Length and Transfer-Encoding: chunked was not accepted" >&2
+                  exit 1
+                fi
+                sleep 2
+              done
+              echo "ok: a request with both Content-Length and Transfer-Encoding: chunked was accepted"

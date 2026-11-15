@@ -1,0 +1,57 @@
+---
+# Port of KAT's tests/kat/t_hosts.py::HostCRDRootRedirectCongratulations.
+#
+# `exclusive` because a Host reconfigures the listener's TLS, which is
+# instance-global.
+#
+# This Host's mappingSelector matches no Mapping, so it has no route. A
+# Host with no Mappings gets no virtual host on either listener, so every
+# query here gets a 404, including cleartext, where the Host asks for a
+# redirect.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: host-root-redirect-congratulations
+spec:
+  steps:
+    - name: generate the downstream cert
+      try:
+        - script:
+            content: |
+              set -eu
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+                -subj /CN=tls-context-host-1 \
+                -addext basicConstraints=critical,CA:FALSE \
+                -addext keyUsage=critical,digitalSignature,keyEncipherment \
+                -addext extendedKeyUsage=serverAuth \
+                -addext subjectAltName=DNS:tls-context-host-1 \
+                -keyout "$dir/tls.key" -out "$dir/tls.crt" 2>/dev/null
+              kubectl create secret tls host-root-redirect-congratulations-tls \
+                -n "$NAMESPACE" --cert="$dir/tls.crt" --key="$dir/tls.key"
+
+    - name: apply
+      try:
+        - apply:
+            file: manifests.yaml
+
+    - name: cleartext gets a bare 404, not a redirect
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_URL" ../../probe.sh queries-http.json \
+                'root path is 404'    '.[0].result.status == 404' \
+                'other path is 404'   '.[1].result.status == 404'
+
+    - name: https has no route either
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              PROBE_BASE="$GATEWAY_HTTPS_URL" ../../probe.sh queries-https.json \
+                'root path is 404'    '.[0].result.status == 404' \
+                'other path is 404'   '.[1].result.status == 404'

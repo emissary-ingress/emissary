@@ -27,7 +27,6 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
         "bypass_auth": True,
-        "bypass_error_response_overrides": True,
         "circuit_breakers": True,
         "cluster_timeout_ms": True,
         "connect_timeout_ms": True,

@@ -175,7 +175,7 @@ class V3Chain:
 
 
 def tlscontext_for_tcpmapping(
-    irgroup: IRTCPMappingGroup, config: "V3Config"
+    irgroup: IRTCPMappingGroup, config: "V3Config", irlistener: Optional[IRListener] = None
 ) -> Optional["IRTLSContext"]:
     group_host = irgroup.get("host")
     if not group_host:
@@ -185,15 +185,29 @@ def tlscontext_for_tcpmapping(
     #
     # Give 'Hosts' precedence.  Why?  IDK, it felt right.
 
-    # First, Hosts:
+    # First, Hosts. If we know which Listener we're building, only consider
+    # the Hosts that its hostBinding takes, same as we do for HTTP chains.
+
+    # A Host also registers the TLSContext it generates from its tlsSecret or
+    # tls settings, so remember those of skipped Hosts: they must not be
+    # picked up by the TLSContext lookup below either.
+    skipped_host_contexts = set()
 
     for irhost in sorted(config.ir.get_hosts(), key=lambda h: h.hostname):
+        if irlistener and not irlistener.matches_host(irhost):
+            if irhost.context and irhost.context.rkey == irhost.rkey:
+                skipped_host_contexts.add(id(irhost.context))
+            continue
+
         if irhost.context and hostglob_matches(irhost.hostname, group_host):
             return irhost.context
 
     # Second, TLSContexts:
 
     for context in config.ir.get_tls_contexts():
+        if id(context) in skipped_host_contexts:
+            continue
+
         for context_host in context.get("hosts") or []:
             # Note: this is *not* glob matching.
             if context_host == group_host:
@@ -293,7 +307,12 @@ class V3Listener:
 
             if proto == "PROXY":
                 # The PROXY protocol needs a listener filter.
-                self.listener_filters.append({"name": "envoy.filters.listener.proxy_protocol"})
+                self.listener_filters.append({
+                    "name": "envoy.filters.listener.proxy_protocol",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.listener.proxy_protocol.v3.ProxyProtocol",
+                    },
+                })
 
             if proto == "TLS":
                 # TLS needs a listener filter _and_ we need to remember that this
@@ -304,7 +323,12 @@ class V3Listener:
                 ## When UDP we assume it is http/3 listener and configured for quic which has TLS built into the protocol
                 ## therefore, we only need to add this when socket_protocol is TCP
                 if self.isProtocolTCP():
-                    self.listener_filters.append({"name": "envoy.filters.listener.tls_inspector"})
+                    self.listener_filters.append({
+                        "name": "envoy.filters.listener.tls_inspector",
+                        "typed_config": {
+                            "@type": "type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector",
+                        },
+                    })
 
             if proto == "TCP":
                 # Nothing to do.
@@ -512,9 +536,9 @@ class V3Listener:
 
             # V3HTTPFilter can return None to indicate that the filter config
             # should be omitted from the final envoy config. This is the
-            # uncommon case, but it can happen if a filter waits utnil the
+            # uncommon case, but it can happen if a filter waits until the
             # v3config is generated before deciding if it needs to be
-            # instantiated. See IRErrorResponse for an example.
+            # instantiated.
             if v3hf:
                 base_http_config["http_filters"].append(v3hf)
 
@@ -709,10 +733,30 @@ class V3Listener:
                     continue
 
                 # First up, which clusters do we need to talk to?
-                clusters = [
-                    {"name": mapping.cluster.envoy_name, "weight": mapping._weight}
-                    for mapping in irgroup.mappings
-                ]
+                #
+                # IRBaseMappingGroup hands us cumulative weights, rising to 100
+                # on the last mapping, because that is the form an HTTP route's
+                # runtime_fraction needs. tcp_proxy instead splits traffic by
+                # each cluster's share of the total, so the shares have to be
+                # differenced back out of those running totals. Envoy rejects a
+                # weight below 1, so a mapping left with no share of its own is
+                # dropped rather than sent as a zero.
+                clusters = []
+                consumed = 0
+
+                for mapping in irgroup.mappings:
+                    cumulative = mapping._weight
+                    weight = cumulative - consumed
+                    consumed = cumulative
+
+                    if weight < 1:
+                        self.config.ir.logger.debug(
+                            "TCPMapping %s has no weight of its own, not routing to it",
+                            mapping.name,
+                        )
+                        continue
+
+                    clusters.append({"name": mapping.cluster.envoy_name, "weight": weight})
 
                 # From that, we can sort out a basic tcp_proxy filter config.
                 tcp_filter = {
@@ -785,7 +829,7 @@ class V3Listener:
                 # so just add this immediately as a "*" chain.
                 self.add_chain("tcp", None, "*", "*").add_tcphost(irgroup)
             else:  # TLS/SNI
-                context = tlscontext_for_tcpmapping(irgroup, self.config)
+                context = tlscontext_for_tcpmapping(irgroup, self.config, self._irlistener)
                 if not context:
                     irgroup.post_error("No matching TLSContext found, disabling!")
                     continue

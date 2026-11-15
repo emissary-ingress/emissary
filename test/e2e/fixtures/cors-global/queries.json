@@ -1,0 +1,38 @@
+[
+  {
+    "url": "/foo/",
+    "method": "GET"
+  },
+  {
+    "url": "/foo/",
+    "method": "GET",
+    "headers": {
+      "Origin": "http://foo.example.com"
+    }
+  },
+  {
+    "url": "/foo/",
+    "method": "GET",
+    "headers": {
+      "Origin": "http://wrong.example.com"
+    }
+  },
+  {
+    "url": "/bar/",
+    "method": "GET"
+  },
+  {
+    "url": "/bar/",
+    "method": "GET",
+    "headers": {
+      "Origin": "http://bar.example.com"
+    }
+  },
+  {
+    "url": "/bar/",
+    "method": "GET",
+    "headers": {
+      "Origin": "http://wrong.example.com"
+    }
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+    "url": "/headers-underscores-allow/",
+    "method": "GET",
+    "headers": {
+      "t_underscore": "foo"
+    }
+  }
+]

@@ -24,12 +24,6 @@ class V3Runtime(dict):
 
         static_runtime_layer = {
             "re2.max_program_size.error_level": 200,
-            # TODO(lance):
-            # the new default is that all filters are looked up using the @type which currently we exclude on a lot of
-            # our filters. This will ensure we do not break current config. We can migrate over
-            # in a minor release. see here: https://www.envoyproxy.io/docs/envoy/v1.22.0/version_history/current#minor-behavior-changes
-            # The biggest impact of this is ensuring that ambex imports all the types because we will need to import many more
-            "envoy.reloadable_features.no_extension_lookup_by_name": False,
         }
 
         user_runtime = config.ir.ambassador_module.get("runtime_flags", None)

@@ -6,11 +6,156 @@
 and ingress controller. It is a CNCF Incubating project, formerly known
 as the Ambassador API Gateway.
 
+### Quickstart
+
+Emissary v4 supports both AMD64 and ARM64 architectures. To install
+Emissary v4 using Helm, follow the instructions in the [Emissary
+Quickstart](https://emissary-ingress.dev/docs/4.0/quick-start/).
+
+Emissary provides two Helm charts:
+
+- `ghcr.io/emissary-ingress/emissary-crds-chart` is the chart for
+  Emissary's CRDs.
+
+- `ghcr.io/emissary-ingress/emissary-ingress` is the chart for
+  Emissary itself.
+
+The Emissary project recommends using Helm to install Emissary. If you
+need YAML instead, use `helm template` to generate the YAML manifests
+from the Helm charts.
+
 ## Emissary v4 Release Notes
 
-## [Not Yet Released]
+## [TBD] TBD
+[TBD]: https://github.com/emissary-ingress/emissary/compare/v4.2.0...TBD
 
-### Changes
+- Fix: A TLS `TCPMapping` now only takes its certificate from a `Host` that its
+  `Listener`'s `hostBinding` selects, the same way HTTP `Mapping`s already do.
+  Previously every `Host` was considered, so the `Listener` could serve the
+  certificate of a `Host` it doesn't bind. If no bound `Host` matches, a
+  matching `TLSContext` is still used; otherwise the `TCPMapping` is disabled
+  with an error. ([#5732])
+
+[#5732]: https://github.com/emissary-ingress/emissary/issues/5732
+
+## [4.2.0] 5 November 2026
+[4.2.0]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...v4.2.0
+
+- Update: Upgrade from Envoy 1.37.2 to Envoy 1.40.2 ([1.38.0 release notes],
+  [1.39.0 release notes], [1.40.0 release notes], [1.40.2 release notes]). Envoy
+  1.40 changes some defaults that are visible through Emissary:
+  - When `ENVOY_CONCURRENCY` is not set, Envoy now sizes its worker threads to
+    the container's cgroup CPU limit rather than to the node's CPU count. Set
+    `ENVOY_CGROUP_CPU_DETECTION=false` on the Emissary container to keep the old
+    behaviour.
+  - The `x-envoy-upstream-stream-duration-ms` request header is now stripped from
+    external requests, like the other `x-envoy-*` timeout and retry headers.
+  - The HTTP/1 `QUERY` method is now forwarded upstream rather than rejected with
+    a 400.
+  - Regular expressions in `Mapping`s (`prefix_regex`, `regex_headers`,
+    `regex_rewrite`, and so on) are now matched in Latin-1 mode rather than UTF-8
+    (CVE-2026-73552).
+  - `X25519MLKEM768` is now one of the default TLS ECDH curves for `Host`s and
+    `TLSContext`s that do not set `ecdh_curves`.
+  - The image's CA bundle no longer trusts the compromised eMudhra intermediate
+    CAs.
+
+[1.38.0 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.38/v1.38.0
+[1.39.0 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.39/v1.39.0
+[1.40.0 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.40/v1.40.0
+[1.40.2 release notes]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.40/v1.40.2
+
+- Update: Emissary is now built with Go 1.27.3 and the Kubernetes 1.37 client
+  libraries, and its other Go and Python dependencies are updated to their
+  current releases. `diagd` now posts `Ingress` and other resource status
+  updates from threads rather than from forked worker processes, so the
+  Emissary pod no longer runs five extra `diagd` processes once the first
+  status update is posted.
+
+- Security: `diagd`'s internal API -- most importantly `POST /_internal/v0/watt`,
+  which hands Emissary a new configuration snapshot -- is no longer reachable
+  through the admin port (8877). `diagd` now listens on a Unix-domain socket
+  (`AMBASSADOR_DIAGD_SOCKET`, default `$AMBASSADOR_CONFIG_BASE_DIR/diagd.sock`)
+  rather than on TCP, and the server on 8877 refuses to proxy `/_internal/` at
+  all, so submitting a snapshot now requires being on the pod. Health checks and
+  the diagnostics UI on 8877 are unchanged. Note that binding `diagd` to
+  127.0.0.1 would _not_ have been sufficient, since `kubectl port-forward` makes
+  off-pod traffic appear to originate from 127.0.0.1.
+
+  This removes the `AMBASSADOR_DIAGD_BIND_PORT` and `AMBASSADOR_DIAGD_BIND_ADDREASS`
+  environment variables, which no longer have anything to configure.
+
+- Security: The snapshot is now handed to `diagd` directly, as the body of the
+  `/_internal/v0/watt` request, rather than as a URL for `diagd` to go fetch.
+  This removes the snapshot server that used to listen on `localhost:9696`,
+  which served the _unsanitized_ snapshot -- secrets and all -- and which was
+  reachable with `kubectl port-forward`. (The sanitized snapshot is still
+  available on 8005 as before.) It also removes an attacker-controlled fetch
+  from the `/_internal/v0/watt` handler.
+
+- Fix: Completely disable the Ambassador Labs `error_response_overrides` mechanism;
+  you'll now see an error posted if you try to use it. (This shouldn't affect anyone
+  running Emissary.)
+
+- Fix: Weighted `TCPMapping`s now divide traffic in the ratio they are configured with.
+  Their weights were reaching Envoy as running totals rather than as each cluster's own
+  share, so a pair weighted 70 and 30 actually split about 77/23. If you had tuned
+  weights around the old behaviour, your split will change.
+
+- Fix: A `ConsulResolver`'s `datacenter` is now honored. It was being ignored, so
+  every lookup went to the datacenter of the Consul agent at `address`, and a
+  resolver naming a datacenter that agent does not serve (or serves under another
+  name) still resolved. Lookups now query the named datacenter; if you had a
+  wrong `datacenter` that happened to work, it will stop resolving.
+
+- Fix: `apiext` now eagerly generates its webhook server certificate for its
+  well-known Service hostname as part of its readiness check, rather than
+  generating it lazily on the first incoming TLS handshake. Previously, the
+  first CRD-conversion request from the Kubernetes apiserver after `apiext`
+  reported itself ready could be the one paying for certificate generation,
+  occasionally causing that request to time out ([#4275]).
+
+[#4275]: https://github.com/emissary-ingress/emissary/issues/4275
+
+- Fix: Two `ConsulResolver`s in different datacenters that watch services with the
+  same name no longer overwrite each other's endpoints. Previously only one of
+  the two Mappings got endpoints (the other returned 503), and which one could
+  change as either watch updated.
+
+- Fix: The Helm chart no longer declares the same `containerPort` twice when several
+  `service.ports` share a `targetPort` (for example `http` and `https` both targeting 8080
+  when TLS is terminated at the load balancer). Duplicate entries can make the Deployment fail to apply.
+  A `hostPort` set on any of those service ports is kept, and different `hostPort` values for the
+  same `targetPort` are rejected. ([#5802])
+
+[#5802]: https://github.com/emissary-ingress/emissary/issues/5802
+
+- Fix: Two Mappings for the same service, one using the default Kubernetes service
+  resolver and one using an endpoint resolver, no longer share one Envoy cluster.
+  Whichever loaded first decided the cluster type for both, so one Mapping could lose
+  per-pod endpoints and its health checks, or gain them unasked. Clusters for Mappings
+  with a non-default resolver now include the resolver name, so Envoy recreates them
+  once on upgrade; stats names are unchanged.
+
+- Fix: An `add_request_headers` or `add_response_headers` entry written as an object
+  with no `value` (for example `cache-control: {append: true}`) no longer crashes
+  Emissary. The header is skipped and an error is logged ([#4760]).
+
+[#4760]: https://github.com/emissary-ingress/emissary/issues/4760
+
+- Feature: `TLSContext`s and the `tls` settings of a `Host` now accept
+  `signature_algorithms`, which is passed to Envoy alongside `cipher_suites` and
+  `ecdh_curves`. Envoy's default list leaves out `ed25519`, so this is how to accept
+  Ed25519 client certificates ([#5871]).
+
+[#5871]: https://github.com/emissary-ingress/emissary/issues/5871
+
+- Feature: The `emissary-crds` chart can now schedule the `emissary-apiext`
+  Deployment with `apiext.nodeSelector` and `apiext.tolerations`. Both default to
+  empty, so existing installs render the same.
+
+## [4.1.0] 1 May 2026
+[4.1.0]: https://github.com/emissary-ingress/emissary/compare/v4.0.1...v4.1.0
 
 - Update: Upgrade from Envoy 1.36.2 to Envoy 1.37.2 ([1.37.0 release notes],
   [1.37.1 release notes], [1.37.2 release notes]).
@@ -23,9 +168,10 @@ as the Ambassador API Gateway.
   cache is present but the incoming snapshot has no deltas. Previously,
   an empty-delta snapshot with a cached entry kept the stale entry around
   until another delta happened to arrive, which caused the Istio mTLS
-  cert-rotation failure described in [#4744] (the rotated `istio-certs`
-  Secret never produces a delta, since it doesn't map to a K8s resource)
-  (thanks, [Jonathan Bailey]!).
+  cert-rotation failure described in [#4744] (thanks, [Jonathan Bailey]!).
+
+[#4744]: https://github.com/emissary-ingress/emissary/issues/4744
+[Jonathan Bailey]: https://github.com/jonathanelbailey
 
 ## [4.0.1] 26 March 2026
 [4.0.1]: https://github.com/emissary-ingress/emissary/compare/v3.10.0...v4.0.1

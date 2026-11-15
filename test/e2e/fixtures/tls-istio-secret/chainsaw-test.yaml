@@ -1,0 +1,30 @@
+---
+# Port of KAT's tests/kat/t_tls.py::TLSContextIstioSecretTest.
+#
+# `exclusive` because it reads /ambassador/v0/diag/, which only a numbered
+# slot serves (see slots.sh). The Istio-style Secret lives in its own
+# namespace and the TLSContext reaches it with secret_namespacing off.
+#
+# KAT asserts only that diag reports no errors, which an Emissary that has
+# not loaded the config yet also satisfies, so the Mapping's cluster is also
+# required to carry the Secret. No request is sent through the Mapping: the
+# Istio root cert becomes the CA that verifies the upstream, and kat-server's
+# cert is not signed by it.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  labels:
+    slot: exclusive
+  name: tls-istio-secret
+spec:
+  steps:
+    - name: apply-and-probe
+      try:
+        - apply:
+            file: manifests.yaml
+        - script:
+            timeout: 2m
+            content: |
+              ../../probe.sh queries.json \
+                'diag reports no errors'            '.[0].result.status == 200 and .[0].result.json == []' \
+                'cluster loaded the Istio secret'   '[.[1].result.json.cluster_info[] | .tls_context.secret_info.secret?] | index("istio.test-tlscontext-istio-secret-1") != null'
