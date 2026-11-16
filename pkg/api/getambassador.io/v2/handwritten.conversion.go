@@ -275,8 +275,9 @@ func Convert_v2_AddedHeader_To_v3alpha1_AddedHeader(in *AddedHeader, out *v3alph
 	// WARNING: in.Full requires manual conversion: does not exist in peer-type
 	case in.Full != nil:
 		*out = v3alpha1.AddedHeader{
-			Value:  in.Full.Value,
-			Append: in.Full.Append,
+			Value:        in.Full.Value,
+			Append:       in.Full.Append,
+			AppendAction: in.Full.V3AppendAction,
 		}
 	default:
 		*out = v3alpha1.AddedHeader{
@@ -292,19 +293,21 @@ func Convert_v3alpha1_AddedHeader_To_v2_AddedHeader(in *v3alpha1.AddedHeader, ou
 	}
 	// WARNING: in.Value requires manual conversion: does not exist in peer-type
 	// WARNING: in.Append requires manual conversion: does not exist in peer-type
+	// WARNING: in.AppendAction requires manual conversion: does not exist in peer-type
 	// WARNING: in.V2Representation requires manual conversion: does not exist in peer-type
 	switch {
-	case in.V2Representation == "string" && in.Append == nil:
+	case in.V2Representation == "string" && in.Append == nil && in.AppendAction == "":
 		*out = AddedHeader{
 			Shorthand: &in.Value,
 		}
-	case in.V2Representation == "null" && in.Append == nil && in.Value == "":
+	case in.V2Representation == "null" && in.Append == nil && in.AppendAction == "" && in.Value == "":
 		*out = AddedHeader{}
 	default:
 		*out = AddedHeader{
 			Full: &AddedHeaderFull{
-				Value:  in.Value,
-				Append: in.Append,
+				Value:          in.Value,
+				Append:         in.Append,
+				V3AppendAction: in.AppendAction,
 			},
 		}
 	}

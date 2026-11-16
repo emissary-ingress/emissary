@@ -10,7 +10,7 @@ from .irbasemappinggroup import IRBaseMappingGroup
 from .ircors import IRCORS
 from .irhttpmappinggroup import IRHTTPMappingGroup
 from .irretrypolicy import IRRetryPolicy
-from .irutils import selector_matches
+from .irutils import invalid_append_action, selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
@@ -447,6 +447,15 @@ class IRHTTPMapping(IRBaseMapping):
                         self["load_balancer"]
                     )
                 )
+                return False
+
+        # Envoy rejects its whole configuration if an added header has an
+        # append_action it doesn't know, so reject just this Mapping instead.
+        for field in ("add_request_headers", "add_response_headers"):
+            append_action_error = invalid_append_action(self.get(field) or {})
+
+            if append_action_error is not None:
+                self.post_error(f"{field}: {append_action_error}, invalidating mapping")
                 return False
 
         # All three redirect fields are mutually exclusive.

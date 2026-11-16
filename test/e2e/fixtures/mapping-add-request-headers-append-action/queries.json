@@ -1,0 +1,13 @@
+[
+  {
+    "url": "/mapping-add-request-headers-append-action/",
+    "method": "GET",
+    "headers": {
+      "x-append-present": "Client",
+      "x-add-if-absent-present": "Client",
+      "x-overwrite-or-add-present": "Client",
+      "x-overwrite-present": "Client",
+      "x-both-present": "Client"
+    }
+  }
+]

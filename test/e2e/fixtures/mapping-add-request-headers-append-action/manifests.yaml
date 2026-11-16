@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mapping-add-request-headers-append-action
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mapping-add-request-headers-append-action
+  template:
+    metadata:
+      labels:
+        app: mapping-add-request-headers-append-action
+    spec:
+      containers:
+        - name: kat-server
+          image: (env('KAT_SERVER_IMAGE'))
+          imagePullPolicy: IfNotPresent
+          command: ["/work/kat-server"]
+          env:
+            - name: BACKEND
+              value: mapping-add-request-headers-append-action
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mapping-add-request-headers-append-action
+spec:
+  selector:
+    app: mapping-add-request-headers-append-action
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-add-request-headers-append-action
+spec:
+  ambassador_id: [(env('SLOT'))]
+  hostname: "*"
+  prefix: /mapping-add-request-headers-append-action/
+  service: http://mapping-add-request-headers-append-action:8080
+  add_request_headers:
+    x-append-present:
+      append_action: APPEND_IF_EXISTS_OR_ADD
+      value: Mapping
+    x-append-missing:
+      append_action: APPEND_IF_EXISTS_OR_ADD
+      value: Mapping
+    x-add-if-absent-present:
+      append_action: ADD_IF_ABSENT
+      value: Mapping
+    x-add-if-absent-missing:
+      append_action: ADD_IF_ABSENT
+      value: Mapping
+    x-overwrite-or-add-present:
+      append_action: OVERWRITE_IF_EXISTS_OR_ADD
+      value: Mapping
+    x-overwrite-or-add-missing:
+      append_action: OVERWRITE_IF_EXISTS_OR_ADD
+      value: Mapping
+    x-overwrite-present:
+      append_action: OVERWRITE_IF_EXISTS
+      value: Mapping
+    x-overwrite-missing:
+      append_action: OVERWRITE_IF_EXISTS
+      value: Mapping
+    x-both-present:
+      append: false
+      append_action: ADD_IF_ABSENT
+      value: Mapping

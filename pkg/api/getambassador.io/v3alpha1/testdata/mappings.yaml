@@ -622,3 +622,24 @@
       this-is-a: test1
       this-is-a2: test2
       this-is-a3: test3
+- apiVersion: getambassador.io/v3alpha1
+  kind: Mapping
+  metadata:
+    name:  added-headers-append-action
+  spec:
+    hostname: "*"
+    prefix: /backend/
+    service: quote
+    add_request_headers:
+      x-append: { value: "a", append_action: APPEND_IF_EXISTS_OR_ADD }
+      x-add-if-absent: { value: "b", append_action: ADD_IF_ABSENT }
+      x-overwrite-or-add: { value: "c", append_action: OVERWRITE_IF_EXISTS_OR_ADD }
+    add_response_headers:
+      x-overwrite: { value: "d", append_action: OVERWRITE_IF_EXISTS }
+      x-both: { value: "e", append: true, append_action: ADD_IF_ABSENT }
+    health_checks:
+    - health_check:
+        http:
+          path: /health
+          add_request_headers:
+            x-add-if-absent: { value: "f", append_action: ADD_IF_ABSENT }

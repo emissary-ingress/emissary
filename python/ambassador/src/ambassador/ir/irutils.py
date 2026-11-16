@@ -14,7 +14,7 @@
 
 import logging
 import os
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from ambassador.utils import parse_bool
 
@@ -219,3 +219,76 @@ def selector_matches(
 
         logger.debug("      all selectors match => True")
         return True
+
+
+######
+# Utilities for added headers
+#
+# A Mapping's add_request_headers and add_response_headers, and an HTTP health
+# check's add_request_headers, map each header name either to a bare value or
+# to an AddedHeader object with "value", "append" and "append_action" keys.
+
+# The values of Envoy's HeaderValueOption.HeaderAppendAction enum, one of which
+# an AddedHeader's append_action must name.
+HEADER_APPEND_ACTIONS = (
+    "APPEND_IF_EXISTS_OR_ADD",
+    "ADD_IF_ABSENT",
+    "OVERWRITE_IF_EXISTS_OR_ADD",
+    "OVERWRITE_IF_EXISTS",
+)
+
+
+def invalid_append_action(header_dict: Dict[str, Any]) -> Optional[str]:
+    """
+    Return an error message for the first header in header_dict whose
+    append_action Envoy would reject, or None if every append_action is valid.
+    """
+    for name, header in header_dict.items():
+        if isinstance(header, dict) and "append_action" in header:
+            append_action = header["append_action"]
+
+            if append_action not in HEADER_APPEND_ACTIONS:
+                return (
+                    f"header {name}: invalid append_action {append_action!r}, "
+                    f"must be one of {', '.join(HEADER_APPEND_ACTIONS)}"
+                )
+
+    return None
+
+
+def generate_headers_to_add(
+    logger: logging.Logger, header_dict: Dict[str, Any]
+) -> List[Dict[str, Any]]:
+    """
+    Turn added headers into a list of Envoy HeaderValueOptions.
+    """
+    headers: List[Dict[str, Any]] = []
+
+    for k, v in header_dict.items():
+        if not isinstance(v, dict):
+            headers.append(
+                {
+                    "header": {"key": k, "value": v},
+                    "append": True,  # Default append True, for backward compatibility
+                }
+            )
+            continue
+
+        value = v.get("value")
+
+        if value is None:
+            # e.g. add_response_headers: {cache-control: {append: true}} (no value).
+            # Never crash the sidecar on this; skip the header and log the error.
+            logger.error(f"generate_headers_to_add: header {k!r} has no value; skipping")
+        elif "append_action" in v:
+            # Envoy rejects a HeaderValueOption that sets both append and a non-default
+            # append_action, so append_action, when given, takes the place of append.
+            headers.append(
+                {"header": {"key": k, "value": value}, "append_action": v["append_action"]}
+            )
+        else:
+            headers.append(
+                {"header": {"key": k, "value": value}, "append": bool(v.get("append", True))}
+            )
+
+    return headers

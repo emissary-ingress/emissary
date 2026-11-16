@@ -335,6 +335,104 @@ spec:
                 },
             ],
         },
+        {  # check that append_action is passed through, and takes the place of append
+            "name": "healthcheck_http_add_headers_append_action",
+            "input": baseYaml.format(
+                [
+                    {
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                                "add_request_headers": {
+                                    "fruit-one": {
+                                        "append_action": "ADD_IF_ABSENT",
+                                        "value": "banana",
+                                    },
+                                    "fruit-two": {
+                                        "append": True,
+                                        "append_action": "OVERWRITE_IF_EXISTS_OR_ADD",
+                                        "value": "orange",
+                                    },
+                                },
+                            }
+                        }
+                    }
+                ]
+            ),
+            "expected": [
+                {
+                    "http_health_check": {
+                        "path": "/health",
+                        "request_headers_to_add": [
+                            {
+                                "header": {"key": "fruit-one", "value": "banana"},
+                                "append_action": "ADD_IF_ABSENT",
+                            },
+                            {
+                                "header": {"key": "fruit-two", "value": "orange"},
+                                "append_action": "OVERWRITE_IF_EXISTS_OR_ADD",
+                            },
+                        ],
+                    }
+                },
+            ],
+        },
+        {  # check that a health check with an invalid append_action is ignored
+            "name": "healthcheck_http_add_headers_invalid_append_action",
+            "input": baseYaml.format(
+                [
+                    {
+                        "health_check": {
+                            "http": {
+                                "path": "/bad",
+                                "add_request_headers": {
+                                    "fruit-one": {"append_action": "REPLACE", "value": "banana"},
+                                },
+                            }
+                        }
+                    },
+                    {"health_check": {"http": {"path": "/health"}}},
+                ]
+            ),
+            "expected": [
+                {"http_health_check": {"path": "/health"}},
+            ],
+        },
+        {  # check that a header with no value is skipped, whichever form it takes
+            "name": "healthcheck_http_add_headers_missing_value",
+            "input": baseYaml.format(
+                [
+                    {
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                                "add_request_headers": {
+                                    "fruit-one": {"append": True},
+                                    "fruit-two": {"append_action": "ADD_IF_ABSENT"},
+                                    "fruit-three": {
+                                        "append_action": "ADD_IF_ABSENT",
+                                        "value": "banana",
+                                    },
+                                },
+                            }
+                        }
+                    }
+                ]
+            ),
+            "expected": [
+                {
+                    "http_health_check": {
+                        "path": "/health",
+                        "request_headers_to_add": [
+                            {
+                                "header": {"key": "fruit-three", "value": "banana"},
+                                "append_action": "ADD_IF_ABSENT",
+                            },
+                        ],
+                    }
+                },
+            ],
+        },
         {  # check remove headers
             "name": "healthcheck_http_remove_headers",
             "input": baseYaml.format(
