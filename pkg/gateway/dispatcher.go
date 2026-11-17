@@ -123,6 +123,10 @@ func (d *Dispatcher) Upsert(resource kates.Object) error {
 		return errors.Wrapf(err, "internal error processing %s", key)
 	}
 
+	if config == nil {
+		return nil
+	}
+
 	d.configs[key] = config
 	// Clear out the snapshot so we regenerate one.
 	d.snapshot = nil
