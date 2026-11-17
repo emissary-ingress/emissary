@@ -361,8 +361,8 @@ func (icert *IstioCert) HandleEvent(ctx context.Context, name string, deleted bo
 		secret, ok := icert.Secret(ctx)
 
 		if !ok {
-			// WTF.
 			dlog.Debugf(ctx, "%s: cannot construct secret", icert)
+			return
 		}
 
 		// FINALLY!
