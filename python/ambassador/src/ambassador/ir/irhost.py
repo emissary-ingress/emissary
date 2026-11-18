@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+import logging
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from ..config import Config
-from ..utils import SavedSecret, dump_json
+from ..utils import RichStatus, SavedSecret, dump_json
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 from .irutils import disable_strict_selectors, hostglob_matches, selector_matches
@@ -53,6 +54,8 @@ class IRHost(IRResource):
             )
 
         self.context: Optional[IRTLSContext] = None
+
+        self._status_errors: List[str] = []
 
         super().__init__(
             ir=ir,
@@ -506,7 +509,24 @@ class IRHost(IRResource):
         namespace = self.namespace or ir.ambassador_namespace
 
         return ir.resolve_secret(self, secret_name, namespace)
+    
+    def post_error(self, error:Union[str, RichStatus],log_level=logging.INFO) -> None:
+        self._status_errors.append(str(error))
+        super().post_error(error,log_level=log_level)
 
+    def check_status(self) -> None:
+        crd_name = (self.get("metadata_labels") or {}).get("ambassador_crd")
+        if not crd_name:
+            return
+        status: Dict[str, Any] 
+        if self.is_active():
+            status = {"state": "Ready",
+                      "tlsCertificateSource":"Other" if self.context else "None",
+                      }
+        else:
+            reason=";".join(self._status_errors) or "Host is invalid; see Emissary diagnostics for details"
+            status = {"state": "Error", "errorReason": reason}
+        self.ir.k8s_status_updates[crd_name] = ("Host", self.namespace, status)
 
 class HostFactory:
     @classmethod
@@ -520,6 +540,7 @@ class HostFactory:
                 ir.logger.debug("HostFactory: creating host for %s" % repr(config.as_dict()))
 
                 host = IRHost(ir, aconf, **config)
+                host.check_status()
 
                 if host.is_active():
                     host.referenced_by(config)
