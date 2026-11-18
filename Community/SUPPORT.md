@@ -8,7 +8,7 @@ Thanks for understanding.
 
 * [User Documentation](https://emissary-ingress.dev/docs/)
 * [Troubleshooting
-  Guide](https://emissary-ingress.dev/docs/4.0/reference/debugging/)
+  Guide](https://emissary-ingress.dev/docs/4.2/topics/running/debugging/)
 
 ### Real-time Chat
 
