@@ -361,6 +361,53 @@ spec:
         assert self.results[0].json["request"]["tls"]["enabled"] is False
 
 
+class TCPMappingEndpointResolverTest(AmbassadorTest):
+    """A TCPMapping using a KubernetesEndpointResolver must route to the
+    Service's endpoint IPs (EDS) rather than to the Service's ClusterIP.
+
+    Regression test for https://github.com/emissary-ingress/emissary/issues/3330
+    """
+
+    extra_ports = [6789]
+    target: ServiceType
+
+    def init(self) -> None:
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return (
+            format(
+                """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: KubernetesEndpointResolver
+metadata:
+  name: {self.path.k8s}-endpoint
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 6789
+  service: {self.target.path.fqdn}:80
+  resolver: {self.path.k8s}-endpoint
+"""
+            )
+            + super().manifests()
+        )
+
+    def queries(self):
+        yield Query(self.url("", port=6789))
+
+    def check(self):
+        assert self.results[0].json["backend"] == self.target.path.k8s
+        assert self.results[0].json["request"]["tls"]["enabled"] is False
+
+
 class TCPMappingCrossNamespaceTest(AmbassadorTest):
     extra_ports = [6789]
     target: ServiceType
@@ -1301,7 +1348,6 @@ spec:
 #  - enable_ipv6: false
 #  - circuit_breakers
 #  - idle_timeout_ms
-#  - resolver
 #
 # TODO: Add tests for the config knobs for stats:
 #  - cluster_tag
