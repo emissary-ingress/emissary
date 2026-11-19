@@ -353,6 +353,16 @@ metrics:
     # interval: 30s
     # scrapeTimeout: 30s
     # selector: {}
+    # Relabeling rules applied to the target before it is scraped.
+    # See: https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    # relabelings:
+    #   - sourceLabels: [__meta_kubernetes_pod_node_name]
+    #     targetLabel: node
+    # Relabeling rules applied to the scraped samples before they are ingested.
+    # metricRelabelings:
+    #   - sourceLabels: [__name__]
+    #     regex: envoy_cluster_upstream_cx_.*
+    #     action: drop
 
 # Resolvers are used to configure the discovery service strategy for Ambasador
 # See: https://www.getambassador.io/docs/edge-stack/latest/topics/running/resolvers/
