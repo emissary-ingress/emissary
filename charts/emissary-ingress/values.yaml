@@ -342,6 +342,22 @@ affinity: {}
 # Topology Spread Constraints for Ambassador pods. Stable since 1.19.
 topologySpreadConstraints: []
 
+# Extra Kubernetes manifests to render and deploy as part of this release, for
+# example a TargetGroupBinding for the Service. Each entry is either a YAML map
+# or a string; both are passed through `tpl`, so they can use Helm templating
+# such as {{ .Release.Namespace }} or {{ include "ambassador.fullname" . }}.
+extraManifests: []
+  # - apiVersion: elbv2.k8s.aws/v1beta1
+  #   kind: TargetGroupBinding
+  #   metadata:
+  #     name: internal-emissary-ingress
+  #     namespace: "{{ .Release.Namespace }}"
+  #   spec:
+  #     serviceRef:
+  #       name: '{{ include "ambassador.fullname" . }}'
+  #       port: 80
+  #     targetGroupARN: <target group arn>
+
 # Config thats mounted to `/ambassador/ambassador-config`
 ambassadorConfig: ""
 
