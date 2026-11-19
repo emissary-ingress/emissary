@@ -230,7 +230,7 @@ To initialize a `Resource` requires:
 
 * `rkey`: a short identifier that is used as the primary key for _all_ the Ambassador classes to identify this single specific resource. It should be something like "ambassador-default.1" or the like that is very specific, though it doesn't have to be fun for humans.
 
-* `location`: a more human-readable string describing where the human should go to find the source of this resource. "Service ambassador, namespace default, object 1". This is primarly used for diagnostics.
+* `location`: a more human-readable string describing where the human should go to find the source of this resource. "Service ambassador, namespace default, object 1". This is primarily used for diagnostics.
 
 * `kind`: the kind of resource this is -- "Mapping", "TLS", "AuthService", whatever.
 
