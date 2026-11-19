@@ -78,7 +78,7 @@ After reading this document if you have questions we encourage you to join us on
 This section provides the steps for getting started developing on Emissary-ingress. There are a number of prerequisites that need to be setup. In general, our tooling tries to detect any missing requirements and provide a friendly error message. If you ever find that this is not the case please file an issue.
 
 > **Note:** To enable developers contributing on Macs with Apple Silicon, we ensure that the artifacts are built for `linux/amd64`
-> rather than the host `linux/arm64` architecture. This can be overriden using the `BUILD_ARCH` environment variable. Pull Request are welcome :).
+> rather than the host `linux/arm64` architecture. This can be overridden using the `BUILD_ARCH` environment variable. Pull Request are welcome :).
 
 ### Step 1: Install Build Dependencies
 
@@ -116,7 +116,7 @@ cd emissary
 You can configure the build system using environment variables, two required variables are used for setting the container registry and the kubeconfig used.
 
 > **Important**: the test and build system perform destructive operations against your cluster. Therefore, we recommend that you
-> use a development cluster. Setting the DEV_KUBECONFIG variable described below ensures you don't accidently perform actions on a production cluster.
+> use a development cluster. Setting the DEV_KUBECONFIG variable described below ensures you don't accidentally perform actions on a production cluster.
 
 Open a terminal in the location where you cloned the repository and run the following commands:
 
@@ -240,7 +240,7 @@ When submitting a Pull Request (PR) here are a set of guidelines to follow:
 
 2. Be sure to describe your proposed change and any open questions you might have in the issue. This allows us to collect historical context around an issue, provide feedback on the proposed solution and discuss what versions a fix should target.
 
-3. If you haven't done so already create a fork of the respository and clone it locally
+3. If you haven't done so already create a fork of the repository and clone it locally
 
    ```shell
    git clone <your-fork>
@@ -308,7 +308,7 @@ Once you have **two approvals** then one of the Maintainers will merge the PR.
 
 ### Rebasing a branch under review
 
-Many times the base branch will have new commits added to it which may cause merge conflicts with your open pull request. First, a good rule of thumb is to make pull request small so that these conflicts are less likely to occur but this is not always possible when have multiple people working on similiar features. Second, if it is just addressing commit feedback a `fixup` commit is also a good option so that the reviewers can see what changed since their last review.
+Many times the base branch will have new commits added to it which may cause merge conflicts with your open pull request. First, a good rule of thumb is to make pull request small so that these conflicts are less likely to occur but this is not always possible when have multiple people working on similar features. Second, if it is just addressing commit feedback a `fixup` commit is also a good option so that the reviewers can see what changed since their last review.
 
 If you need to address merge conflicts then it is preferred that you use **Rebase** on the base branch rather than merging base branch into the feature branch. This ensures that when the PR is merged that it will cleanly replay on top of the base branch ensuring we maintain a clean linear history.
 
@@ -387,9 +387,9 @@ When we do a final release then we will cut a new `release/v{major.minor}` branc
 - release/v2.3
 - release/v1.14
 
-These branches contain the codebase as it was at that time when the release was done. These branches have branch protection enabled to ensure that they are not removed or accidently overwritten. If we needed to do a security fix or bug patch then we may cut a new `.Z` patch release from an existing release branch. For example, the `release/v2.4` branch is currently on `2.4.1`.
+These branches contain the codebase as it was at that time when the release was done. These branches have branch protection enabled to ensure that they are not removed or accidentally overwritten. If we needed to do a security fix or bug patch then we may cut a new `.Z` patch release from an existing release branch. For example, the `release/v2.4` branch is currently on `2.4.1`.
 
-As you can see we currently support mutliple major versions of Emissary-ingress and you can read more about our [End-of-Life Policy](https://www.getambassador.io/docs/emissary/latest/about/aes-emissary-eol/).
+As you can see we currently support multiple major versions of Emissary-ingress and you can read more about our [End-of-Life Policy](https://www.getambassador.io/docs/emissary/latest/about/aes-emissary-eol/).
 
 For more information on our current RC and Release process you can find that in our [Release Wiki](https://github.com/emissary-ingress/emissary/wiki).
 
@@ -434,7 +434,7 @@ But, let's say during our fix we notice other things that need to be addressed t
 
 #### What if I'm still not sure?
 
-This is what the issue discussions and disucssion in Slack are for so that we can help guide you so feel free to ping us in the `#emissary-dev` channel on Slack to discuss directly with us.
+This is what the issue discussions and discussion in Slack are for so that we can help guide you so feel free to ping us in the `#emissary-dev` channel on Slack to discuss directly with us.
 
 ### Merge Strategy
 
@@ -627,7 +627,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
    Emissary does not claim to be FIPS compliant or certified.
    See [here](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/security/ssl#fips-140-2) for more information on FIPS and Envoy.
 
-> _NOTE:_ FIPS_MODE is NOT supported by the emissary-ingress maintainers but we provide this for developers as convience
+> _NOTE:_ FIPS_MODE is NOT supported by the emissary-ingress maintainers but we provide this for developers as convenience
 
 #### 3. Hacking on Envoy
 
@@ -776,7 +776,7 @@ upgrade everything else, then
  2. Delete `python/requirements.in` (if it exists).
  3. Run `make generate`.
 
-> **Note**: If you are updating orjson you will need to also update `docker/base-python/Dockerfile` before running `make generate` for the new version. orjson uses rust bindings and the default wheels on PyPI rely on glibc. Because our base python image is Alpine based, it is built from scratch using rustc to build a musl compatable version.
+> **Note**: If you are updating orjson you will need to also update `docker/base-python/Dockerfile` before running `make generate` for the new version. orjson uses rust bindings and the default wheels on PyPI rely on glibc. Because our base python image is Alpine based, it is built from scratch using rustc to build a musl compatible version.
 
  > :warning: You may run into an error when running `make generate` where it can't detect the licenses for new or upgraded dependencies, which is needed so that so that we can properly generate DEPENDENCIES.md and DEPENDENCY_LICENSES.md. If that is the case, you may also have to update `build-aux/tools/src/py-mkopensource/main.go:parseLicenses` for any license changes then run `make generate` again.
 
@@ -792,7 +792,7 @@ available along with documentation for what each target does.
 ### How do I develop on a Mac with Apple Silicon?
 
 To ensure that developers using a Mac with Apple Silicon can contribute, the build system ensures
-the build artifacts are `linux/amd64` rather than the host architecture. This behavior can be overriden
+the build artifacts are `linux/amd64` rather than the host architecture. This behavior can be overridden
 using the `BUILD_ARCH` environment variable (e.g. `BUILD_ARCH=linux/arm64 make images`).
 
 ### How do I develop on Windows using WSL?
