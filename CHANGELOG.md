@@ -36,7 +36,14 @@ from the Helm charts.
   matching `TLSContext` is still used; otherwise the `TCPMapping` is disabled
   with an error. ([#5732])
 
+- Feature: The `emissary-ingress` Helm chart accepts a new `extraManifests`
+  value: a list of additional Kubernetes manifests, given as YAML maps or
+  strings, that are rendered with the release. Each entry is passed through
+  Helm's `tpl`, so it can refer to `.Release` and the chart's helpers. It
+  defaults to empty, so existing installs render the same. ([#5706])
+
 [#5732]: https://github.com/emissary-ingress/emissary/issues/5732
+[#5706]: https://github.com/emissary-ingress/emissary/issues/5706
 
 ## [4.2.0] 5 November 2026
 [4.2.0]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...v4.2.0

@@ -1,0 +1,16 @@
+extraManifests:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: "{{ include \"ambassador.fullname\" . }}-extra-map"
+      namespace: "{{ .Release.Namespace }}"
+    data:
+      key: value
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ include "ambassador.fullname" . }}-extra-string
+      namespace: {{ .Release.Namespace }}
+    data:
+      key: value
