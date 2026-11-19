@@ -36,7 +36,14 @@ from the Helm charts.
   matching `TLSContext` is still used; otherwise the `TCPMapping` is disabled
   with an error. ([#5732])
 
+- Feature: The `emissary-ingress` Helm chart's ServiceMonitor can now carry
+  Prometheus relabeling rules, set with `metrics.serviceMonitor.relabelings`
+  (applied to targets before scraping) and
+  `metrics.serviceMonitor.metricRelabelings` (applied to scraped samples). Both
+  default to empty, so existing installs render the same. ([#5510])
+
 [#5732]: https://github.com/emissary-ingress/emissary/issues/5732
+[#5510]: https://github.com/emissary-ingress/emissary/issues/5510
 
 ## [4.2.0] 5 November 2026
 [4.2.0]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...v4.2.0
