@@ -149,7 +149,7 @@ If that were a `.test` test, you would need to declare it on the
 
 If you need one test to depend on another test, write the dependency
 using the `.tap` suffix (not `.log`).  You do not need to write the
-depenency for `check`, since it will already depend on the `.tap`
+dependency for `check`, since it will already depend on the `.tap`
 through `test-suite.tap`:
 
     test-suite.tap: foo.tap bar.tap

@@ -33,28 +33,28 @@ At the core of Emissary-ingress is Envoy Proxy which has very extensive configur
 - CRDs - extend K8s to enable Emissary-ingress's abstractions (*generated yaml*)
 - Apiext - A server that implements the Webhook Conversion interface for CRD's (**own container**)
 - Diagd - provides diagnostic ui, translates snapshots/ir into envoy configuration (*in-process*)
-- Ambex - gRPC server implementation of envoy xDS for dynamic envoy configration (*in-process*)
+- Ambex - gRPC server implementation of envoy xDS for dynamic envoy configuration (*in-process*)
 - Envoy Proxy - Proxy that handles routing all user traffic (*in-process*)
 
 ## Custom Resource Definitions (CRD)
 
-Kubernetes allows extending its API through the use of [Customer Resource Definitions](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/) (aka CRDs) which allow solutions like Emissary-ingress to add custom resources to K8s and allow developers to treat them like any other K8s resource. CRDs provide validation, strong typing, structured data, versioning and are persisted in `etcd` along with the core Kuberenetes resources.
+Kubernetes allows extending its API through the use of [Customer Resource Definitions](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/) (aka CRDs) which allow solutions like Emissary-ingress to add custom resources to K8s and allow developers to treat them like any other K8s resource. CRDs provide validation, strong typing, structured data, versioning and are persisted in `etcd` along with the core Kubernetes resources.
 
-Emissary-ingress provides a set of CRD's that are applied to a cluster and then are watched by Emissary-ingress. Emissary-ingress then uses the data from these CRD's along with the standard K8's resources (services, endpoints, etc...) to dynamically generate Envoy Proxy configuration. Depending on the version of Emissary-ingress there might be multiple versions of the CRD's that are suppported.
+Emissary-ingress provides a set of CRD's that are applied to a cluster and then are watched by Emissary-ingress. Emissary-ingress then uses the data from these CRD's along with the standard K8's resources (services, endpoints, etc...) to dynamically generate Envoy Proxy configuration. Depending on the version of Emissary-ingress there might be multiple versions of the CRD's that are supported.
 
 You can read the user documentation (see additional reading below) to find out more about all the various CRDs that are used and how to configure them. For understanding, how they are defined you can take a look in `pkg/getambassador.io/*` directory. In this directory, you will find a directory per version of the CRDs and for each version you will see the `Golang` structs that define the data structures that are used for each of the Emissary-ingress custom resources. It's recommended to read the `doc.go` file for information about API guidelines followed and how the comment markers are used by the build system.
 
-The build system (`make`) uses [controller-gen](https://book.kubebuilder.io/reference/controller-gen.html) to generate the required YAML representation for the customer resources that can be found at `pkg/getambassador.io/crds.yaml`. This file is auto-generated and checked into the respository. This is the file that is applied to a cluster extending the Kubernetes API. If any changes are made to the custom resources then it needs to be re-generated and checked-in as part of your PR. Running `make generate` will trigger the generation of this file and other generated files (`protobufs`) that are checked into the respository as well. If you want to see more about the build process take a look at `build-aux/generate.mk`.
+The build system (`make`) uses [controller-gen](https://book.kubebuilder.io/reference/controller-gen.html) to generate the required YAML representation for the customer resources that can be found at `pkg/getambassador.io/crds.yaml`. This file is auto-generated and checked into the repository. This is the file that is applied to a cluster extending the Kubernetes API. If any changes are made to the custom resources then it needs to be re-generated and checked-in as part of your PR. Running `make generate` will trigger the generation of this file and other generated files (`protobufs`) that are checked into the repository as well. If you want to see more about the build process take a look at `build-aux/generate.mk`.
 
 > **Annotations**:  K8s allows developers to provide Annotations as well to the standard K8s Resources (Services, Ingress, etc...). Annotations were the preferred method of configuring early versions of Emissary-ingress but annotations did not provide validation and can be error prone. However, with the introduction of CRD's these are now the preferred method and annotations are only supported for backwards compatibility. We won't discuss the annotations much here due to this but rather making you aware that they exist.
 
 ### Apiext
 
-Kubernetes provides the ability to have multiple versions of Custom Resources similiar to the core K8s resources but it is only capable of having a single `storage` version that is persisted in `etcd`. Custom Resource Definitions can define a `ConversionWebHook` that Kubernetes will call whenever it receives a version that is not the storage version.
+Kubernetes provides the ability to have multiple versions of Custom Resources similar to the core K8s resources but it is only capable of having a single `storage` version that is persisted in `etcd`. Custom Resource Definitions can define a `ConversionWebHook` that Kubernetes will call whenever it receives a version that is not the storage version.
 
 You can check the current storage version by looking at `pkg/getambassador.io/crds.yaml` and searching for the `storage: true` field and seeing which version is the storage version of the custom resource (*at the time of writing this it is `v2`*).
 
-The `apiext` container is the Emissary-ingress's server implementation for the conversion webhook that is registered with our custom resources. Each custom resource will have a section similiar to the following in the `pkg/getambassador.io/crds.yaml`:
+The `apiext` container is the Emissary-ingress's server implementation for the conversion webhook that is registered with our custom resources. Each custom resource will have a section similar to the following in the `pkg/getambassador.io/crds.yaml`:
 
 ```yaml
 conversion:
@@ -81,7 +81,7 @@ The implementation of the `apiext` server can be found in `cmd/apiext` and it le
 
 - [Ambassador Labs Docs - Custom Resources](https://www.getambassador.io/docs/emissary/latest/topics/running/host-crd/)
 - [Ambassador Labs Docs - Declarative Configuration](https://www.getambassador.io/docs/emissary/latest/topics/concepts/gitops-continuous-delivery/#policies-declarative-configuration-and-custom-resource-definitions)
-- [K8s Docs - Custom Resouce Definition](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
+- [K8s Docs - Custom Resource Definition](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
 - [K8s Docs - Version CRD's](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/)
 - [K8s Docs - Webhook Conversion](<https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#webhook-conversion>)
 
@@ -99,7 +99,7 @@ Emissary-ingress has evolved over many years, many contributors and many version
 
 The `busyambassador` binary provides a busybox like interface that dispatches the CMD's that are provided to a container for the various configured Golang binaries. This enables a single image to support multiple binaries on startup that are declartively set within a `deployment` in the `command` field when setting the image for a deployment.
 
-The image takes advantage of the `ENTRYPOINT` and `CMD` fields within a docker image manifest. You can see this in `builder/Dockerfile` in the final optimized image on the last line there is `ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]`. This entrypoint cannot be overriden by the user and will run that bash script. By default the bash script will run the `entrypoint` binary which will be discussed in the next section but if passed a known binary name, then `busyambassador` will run the correct command.
+The image takes advantage of the `ENTRYPOINT` and `CMD` fields within a docker image manifest. You can see this in `builder/Dockerfile` in the final optimized image on the last line there is `ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]`. This entrypoint cannot be overridden by the user and will run that bash script. By default the bash script will run the `entrypoint` binary which will be discussed in the next section but if passed a known binary name, then `busyambassador` will run the correct command.
 
 To learn more about `busyambassador` the code can be found:
 
@@ -132,7 +132,7 @@ Some of these items will be discussed in more detail but the best places to get 
 
 #### Watch All The Things (Watt)
 
-Watch All The Things (aka Watt) is tasked with watching alot of things, hence the name :smile:. Specifically, its job is to watch for changes in the K8s Cluster and potentially Consul and file system changes. Watt is the beginning point for the end-to-end data flow from developer applying the configuration to envoy being configured. You can find the code for this in the `cmd/entrypoint/watcher.go` file.
+Watch All The Things (aka Watt) is tasked with watching a lot of things, hence the name :smile:. Specifically, its job is to watch for changes in the K8s Cluster and potentially Consul and file system changes. Watt is the beginning point for the end-to-end data flow from developer applying the configuration to envoy being configured. You can find the code for this in the `cmd/entrypoint/watcher.go` file.
 
 The watching of the K8s Cluster changes is where Emissary-ingress will get most of its configuration by looking for K8s Resources (e.g. services,ingresss, etc...) as well as the Emissary-ingress CRD Resources (e.g. Host, Mapping, Listeners, etc...). A `consulWatcher`  will be started if a user has configured a Mapping to use the `ConsulResolver`. You can find this code in `cmd/entrypoint/consul.go`. The filesystem is also watched for changes to support `istio` and how it mounts certificates to the filesystem.
 
@@ -171,7 +171,7 @@ Provides two main functions:
 - Generate IR and envoy configs (load_ir function)
   - Take each Resource generated in ResourceFetcher and add it to the Config object as strongly typed objects
   - Store Config Object in `/ambassador/snapshots/aconf-tmp.json`
-  - Check Deltas for Mappings cach and determine if we needs to be reset
+  - Check Deltas for Mappings cache and determine if we needs to be reset
   - Create IR with a Config, Cache, and invalidated items
     - IR is generated which basically just converts our stuff to strongly typed generic "envoy" items (handling filters, clusters, listeners, removing duplicates, etc...)
   - IR is updated in-memory for diagd process
@@ -189,7 +189,7 @@ Provides two main functions:
   - Notify `envoy` and `ambex` that a new snapshot has been persisted using signal SIGHUP
     - the Goroutine within `entrypoint` that starts up `envoy` is blocking waiting for this signal to start envoy
     - the `ambex` process continuously listens for this signal and it triggers a configuration update for ambex.
-  - Update the appropriate status fields with metatdata by making calls to the `kubestatus` binary found in `cmd/kubestatus` which handles the communication to the cluster
+  - Update the appropriate status fields with metadata by making calls to the `kubestatus` binary found in `cmd/kubestatus` which handles the communication to the cluster
 
 ## Ambex
 

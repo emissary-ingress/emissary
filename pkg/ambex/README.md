@@ -98,7 +98,7 @@ Try it out
 ----------
 
 You'll want to run both `ambex` and an instance of `envoy` with a
-boostrap config pointing at that `ambex.
+bootstrap config pointing at that `ambex.
 
  1. First, start the `ambex`:
 
@@ -142,7 +142,7 @@ $ curl localhost:8080/get
 Edit and/or add more files to the `./example/ambex/` directory in
 order to play with more configurations and see them reload
 _instantaneously_ (if you used the `--watch` flag), or when-triggered
-(if you didn't use the `--watch` flag; trigger a relead by signaling
+(if you didn't use the `--watch` flag; trigger a reload by signaling
 the process with `killall -HUP ambex`).
 
 Clean up
