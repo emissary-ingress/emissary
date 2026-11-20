@@ -38,6 +38,16 @@ from the Helm charts.
 
 [#5732]: https://github.com/emissary-ingress/emissary/issues/5732
 
+- Fix: A Service or Ingress `getambassador.io/config` annotation that uses the
+  legacy `v1` apiVersion (`ambassador/v1` or `getambassador.io/v1`) no longer
+  crashes Emissary. Converting it panicked with `reflect.Value.Set using value
+  obtained using unexported field`, which sent the Emissary pod into a crash
+  loop until the annotation was removed or moved to `v2` or `v3alpha1`. Such
+  annotations are now converted to `v3alpha1` like those of every other version.
+  ([#4783])
+
+[#4783]: https://github.com/emissary-ingress/emissary/issues/4783
+
 ## [4.2.0] 5 November 2026
 [4.2.0]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...v4.2.0
 
