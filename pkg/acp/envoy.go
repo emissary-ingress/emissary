@@ -160,9 +160,14 @@ func getDefaultReadyURL() string {
 		readyPort, err = strconv.ParseUint(strReadyPort, 10, 15)
 		if err != nil {
 			dlog.Infof(context.Background(), "Unable to parse AMBASSADOR_READY_PORT or port is out of bounds: %s", err)
+			// On an out-of-range error, ParseUint returns the largest value that fits
+			// (here 32767) rather than 0, so throw that away.
+			readyPort = 0
 		}
 	}
-	if readyPort < 1 {
+	// Keep this range in sync with v3ready.py, which makes Envoy listen on the default
+	// port for anything outside [1, 32767).
+	if readyPort < 1 || readyPort >= 32767 {
 		readyPort = 8006
 	}
 	return fmt.Sprintf("http://localhost:%d/ready", readyPort)

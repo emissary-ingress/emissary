@@ -38,6 +38,13 @@ from the Helm charts.
 
 [#5732]: https://github.com/emissary-ingress/emissary/issues/5732
 
+- Fix: When `AMBASSADOR_READY_PORT` was set to 32767 or higher, Envoy fell back
+  to listening for `/ready` on port 8006, but the health check behind
+  `/ambassador/v0/check_alive` and `/ambassador/v0/check_ready` polled port
+  32767 instead, so it never saw Envoy as ready. The liveness probe then failed
+  and Kubernetes kept restarting the pod. The health check now falls back to
+  port 8006 in the same cases Envoy does.
+
 ## [4.2.0] 5 November 2026
 [4.2.0]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...v4.2.0
 
