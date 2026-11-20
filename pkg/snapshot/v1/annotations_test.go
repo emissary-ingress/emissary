@@ -3,6 +3,7 @@ package snapshot_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -417,4 +418,179 @@ config:
 			assert.Equal(t, tc.outputObj, obj)
 		})
 	}
+}
+
+// TestConvertAnnotationV1 checks that annotations written with the legacy `v1` apiVersion (spelled
+// either `ambassador/v1` or `getambassador.io/v1`) are converted to the current version, instead of
+// panicking. The `v1` Go types carry an unexported placeholder field that
+// k8s.io/apimachinery/pkg/runtime's unstructured-to-typed conversion cannot set.
+func TestConvertAnnotationV1(t *testing.T) {
+	timeout := &amb.MillisecondDuration{Duration: 10 * time.Second}
+
+	testcases := map[string]struct {
+		inputString string
+		outputObj   kates.Object
+	}{
+		"mapping-old-group": {
+			inputString: `
+---
+apiVersion: ambassador/v1
+kind: Mapping
+name: deprecated
+prefix: /deprecated
+timeout_ms: 10000
+service: irrelevant`,
+			outputObj: &amb.Mapping{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "deprecated",
+					Namespace: "somens",
+					Labels:    map[string]string{},
+				},
+				Spec: amb.MappingSpec{
+					Prefix:   "/deprecated",
+					Service:  "irrelevant",
+					Timeout:  timeout,
+					Hostname: "*", // the v1/v2 -> v3alpha1 conversion defaults a missing host to "*"
+				},
+			},
+		},
+		"authservice": {
+			inputString: `
+---
+apiVersion: getambassador.io/v1
+kind: AuthService
+name: authentication
+auth_service: auth:3000
+proto: grpc`,
+			outputObj: &amb.AuthService{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "AuthService",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "authentication",
+					Namespace: "somens",
+					Labels:    map[string]string{},
+				},
+				Spec: amb.AuthServiceSpec{
+					AuthService: "auth:3000",
+					Proto:       "grpc",
+				},
+			},
+		},
+		"module": {
+			inputString: `
+---
+apiVersion: getambassador.io/v1
+kind: Module
+name: ambassador
+config:
+  diagnostics:
+    enabled: true`,
+			outputObj: &amb.Module{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Module",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "ambassador",
+					Namespace: "somens",
+					Labels:    map[string]string{},
+				},
+				Spec: amb.ModuleSpec{
+					Config: getModuleSpec(t, `{"diagnostics":{"enabled":true}}`),
+				},
+			},
+		},
+	}
+
+	for tcName, tc := range testcases {
+		tc := tc
+		t.Run(tcName, func(t *testing.T) {
+			parentObj := &kates.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "v1",
+					"kind":       "Service",
+					"metadata": map[string]interface{}{
+						"name":      "parentname",
+						"namespace": "somens",
+						"labels":    map[string]interface{}{},
+						"annotations": map[string]interface{}{
+							"getambassador.io/config": tc.inputString,
+						},
+					},
+				},
+			}
+
+			ctx := dlog.NewTestContext(t, false)
+
+			objs, err := snapshotTypes.ParseAnnotationResources(parentObj)
+			require.NoError(t, err)
+			require.Len(t, objs, 1)
+
+			var obj kates.Object
+			require.NotPanics(t, func() {
+				obj, err = snapshotTypes.ValidateAndConvertObject(ctx, objs[0])
+			})
+			require.NoError(t, err)
+			assert.Equal(t, tc.outputObj, obj)
+		})
+	}
+}
+
+// TestPopulateAnnotationsV1 is the end-to-end shape of the crash: a Service with a deprecated
+// `ambassador/v1` annotation must not take down the whole snapshot (and with it the watcher).
+func TestPopulateAnnotationsV1(t *testing.T) {
+	svc := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "svc",
+			Namespace: "ambassador",
+			Annotations: map[string]string{
+				"getambassador.io/config": `
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  deprecated
+prefix: /deprecated
+timeout_ms: 10000
+service: irrelevant
+`,
+			},
+		},
+	}
+	ks := &snapshotTypes.KubernetesSnapshot{
+		Services: []*kates.Service{svc},
+	}
+
+	ctx := dlog.NewTestContext(t, false)
+
+	require.NotPanics(t, func() {
+		assert.NoError(t, ks.PopulateAnnotations(ctx))
+	})
+	assert.Equal(t, map[string]snapshotTypes.AnnotationList{
+		"Service/svc.ambassador": {
+			&amb.Mapping{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "deprecated",
+					Namespace: "ambassador",
+				},
+				Spec: amb.MappingSpec{
+					Prefix:   "/deprecated",
+					Service:  "irrelevant",
+					Timeout:  &amb.MillisecondDuration{Duration: 10 * time.Second},
+					Hostname: "*",
+				},
+			},
+		},
+	}, ks.Annotations)
 }

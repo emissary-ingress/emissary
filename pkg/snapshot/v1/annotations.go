@@ -9,6 +9,7 @@ import (
 	crdAll "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io"
 	crdCurrent "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates_internal"
 )
 
 func annotationKey(obj kates.Object) string {
@@ -98,14 +99,21 @@ func ValidateAndConvertObject(
 func convertAnnotationObject(srcUnstruct *kates.Unstructured) (kates.Object, error) {
 	// Convert from an 'Unstructured' to the appropriate Go type, without actually converting
 	// versions.
+	//
+	// We round-trip through JSON rather than using scheme.ConvertToVersion(), because that goes
+	// through runtime.DefaultUnstructuredConverter, which tries to set every struct field and
+	// panics on the unexported `dumbWorkaround` field of the getambassador.io/v1 types.
 	srcGVK := srcUnstruct.GetObjectKind().GroupVersionKind()
-	_src, err := scheme.ConvertToVersion(srcUnstruct, srcGVK.GroupVersion())
+	_src, err := scheme.New(srcGVK)
 	if err != nil {
 		return nil, fmt.Errorf("1: %w", err)
 	}
 	src, ok := _src.(kates.Object)
 	if !ok {
 		return nil, fmt.Errorf("type %T doesn't implement kates.Object", _src)
+	}
+	if err := kates_internal.Convert(srcUnstruct.Object, src); err != nil {
+		return nil, fmt.Errorf("1: %w", err)
 	}
 
 	// Create the Go type of the output version.
