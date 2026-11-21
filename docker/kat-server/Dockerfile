@@ -13,7 +13,7 @@ RUN step certificate create kat.server.local /certs/server.crt /certs/server.key
     --profile self-signed --subtle --san kat.server.local \
     --not-after 87600h --no-password --insecure
 
-FROM gcr.io/distroless/cc-debian12 as final
+FROM gcr.io/distroless/cc-debian13 as final
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH

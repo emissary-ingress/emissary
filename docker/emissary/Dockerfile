@@ -12,14 +12,14 @@ ARG LIBARCH
 
 ######## Python
 
-# We use the Python 3.12.2-slim-bookworm image to manage Emissary's
+# We use the Python 3.13.18-slim-trixie image to manage Emissary's
 # Python half, then replicate some of the Google distroless Python image
 # ourselves, based on https://github.com/alexdmoss/distroless-python
 # (we'd use that directly, but its published images aren't multi-arch).
 #
 # We don't use Google's distroless image directly because its Python
 # version is older than we want.
-FROM docker.io/library/python:3.13.5-slim-bookworm AS emissary-factory
+FROM docker.io/library/python:3.13.18-slim-trixie AS emissary-factory
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH
@@ -39,10 +39,10 @@ COPY LICENSE /emissary/LICENSE
 
 # Have uv install a Python for us.
 ENV UV_PYTHON_INSTALL_DIR=/opt/ambassador/python
-RUN uv python install 3.13.5
+RUN uv python install 3.13.18
 
 # Set up /opt/ambassador as a virtual environment for Emissary...
-RUN uv venv /opt/ambassador/emissary --python 3.13.5
+RUN uv venv /opt/ambassador/emissary --python 3.13.18
 
 # Build wheels for ambassador and ambassador-diag...
 RUN . /opt/ambassador/emissary/bin/activate && \
@@ -87,7 +87,7 @@ RUN mkdir -p /ambassador/sidecars
 
 ######## Distroless final stage
 
-FROM gcr.io/distroless/cc-debian12 AS final
+FROM gcr.io/distroless/cc-debian13 AS final
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH

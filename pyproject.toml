@@ -2,7 +2,7 @@
 name = "emissary"
 version = "4.0.0-dev"
 readme = "python/README.md"
-requires-python = "==3.13.5"
+requires-python = "==3.13.18"
 description = "ADD DESCRIPTION HERE"
 license = { file = "LICENSE" }
 authors = [
