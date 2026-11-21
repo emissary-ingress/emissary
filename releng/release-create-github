@@ -50,8 +50,6 @@ def main(release_version: str) -> int:
 
     buf = ""
     with check(f"Creating release notes for {release_version}"):
-        # TODO: Rewrite this to use `docs/releaseNotes.yml` instead of
-        # `CHANGELOG.md`.
         in_changelog = False
         for line in fileinput.FileInput("CHANGELOG.md"):
             if in_changelog:

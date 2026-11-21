@@ -14,9 +14,11 @@ release/start:
 
 # `make release/ga/changelog-update CHANGELOG_VERSION=X.Y.Z` is meant
 # to be run by the human maintainer when preparing the final version
-# of the `rel/vX.Y.Z` branch.
-release/ga/changelog-update:
-	$(OSS_HOME)/releng/release-go-changelog-update --quiet $(CHANGELOG_VERSION)
+# of the `rel/vX.Y.Z` branch. It assembles the snippets in `docs/changes/`
+# into `CHANGELOG.md` (and deletes them).
+release/ga/changelog-update: $(OSS_HOME)/.venv
+	@[[ "$(CHANGELOG_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: CHANGELOG_VERSION must be set to "X.Y.Z"; it is set to "%s"$(END)\n' "$(CHANGELOG_VERSION)"; exit 1)
+	uv run --dev -- towncrier build --yes --version "$(CHANGELOG_VERSION)" --date "$$(date '+%-d %B %Y')"
 .PHONY: release/ga/changelog-update
 
 ########################################################################
