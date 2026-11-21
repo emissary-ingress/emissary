@@ -19,21 +19,16 @@ A few sentences describing what testing you've done, e.g., manual tests, automat
 - [ ] **Does my change need to be backported to a previous release?**
   - What backport versions were discussed with the Maintainers in the Issue?
 
-- [ ] **I added a changelog snippet in `docs/changes/` (or a `+<slug>.skip.md` snippet if no release note is needed).**
+- [ ] **I added a CHANGELOG snippet in `docs/changes/` (or a
+  `+<slug>.skip.md` snippet if no release note is needed).**
 
-   Do not edit `CHANGELOG.md` directly; see `docs/changes/README.md`.
+   Snippets appear in `docs/changes/` and are named `<issue>.<type>.md`.
+   If you are **certain** that no issue should be filed, name the snippet
+   `+<short-slug>.<type>.md`; if you are **certain** that the change
+   shouldn't have an entry in the CHANGELOG, use `+<short-slug>.skip.md`.
 
-   Name the file `docs/changes/<issue-number>.<type>.md` (e.g. `5732.fix.md`), or
-   `docs/changes/+<short-slug>.<type>.md` if there is no issue. `<type>` is one of
-   `feature`, `fix`, `update`, `change`, `deprecation`, or `security`. The file is a
-   short Markdown paragraph for users; the type prefix and issue link are added
-   automatically.
-
-   The snippet needs to mention:
-  - Any new features
-  - Any changes to our included version of Envoy
-  - Any non-backward-compatible changes
-  - Any deprecations
+   See `docs/changes/README.md` for more. **Do not edit `CHANGELOG.md`
+   directly.**
 
 - [ ] **This is unlikely to impact how Emissary Ingress performs at scale.**
 

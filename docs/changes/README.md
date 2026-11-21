@@ -36,10 +36,19 @@ automatically added.
 
 ## CI
 
-PRs must add a snippet. For changes that need no release note (tests, CI,
-internal refactors, and so on), add a snippet of type `skip` instead, e.g.
-`+ci-tweak.skip.md`, containing a one-line reason. It is checked into the
-PR, so it's reviewable, and it never appears in `CHANGELOG.md`. Preview
-locally with:
+**PRs with no changelog snippet will fail CI.** If you're really really
+certain that your change shouldn't be called out in the CHANGELOG, use a
+`skip` snippet, e.g.
 
-    uv run --dev -- towncrier build --draft --version X.Y.Z
+`+ci-tweak.skip.md`
+
+but still put in a description of what's up and why it doesn't need to be
+mentioned.
+
+## Previewing
+
+You can get a preview of what towncrier will build with
+
+```bash
+uv run --dev -- towncrier build --draft --version X.Y.Z
+```
