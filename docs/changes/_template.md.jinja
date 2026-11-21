@@ -1,4 +1,5 @@
 ## [{{ versiondata.version }}] {{ versiondata.date }}
+[{{ versiondata.version }}]: https://github.com/emissary-ingress/emissary/releases/tag/v{{ versiondata.version }}
 
 {% for section, _ in sections.items() %}
 {% for category, val in definitions.items() if category in sections[section] and category != "skip" %}
