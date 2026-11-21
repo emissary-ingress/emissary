@@ -1,6 +1,6 @@
 ######## Distroless final stage
 
-FROM gcr.io/distroless/cc-debian12 AS final
+FROM gcr.io/distroless/cc-debian13 AS final
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH
