@@ -172,7 +172,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	})
 
 	snapshot := &atomic.Value{}
-	if !envbool("AMBASSADOR_DISABLE_SNAPSHOT_SERVER") {
+	if externalSnapshotServerEnabled() {
 		group.Go("external_snapshot_server", func(ctx context.Context) error {
 			return externalSnapshotServer(ctx, snapshot)
 		})

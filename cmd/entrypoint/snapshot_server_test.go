@@ -1,12 +1,38 @@
 package entrypoint
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/datawire/dlib/dlog"
 )
+
+func TestExternalSnapshotServerEnabled(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   string
+		unset   bool
+		enabled bool
+	}{
+		{name: "unset", unset: true},
+		{name: "empty"},
+		{name: "true", value: "true"},
+		{name: "zero", value: "0"},
+		{name: "invalid", value: "False"},
+		{name: "explicit opt-in", value: "false", enabled: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("AMBASSADOR_DISABLE_SNAPSHOT_SERVER", tt.value)
+			if tt.unset {
+				assert.NoError(t, os.Unsetenv("AMBASSADOR_DISABLE_SNAPSHOT_SERVER"))
+			}
+			assert.Equal(t, tt.enabled, externalSnapshotServerEnabled())
+		})
+	}
+}
 
 var sanitizeExternalSnapshotTests = []struct {
 	testName              string

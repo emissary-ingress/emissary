@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sync/atomic"
 
 	"github.com/datawire/dlib/dhttp"
@@ -13,6 +14,10 @@ import (
 
 // take the next port in the range of ambassador ports.
 const ExternalSnapshotPort = 8005
+
+func externalSnapshotServerEnabled() bool {
+	return os.Getenv("AMBASSADOR_DISABLE_SNAPSHOT_SERVER") == "false"
+}
 
 // expose a scrubbed version of the current snapshot outside the pod
 func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {

@@ -3,6 +3,12 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## Unreleased
+
+- Breaking: `module.diagnostics.allow_non_local` now defaults to `false`, affecting
+  only internal diagnostics access without the UI route. Use
+  `--set module.diagnostics.allow_non_local=true` to restore access.
+
 ## v8.10.0 - TBD
 
 - Upgrade Emissary to v3.10.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)

@@ -30,7 +30,7 @@ Ambassador uses several TCP ports while running. All but one of them are in the 
 | 8001 | `envoy`                               | Internal stats, logging, etc.; not exposed outside pod                                                             |
 | 8002 | `entrypoint/watcher`                  | Internal `watt` snapshot access; not exposed outside pod                                                           |
 | 8003 | `entrypoint/ambex`                    | Internal `ambex` snapshot access; not exposed outside pod                                                          |
-| 8005 | `entrypoint/external_snapshot_server` | Exposes configuration snapshots for integration with other tools                                                   |
+| 8005 | `entrypoint/external_snapshot_server` | Exposes configuration snapshots for integration with other tools; disabled by default, enable with `AMBASSADOR_DISABLE_SNAPSHOT_SERVER=false` |
 | 8006 | `envoy`                               | Default ready listener port                                                                                        |
 | 8080 | `envoy`                               | Default HTTP service port                                                                                          |
 | 8443 | `envoy`                               | Default HTTPS service port                                                                                         |

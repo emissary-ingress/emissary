@@ -38,6 +38,12 @@ from the Helm charts.
 
 [#5732]: https://github.com/emissary-ingress/emissary/issues/5732
 
+- Breaking: The snapshot server is disabled by default; no users should be affected.
+  Set `AMBASSADOR_DISABLE_SNAPSHOT_SERVER=false` to enable it.
+- Breaking: `diagnostics.allow_non_local` now defaults to `false` in the Helm chart,
+  affecting only users accessing diagnostics internally without the diagnostics UI
+  route. Use `--set module.diagnostics.allow_non_local=true` to restore access.
+
 ## [4.2.0] 5 November 2026
 [4.2.0]: https://github.com/emissary-ingress/emissary/compare/v4.1.0...v4.2.0
 

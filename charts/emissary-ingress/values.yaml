@@ -383,7 +383,7 @@ module:
   enabled: true
   diagnostics:
     enabled: false
-    allow_non_local: true
+    allow_non_local: false
 
 # DEPRECATED: Enabling the prometheus exporter creates a sidecar and configures ambassador to use it
 #
