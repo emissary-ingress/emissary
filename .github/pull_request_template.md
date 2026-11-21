@@ -19,9 +19,17 @@ A few sentences describing what testing you've done, e.g., manual tests, automat
 - [ ] **Does my change need to be backported to a previous release?**
   - What backport versions were discussed with the Maintainers in the Issue?
 
-- [ ] **I made sure to update `CHANGELOG.md`.**
+- [ ] **I added a changelog snippet in `docs/changes/` (or a `+<slug>.skip.md` snippet if no release note is needed).**
 
-   Remember, the CHANGELOG needs to mention:
+   Do not edit `CHANGELOG.md` directly; see `docs/changes/README.md`.
+
+   Name the file `docs/changes/<issue-number>.<type>.md` (e.g. `5732.fix.md`), or
+   `docs/changes/+<short-slug>.<type>.md` if there is no issue. `<type>` is one of
+   `feature`, `fix`, `update`, `change`, `deprecation`, or `security`. The file is a
+   short Markdown paragraph for users; the type prefix and issue link are added
+   automatically.
+
+   The snippet needs to mention:
   - Any new features
   - Any changes to our included version of Envoy
   - Any non-backward-compatible changes

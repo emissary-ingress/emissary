@@ -68,6 +68,7 @@ dev = [
     "packaging>=26.3",
     "httpretty>=1.1.4",
     "pytest-rerunfailures>=16.7",
+    "towncrier>=25.8",
     # Type Stubs (flexible for latest improvements)
     "types-orjson>=3",
     "types-pyyaml>=6",
