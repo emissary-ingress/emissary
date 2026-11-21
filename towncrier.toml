@@ -10,6 +10,11 @@ issue_format = "[#{issue}](https://github.com/emissary-ingress/emissary/issues/{
 ignore = ["README.md", "_template.md.jinja"]
 
 [[tool.towncrier.type]]
+directory = "security"
+name = "Security"
+showcontent = true
+
+[[tool.towncrier.type]]
 directory = "feature"
 name = "Feature"
 showcontent = true
@@ -32,11 +37,6 @@ showcontent = true
 [[tool.towncrier.type]]
 directory = "deprecation"
 name = "Deprecation"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "security"
-name = "Security"
 showcontent = true
 
 # Satisfies the CI check for changes that don't need a release note; the
