@@ -37,8 +37,8 @@ and the CI will be green.
 6. While the blog post is being written, switch to a new branch for the release.
    - `git checkout -b rel/0.84.0` (or whatever version). **Do not name this branch "release/...".**
 
-7. Use `make release/ga/changelog-update CHANGELOG_VERSION=X.Y.Z` to update `CHANGELOG.md`.
-   - This runs towncrier, which assembles the snippets in `docs/changes/` into a new section of `CHANGELOG.md` and deletes them.
+7. Use `make release/changelog-update CHANGELOG_VERSION=X.Y.Z` (or `X.Y.Z-rc.N` for an RC) to update `CHANGELOG.md`.
+   - This runs towncrier, which assembles the snippets in `docs/changes/` into a new section of `CHANGELOG.md`, replacing any earlier RC sections for the same version. It deletes the snippets for a GA, but keeps them for an RC.
    - It does not commit. Make sure the diff looks correct, then `git add -A CHANGELOG.md docs/changes`, commit, and `git push` your branch.
 
 8. Now for the time-critical bit.

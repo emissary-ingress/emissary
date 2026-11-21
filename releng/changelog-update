@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Assemble the changelog snippets in docs/changes/ into CHANGELOG.md.
+
+Usage: releng/changelog-update X.Y.Z[-rc.N]
+
+Any existing "X.Y.Z-rc.*" sections are removed from CHANGELOG.md first, and
+then the whole section for the requested version is rebuilt from the snippets.
+
+ - For an RC, the snippets are kept, so the next RC (or the GA) can rebuild
+   the section including everything that has landed since.
+ - For a GA (no -rc suffix), the snippets are consumed (deleted), and the RC
+   sections are gone: only the GA section remains.
+
+Run this with `uv run --dev` so that towncrier is available.
+"""
+
+import datetime
+import re
+import subprocess
+import sys
+
+CHANGELOG = "CHANGELOG.md"
+VERSION_RE = re.compile(r"^(\d+\.\d+\.\d+)(-rc\.\d+)?$")
+
+
+def strip_rc_sections(text: str, base: str) -> str:
+    """Remove every `## [base-rc.N] ...` section, up to the next `## ` heading."""
+    heading = re.compile(rf"^## \[{re.escape(base)}-rc\.\d+\]")
+    out = []
+    skipping = False
+    for line in text.splitlines(keepends=True):
+        if line.startswith("## "):
+            skipping = bool(heading.match(line))
+        if not skipping:
+            out.append(line)
+    return "".join(out)
+
+
+def main() -> int:
+    if len(sys.argv) != 2 or not (m := VERSION_RE.match(sys.argv[1])):
+        print(__doc__, file=sys.stderr)
+        print("ERROR: version must look like X.Y.Z or X.Y.Z-rc.N", file=sys.stderr)
+        return 2
+
+    version, base, is_rc = sys.argv[1], m.group(1), m.group(2) is not None
+
+    with open(CHANGELOG, encoding="utf-8") as f:
+        text = f.read()
+    with open(CHANGELOG, "w", encoding="utf-8") as f:
+        f.write(strip_rc_sections(text, base))
+
+    today = datetime.date.today()
+    cmd = [
+        sys.executable,
+        "-m",
+        "towncrier",
+        "build",
+        "--version",
+        version,
+        "--date",
+        f"{today.day} {today:%B %Y}",
+        "--keep" if is_rc else "--yes",
+    ]
+    return subprocess.run(cmd, check=False).returncode
+
+
+if __name__ == "__main__":
+    sys.exit(main())

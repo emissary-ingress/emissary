@@ -54,26 +54,33 @@ already exists.
 
 Release-prep tweaks happen on `release/vX.Y`, not on `main`.
 
-Changelog entries live as snippets in `docs/changes/` (see its README). On the
-release branch, assemble them into `CHANGELOG.md` and commit the result:
+Changelog entries live as snippets in `docs/changes/` (see its README). Before
+tagging any release (RC, GA, or patch), assemble them into `CHANGELOG.md` on the
+release branch and commit the result:
 
 ```
-make release/ga/changelog-update CHANGELOG_VERSION=4.1.0
+make release/changelog-update CHANGELOG_VERSION=4.1.0-rc.0   # or 4.1.0
 git add -A CHANGELOG.md docs/changes
-git commit -m "docs(changelog): cut 4.1.0 release notes"
+git commit -m "docs(changelog): cut 4.1.0-rc.0 release notes"
 ```
 
-This inserts the new section below the `towncrier release notes start`
-marker and deletes the consumed snippets. Use `uv run --dev -- towncrier build
---draft --version 4.1.0` first to preview. For RCs, don't build; do it for the GA
-release or patch release.
+This rebuilds the whole section for that version below the `towncrier release
+notes start` marker, replacing any earlier `4.1.0-rc.N` sections:
+
+- For an **RC**, the snippets are kept, so the next RC (or the GA) is rebuilt
+  from everything that has landed so far.
+- For a **GA or patch** release, the snippets are consumed (deleted), and only
+  the GA section remains.
+
+Use `uv run --dev -- towncrier build --draft --version 4.1.0` to preview
+without writing anything.
 
 The GitHub Release body links to `CHANGELOG.md` at the tag (it does not
 inline the changelog), so make sure the section for the version you're
 about to tag is in good shape on the release branch before tagging.
 
-Cherry-pick the changelog commit back to `main` afterwards so the consumed
-snippets are removed there too.
+After a GA or patch release, cherry-pick the changelog commit back to `main` so
+the consumed snippets are removed there too. Don't do this for RCs.
 
 If you do make changes, cherry-pick them back to `main` afterwards per the
 policy above.

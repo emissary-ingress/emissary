@@ -12,14 +12,14 @@ release/start:
 	@$(OSS_HOME)/releng/00-release-start --next-version $(START_VERSION)
 .PHONY: release/start
 
-# `make release/ga/changelog-update CHANGELOG_VERSION=X.Y.Z` is meant
-# to be run by the human maintainer when preparing the final version
-# of the `rel/vX.Y.Z` branch. It assembles the snippets in `docs/changes/`
-# into `CHANGELOG.md` (and deletes them).
-release/ga/changelog-update: $(OSS_HOME)/.venv
-	@[[ "$(CHANGELOG_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: CHANGELOG_VERSION must be set to "X.Y.Z"; it is set to "%s"$(END)\n' "$(CHANGELOG_VERSION)"; exit 1)
-	uv run --dev -- towncrier build --yes --version "$(CHANGELOG_VERSION)" --date "$$(date '+%-d %B %Y')"
-.PHONY: release/ga/changelog-update
+# `make release/changelog-update CHANGELOG_VERSION=X.Y.Z[-rc.N]` is meant
+# to be run by the human maintainer when preparing a release branch for
+# tagging. It rebuilds the CHANGELOG.md section for that version from the
+# snippets in `docs/changes/`, dropping any earlier RC sections for the
+# same X.Y.Z. Snippets are kept for an RC and consumed for a GA.
+release/changelog-update: $(OSS_HOME)/.venv
+	uv run --dev -- python $(OSS_HOME)/releng/changelog-update "$(CHANGELOG_VERSION)"
+.PHONY: release/changelog-update
 
 ########################################################################
 # CI commands
