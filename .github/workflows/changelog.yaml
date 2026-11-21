@@ -1,0 +1,30 @@
+---
+name: Changelog
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
+      - release/**
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    name: Changelog snippet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+        with:
+          install-golang: "false"
+      - name: Validate snippets render
+        run: uv run --dev -- towncrier build --draft --version 0.0.0
+      - name: Require a snippet
+        run: uv run --dev -- towncrier check --compare-with "origin/${{ github.base_ref }}"

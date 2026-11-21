@@ -1,0 +1,12 @@
+## [{{ versiondata.version }}] {{ versiondata.date }}
+
+{% for section, _ in sections.items() %}
+{% for category, val in definitions.items() if category in sections[section] and category != "skip" %}
+{% for text, values in sections[section][category].items() %}
+- {{ definitions[category]["name"] }}: {{ text }}{% if values %} ({{ values|join(", ") }}){% endif %}
+
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+

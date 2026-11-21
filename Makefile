@@ -139,14 +139,6 @@ python-dev-setup:
 # activate venv
 	@echo "run 'source ./venv/bin/activate' to activate venv in local shell"
 
-# re-generate docs
-.PHONY: clean-changelog
-clean-changelog:
-	rm -f CHANGELOG.md
-
-.PHONY: generate-changelog
-generate-changelog: clean-changelog $(PWD)/CHANGELOG.md
-
 
 .PHONY: list-target-names
 list-target-names:

@@ -21,27 +21,25 @@ and the CI will be green.
 
 3. The RC build will be available as e.g. `docker.io/datawire/ambassador:0.77.0-rc.1`. Any other testing you want to do against this image, rock on.
 
-4. When you're happy that the RC is ready for GA, **first** assemble the list of changes that you'll put into CHANGELOG.md: (Note: place this list in a separate file, maybe `~/temp-list.txt`, but definitely not in CHANGELOG.md at this time.
+4. When you're happy that the RC is ready for GA, review the changelog snippets in `docs/changes/` (see `docs/changes/README.md`).
+   Every user-visible change should already have a snippet, added by its PR. Preview the release notes with
+   `uv run --dev -- towncrier build --draft --version X.Y.Z`, and fix up any snippets that need it:
    - We always call out things contributed by the community, including who committed it
      - you can mention the contributor with a link back to their GitHub page
    - We always call out features and major bugfixes
-   - We always include links to GitHub issues where we can
+   - We always include links to GitHub issues where we can (a snippet's file name supplies its issue link)
    - We rarely include fixes to the tests, build infrastructure, etc.
-   - Look at e.g. `git log v0.77.0..HEAD --no-merges --pretty '%h (%ai, %ae, %an): %s' -- ':(exclude)docs'`
-     and at the list of closed PRs. This is an awkward area of the release process as there are a log commits
-     and PRs but we only want to include a curated subset that makes sense to the users.
+   - Cross-check against `git log v0.77.0..HEAD --no-merges` and the list of closed PRs for anything that is
+     missing a snippet.
 
-5. Once the change list is assembled, hand it to Marketing so they can either write a blog post or tell you it's not needed.
+5. Once the release notes look right, hand them to Marketing so they can either write a blog post or tell you it's not needed.
 
 6. While the blog post is being written, switch to a new branch for the release.
    - `git checkout -b rel/0.84.0` (or whatever version). **Do not name this branch "release/...".**
 
-7. Use `make release-prep` to update `CHANGELOG.md`.
-   - This will prompt you for the release notes, so retrieve them from your previous file (maybe `~/temp-list.txt`).
-     The release notes are pasted in at a prompt (during the make), not read from a file, so you will need them
-     accessible to select-and-copy (suggestion: open your previous file in another window).
-   - It will _commit_, but not _push_, the updated files. Make sure the diffs it shows you look correct!
-   - Do a manual `git push` on your branch.
+7. Use `make release/ga/changelog-update CHANGELOG_VERSION=X.Y.Z` to update `CHANGELOG.md`.
+   - This runs towncrier, which assembles the snippets in `docs/changes/` into a new section of `CHANGELOG.md` and deletes them.
+   - It does not commit. Make sure the diff looks correct, then `git add -A CHANGELOG.md docs/changes`, commit, and `git push` your branch.
 
 8. Now for the time-critical bit.
    - Tag your branch with a GA tag like `v0.77.0` and let CI do its thing. **This version tag must start with a 'v'.**
@@ -50,7 +48,7 @@ and the CI will be green.
 9. _After the CI run finishes_:
    - Submit, and land, a PR for your branch.
    - Go to https://github.com/datawire/ambassador/releases and create a new release.
-      - `make release-prep` should've output the text to paste into the release description.
+      - The new `CHANGELOG.md` section has the text to paste into the release description.
 
    **Note** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 
