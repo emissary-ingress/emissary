@@ -7,18 +7,23 @@ on:
     branches:
       - main
       - release/**
+  schedule:
+    # Nightly, against the default branch.
+    - cron: "17 7 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   changelog:
-    name: Changelog snippet
+    name: Changelog snippets
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
         with:
+          # Full history and tags: the stale-snippet check reads release tags.
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
@@ -27,4 +32,28 @@ jobs:
       - name: Validate snippets render
         run: uv run --dev -- towncrier build --draft --version 0.0.0
       - name: Require a snippet
+        if: ${{ github.event_name == 'pull_request' }}
         run: uv run --dev -- towncrier check --compare-with "origin/${{ github.base_ref }}"
+      # `towncrier check` passes whenever CHANGELOG.md is in the diff, so
+      # hand edits to it would otherwise sneak through. On `main`, it may
+      # only change along with the snippets (a release's changelog being
+      # brought back to `main` also consumes its snippets). Release branches
+      # are exempt: that's where CHANGELOG.md gets built.
+      - name: Forbid hand-editing CHANGELOG.md
+        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' }}
+        run: |
+          changed="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")"
+          if grep -qx 'CHANGELOG.md' <<<"$changed" && ! grep -q '^docs/changes/' <<<"$changed"; then
+            echo "::error::CHANGELOG.md is generated: add a snippet in docs/changes/ instead of editing it (see docs/changes/README.md)"
+            exit 1
+          fi
+      # Snippets that are identical to ones in a released (non-RC) tag have
+      # already been through a changelog, so they should have been deleted.
+      - name: Check for already-released snippets
+        run: |
+          releng/changelog-consume
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::These snippets were already released; run 'make release/changelog-consume' and commit the result:"
+            git status --porcelain
+            exit 1
+          fi
