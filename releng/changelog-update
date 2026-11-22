@@ -36,19 +36,7 @@ def strip_rc_sections(text: str, base: str) -> str:
     return "".join(out)
 
 
-def main() -> int:
-    if len(sys.argv) != 2 or not (m := VERSION_RE.match(sys.argv[1])):
-        print(__doc__, file=sys.stderr)
-        print("ERROR: version must look like X.Y.Z or X.Y.Z-rc.N", file=sys.stderr)
-        return 2
-
-    version, base, is_rc = sys.argv[1], m.group(1), m.group(2) is not None
-
-    with open(CHANGELOG, encoding="utf-8") as f:
-        text = f.read()
-    with open(CHANGELOG, "w", encoding="utf-8") as f:
-        f.write(strip_rc_sections(text, base))
-
+def run_towncrier(version: str, is_rc: bool) -> int:
     today = datetime.date.today()
     cmd = [
         sys.executable,
@@ -62,6 +50,46 @@ def main() -> int:
         "--keep" if is_rc else "--yes",
     ]
     return subprocess.run(cmd, check=False).returncode
+
+
+def update(path: str, version: str) -> int:
+    """Rebuild the section for `version` in the changelog at `path`.
+
+    If anything goes wrong (towncrier fails, or we're interrupted), the
+    changelog is restored to exactly what it was. towncrier itself only
+    deletes snippets after it has written the changelog successfully, so a
+    failure leaves the snippets in place too.
+    """
+    m = VERSION_RE.match(version)
+    if not m:
+        print(__doc__, file=sys.stderr)
+        print("ERROR: version must look like X.Y.Z or X.Y.Z-rc.N", file=sys.stderr)
+        return 2
+
+    base, is_rc = m.group(1), m.group(2) is not None
+
+    with open(path, encoding="utf-8", newline="") as f:
+        original = f.read()
+
+    ok = False
+    try:
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write(strip_rc_sections(original, base))
+        rc = run_towncrier(version, is_rc)
+        ok = rc == 0
+        return rc
+    finally:
+        if not ok:
+            with open(path, "w", encoding="utf-8", newline="") as f:
+                f.write(original)
+            print(f"ERROR: failed; {path} restored to its original contents", file=sys.stderr)
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print(__doc__, file=sys.stderr)
+        return 2
+    return update(CHANGELOG, sys.argv[1])
 
 
 if __name__ == "__main__":
