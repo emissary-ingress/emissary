@@ -3,13 +3,13 @@
 
 Usage: releng/changelog-update X.Y.Z[-rc.N]
 
-Any existing "X.Y.Z-rc.*" sections are removed from CHANGELOG.md first, and
-then the whole section for the requested version is rebuilt from the snippets.
+Any existing "X.Y.Z" or "X.Y.Z-rc.*" sections are removed from CHANGELOG.md
+first, and then the whole section for the requested version is rebuilt from
+the snippets. This is safe to re-run as often as you like while preparing a
+release: the snippets are never deleted here (see releng/changelog-consume for
+that, which is done after the release is tagged).
 
- - For an RC, the snippets are kept, so the next RC (or the GA) can rebuild
-   the section including everything that has landed since.
- - For a GA (no -rc suffix), the snippets are consumed (deleted), and the RC
-   sections are gone: only the GA section remains.
+If anything goes wrong, CHANGELOG.md is left exactly as it was.
 
 Run this with `uv run --dev` so that towncrier is available.
 """
@@ -23,9 +23,9 @@ CHANGELOG = "CHANGELOG.md"
 VERSION_RE = re.compile(r"^(\d+\.\d+\.\d+)(-rc\.\d+)?$")
 
 
-def strip_rc_sections(text: str, base: str) -> str:
-    """Remove every `## [base-rc.N] ...` section, up to the next `## ` heading."""
-    heading = re.compile(rf"^## \[{re.escape(base)}-rc\.\d+\]")
+def strip_sections(text: str, base: str) -> str:
+    """Remove every `## [base]` and `## [base-rc.N]` section, up to the next `## ` heading."""
+    heading = re.compile(rf"^## \[{re.escape(base)}(-rc\.\d+)?\]")
     out = []
     skipping = False
     for line in text.splitlines(keepends=True):
@@ -36,18 +36,29 @@ def strip_rc_sections(text: str, base: str) -> str:
     return "".join(out)
 
 
-def run_towncrier(version: str, is_rc: bool) -> int:
+def section_has_entries(text: str, version: str) -> bool:
+    """Is there a `## [version]` section containing at least one `- ` entry?"""
+    in_section = False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            in_section = line.startswith(f"## [{version}] ")
+        elif in_section and line.startswith("- "):
+            return True
+    return False
+
+
+def run_towncrier(version: str) -> int:
     today = datetime.date.today()
     cmd = [
         sys.executable,
         "-m",
         "towncrier",
         "build",
+        "--keep",
         "--version",
         version,
         "--date",
         f"{today.day} {today:%B %Y}",
-        "--keep" if is_rc else "--yes",
     ]
     return subprocess.run(cmd, check=False).returncode
 
@@ -55,10 +66,8 @@ def run_towncrier(version: str, is_rc: bool) -> int:
 def update(path: str, version: str) -> int:
     """Rebuild the section for `version` in the changelog at `path`.
 
-    If anything goes wrong (towncrier fails, or we're interrupted), the
-    changelog is restored to exactly what it was. towncrier itself only
-    deletes snippets after it has written the changelog successfully, so a
-    failure leaves the snippets in place too.
+    If anything goes wrong (towncrier fails, the section would be empty, or
+    we're interrupted), the changelog is restored to exactly what it was.
     """
     m = VERSION_RE.match(version)
     if not m:
@@ -66,18 +75,29 @@ def update(path: str, version: str) -> int:
         print("ERROR: version must look like X.Y.Z or X.Y.Z-rc.N", file=sys.stderr)
         return 2
 
-    base, is_rc = m.group(1), m.group(2) is not None
-
     with open(path, encoding="utf-8", newline="") as f:
         original = f.read()
 
     ok = False
     try:
         with open(path, "w", encoding="utf-8", newline="") as f:
-            f.write(strip_rc_sections(original, base))
-        rc = run_towncrier(version, is_rc)
-        ok = rc == 0
-        return rc
+            f.write(strip_sections(original, m.group(1)))
+
+        rc = run_towncrier(version)
+        if rc != 0:
+            return rc
+
+        with open(path, encoding="utf-8", newline="") as f:
+            if not section_has_entries(f.read(), version):
+                print(
+                    f"ERROR: no changelog entries for {version}: add snippets to docs/changes/"
+                    " (note that `skip` snippets don't count)",
+                    file=sys.stderr,
+                )
+                return 1
+
+        ok = True
+        return 0
     finally:
         if not ok:
             with open(path, "w", encoding="utf-8", newline="") as f:
