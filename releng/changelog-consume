@@ -7,8 +7,11 @@ A snippet in docs/changes/ is "consumed" once a non-RC release tag contains
 an identical copy of it: that release's CHANGELOG.md section was built from
 it, so it must not show up in the next release's notes. This deletes (with
 `git rm`) every such snippet from the working tree, and leaves everything
-else alone, including snippets that landed after the release was cut and
-snippets that have been modified since the tag.
+else alone, including snippets that landed after the release was cut.
+
+A snippet that was released but has been modified since is ambiguous (a typo
+fix to a released entry, or a new entry reusing the name?), so it is an
+error: it is reported and the script exits non-zero. Rename or delete it.
 
 With no arguments, every non-RC `v*` tag is considered. Run it on the release
 branch right after tagging a GA or patch release, and again on `main` (when
@@ -45,9 +48,13 @@ def snippets_in(tag: str) -> list[str]:
     return [p for p in out if os.path.basename(p) not in NOT_SNIPPETS]
 
 
-def consume(tags: list[str]) -> list[str]:
-    """`git rm` every snippet that is identical to one in any of `tags`. Returns what was removed."""
+def consume(tags: list[str]) -> tuple[list[str], list[str]]:
+    """`git rm` every snippet identical to one in any of `tags`.
+
+    Returns (removed, modified), where modified are snippets that exist in a tag but differ.
+    """
     removed: list[str] = []
+    modified: list[str] = []
     for tag in tags:
         for path in snippets_in(tag):
             if path in removed or not os.path.isfile(path):
@@ -55,18 +62,25 @@ def consume(tags: list[str]) -> list[str]:
             with open(path, "rb") as f:
                 current = f.read()
             if current != git("show", f"{tag}:{path}"):
-                print(f"WARNING: {path} differs from {tag}; leaving it alone", file=sys.stderr)
+                if path not in modified:
+                    modified.append(path)
                 continue
             git("rm", "-q", "--", path)
             removed.append(path)
-    return removed
+    return removed, modified
 
 
 def main() -> int:
     tags = sys.argv[1:] or release_tags()
-    for path in consume(tags):
+    removed, modified = consume(tags)
+    for path in removed:
         print(f"consumed {path}")
-    return 0
+    for path in modified:
+        print(
+            f"ERROR: {path} was released but has been modified since; rename or delete it",
+            file=sys.stderr,
+        )
+    return 1 if modified else 0
 
 
 if __name__ == "__main__":

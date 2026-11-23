@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import sys
 from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 from pathlib import Path
@@ -278,7 +279,8 @@ def test_consume_removes_only_snippets_released_by_non_rc_tags(repo):
     _commit(repo, {"4.fix.md": "four"})  # landed after the release was cut
 
     assert changelog_consume.release_tags() == ["v4.3.0"]
-    removed = changelog_consume.consume(changelog_consume.release_tags())
+    removed, modified = changelog_consume.consume(changelog_consume.release_tags())
+    assert modified == []
 
     assert sorted(removed) == [
         "docs/changes/1.fix.md",
@@ -288,7 +290,7 @@ def test_consume_removes_only_snippets_released_by_non_rc_tags(repo):
     assert _present(repo) == ["4.fix.md", "README.md", "_template.md.jinja"]
 
     # Idempotent: a second run has nothing to do, so the tree stays clean.
-    assert changelog_consume.consume(changelog_consume.release_tags()) == []
+    assert changelog_consume.consume(changelog_consume.release_tags()) == ([], [])
     _git("commit", "-q", "-m", "consume")
     assert (
         subprocess.run(
@@ -298,19 +300,22 @@ def test_consume_removes_only_snippets_released_by_non_rc_tags(repo):
     )
 
 
-def test_consume_leaves_modified_snippets_alone(repo, capsys):
+def test_consume_reports_modified_snippets_as_an_error(repo, capsys, monkeypatch):
     _commit(repo, {"1.fix.md": "one"})
     _git("tag", "v4.3.0")
     _commit(repo, {"1.fix.md": "one, but edited"})
 
-    assert changelog_consume.consume(["v4.3.0"]) == []
+    assert changelog_consume.consume(["v4.3.0"]) == ([], ["docs/changes/1.fix.md"])
     assert _present(repo) == ["1.fix.md"]
-    assert "differs from v4.3.0" in capsys.readouterr().err
+
+    monkeypatch.setattr(sys, "argv", ["changelog-consume", "v4.3.0"])
+    assert changelog_consume.main() == 1
+    assert "1.fix.md was released but has been modified" in capsys.readouterr().err
 
 
 def test_consume_with_no_release_tags_is_a_noop(repo):
     _commit(repo, {"1.fix.md": "one"})
 
-    assert changelog_consume.consume(changelog_consume.release_tags()) == []
+    assert changelog_consume.consume(changelog_consume.release_tags()) == ([], [])
     assert _present(repo) == ["1.fix.md"]
     assert os.path.exists("docs/changes/1.fix.md")

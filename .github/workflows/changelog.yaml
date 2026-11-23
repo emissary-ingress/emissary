@@ -53,7 +53,7 @@ jobs:
         run: |
           releng/changelog-consume
           if [ -n "$(git status --porcelain)" ]; then
-            echo "::error::These snippets were already released; run 'make release/changelog-consume' and commit the result:"
+            echo "::error::Stale or modified released snippets; run 'make release/changelog-consume', commit the result, and rename or delete any modified ones:"
             git status --porcelain
             exit 1
           fi
