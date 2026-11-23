@@ -319,3 +319,26 @@ def test_consume_with_no_release_tags_is_a_noop(repo):
     assert changelog_consume.consume(changelog_consume.release_tags()) == ([], [])
     assert _present(repo) == ["1.fix.md"]
     assert os.path.exists("docs/changes/1.fix.md")
+
+
+def test_consume_clears_mismatch_when_a_later_tag_matches(repo):
+    _commit(repo, {"1.fix.md": "one"})
+    _git("tag", "v4.2.0")
+    _commit(repo, {"1.fix.md": "one, reworded"})
+    _git("tag", "v4.3.0")
+
+    assert changelog_consume.consume(["v4.2.0", "v4.3.0"]) == (
+        ["docs/changes/1.fix.md"],
+        [],
+    )
+    assert not (repo / "docs" / "changes").exists()
+
+
+def test_consume_rejects_explicit_non_release_tags(repo, capsys, monkeypatch):
+    _commit(repo, {"1.fix.md": "one"})
+    _git("tag", "v4.3.0-rc.1")
+
+    monkeypatch.setattr(sys, "argv", ["changelog-consume", "v4.3.0-rc.1"])
+    assert changelog_consume.main() == 2
+    assert "v4.3.0-rc.1" in capsys.readouterr().err
+    assert _present(repo) == ["1.fix.md"]

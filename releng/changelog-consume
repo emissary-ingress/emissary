@@ -67,11 +67,18 @@ def consume(tags: list[str]) -> tuple[list[str], list[str]]:
                 continue
             git("rm", "-q", "--", path)
             removed.append(path)
+            if path in modified:
+                modified.remove(path)
     return removed, modified
 
 
 def main() -> int:
-    tags = sys.argv[1:] or release_tags()
+    tags = sys.argv[1:]
+    bad = [t for t in tags if not RELEASE_TAG_RE.match(t)]
+    if bad:
+        print(f"ERROR: not a non-RC release tag (vX.Y.Z): {', '.join(bad)}", file=sys.stderr)
+        return 2
+    tags = tags or release_tags()
     removed, modified = consume(tags)
     for path in removed:
         print(f"consumed {path}")
