@@ -45,6 +45,10 @@ certain that your change shouldn't be called out in the CHANGELOG, use a
 but still put in a description of what's up and why it doesn't need to be
 mentioned.
 
+CI checks on commit and nightly to make sure that the CHANGELOG hasn't
+been edited by hand, and that snippets already incorporated in the
+CHANGELOG aren't still on disk.
+
 ## Previewing
 
 You can get a preview of what towncrier will build with

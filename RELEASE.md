@@ -55,36 +55,39 @@ already exist, **STOP** and consult with the other maintainers.
 
 ### 2. Make any release-branch-only changes
 
-Release-prep tweaks happen on `release/vX.Y`, not on `main`.
+Release-prep tweaks happen on `release/vX.Y`, not on `main`. The first
+step of any release is to make sure that the release branch has all the
+commits that should be part of the release.
 
-Changelog entries live as snippets in `docs/changes/` (see its README).
-Before tagging any release (RC, GA, or patch), assemble them into
-`CHANGELOG.md` on the release branch and commit the result:
+### 3. Prepare the CHANGELOG
+
+Changelog entries live as snippets in `docs/changes/`, as described in
+`docs/changes/README.md`. Those need to be assembled into the main
+`CHANGELOG.md` file:
 
 ```bash
 make release/changelog-update CHANGELOG_VERSION=4.1.0-rc.0   # or 4.1.0
-git add -A CHANGELOG.md docs/changes
+```
+
+`changelog-update` will replace all the entries in `CHANGELOG` since the
+previous GA: this is expected. If something goes wrong (or if all the snippets are `skip`s), it will fail. **Fix it before continuing**.
+
+Assuming that `changelog-update` completes, review its work. If anything
+looks off, **edit the snippets and rerun `make changelog/update`** --
+edits you make by hand to `CHANGELOG.md` will not be preserved.
+
+Once you're satisfied with `CHANGELOG.md`, commit it:
+
+```bash
+git add CHANGELOG.md
 git commit -m "docs(changelog): cut 4.1.0-rc.0 release notes"
 ```
 
-This will rebuild the CHANGELOG: everything after the `towncrier release
-notes start` marker with the same major, minor, and patch numbers will be
-removed and replaced with the current content: the changelog always
-includes changes since the previous **GA** version.
+**Note**: `changelog-update` does not remove the snippets: they stay on
+disk until explicitly removed (see step N) so that you can edit them if
+`CHANGELOG.md` doesn't look right.
 
-- For an **RC**, the snippets are kept, so the next RC (or the GA) is
-  rebuilt from everything that has landed so far.
-- For a **GA** release, **the snippets are consumed (deleted)** so that
-  we don't have an endlessly-growing set of snippets and, importantly, so
-  that the snippets on disk always reflect changes that have yet to be
-  released.
-
-Make sure that the CHANGELOG looks good before you continue. If you
-really need to you can edit the CHANGELOG by hand at this one point, but
-since your changes will be undone by the next `changelog-update` run, you
-should instead edit snippets if necessary.
-
-### 3. Tag the release
+### 4. Tag the release
 
 Tag the tip of the release branch:
 
@@ -97,7 +100,7 @@ git push origin v4.1.0-rc.0
 
 The same procedure is used for RCs (`v4.1.0-rc.N`) and GA releases.
 
-### 4. Wait for CI
+### 5. Wait for CI
 
 Pushing the tag triggers the full CI pipeline. Lint and tests run first;
 the release job is gated on them and will not run if any of them fail.
@@ -108,7 +111,7 @@ Release.
 Watch the run, and if it fails, fix forward. Do not delete and re-push the
 tag.
 
-### 5. Publish the GitHub Release
+### 6. Publish the GitHub Release
 
 The release is created as a **draft** and is **not** marked as the latest
 release. Once CI is green:
@@ -119,8 +122,27 @@ release. Once CI is green:
 - Publish the release.
 - For a GA or patch release (not an RC), mark it as the latest release.
 
-### 6. Cherry-pick back
+### 7. Non-RC only: Clean up snippets
 
-Cherry-pick appropriate changes back to `main` -- usually this will just
-be snippet and CHANGELOG changes, so that the `main` CHANGELOG is
-consistent.
+If you are _not_ doing an RC, clean up the snippets that went into the
+release:
+
+```bash
+make release/changelog-consume
+```
+
+This will clean up all the snippets used in the release just tagged. If
+you have modified any of those snippets, it will fail: you need to rename
+the snippet or delete it by hand. And, again, **do not** do this for RCs.
+Check to make sure things look sane, then commit:
+
+```bash
+git commit -am "docs(changelog): clean up snippets released in 4.1.0"
+```
+
+**Note**: CI will fails if you forget this step, so don't.
+
+### 8. Cherry-pick back
+
+Cherry-pick appropriate changes back to `main`. This _should_ just
+involve `CHANGELOG.md` and snippets.
