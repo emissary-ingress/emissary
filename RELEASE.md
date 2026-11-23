@@ -73,18 +73,21 @@ make release/changelog-update CHANGELOG_VERSION=4.1.0-rc.0   # or 4.1.0
 previous GA: this is expected. If something goes wrong (or if all the snippets are `skip`s), it will fail. **Fix it before continuing**.
 
 Assuming that `changelog-update` completes, review its work. If anything
-looks off, **edit the snippets and rerun `make changelog/update`** --
+looks off, **edit the snippets and rerun `make release/changelog-update`** --
 edits you make by hand to `CHANGELOG.md` will not be preserved.
 
-Once you're satisfied with `CHANGELOG.md`, commit it:
+Once you're satisfied with `CHANGELOG.md`, commit it along with any
+snippet edits (the tag must contain the snippets that built the notes):
 
 ```bash
-git add CHANGELOG.md
+git add CHANGELOG.md docs/changes
 git commit -m "docs(changelog): cut 4.1.0-rc.0 release notes"
 ```
 
+Land this on `release/v4.1` (via a PR) before tagging.
+
 **Note**: `changelog-update` does not remove the snippets: they stay on
-disk until explicitly removed (see step N) so that you can edit them if
+disk until explicitly removed (see step 7) so that you can edit them if
 `CHANGELOG.md` doesn't look right.
 
 ### 4. Tag the release
@@ -137,12 +140,15 @@ the snippet or delete it by hand. And, again, **do not** do this for RCs.
 Check to make sure things look sane, then commit:
 
 ```bash
-git commit -am "docs(changelog): clean up snippets released in 4.1.0"
+git add ... # hopefully just CHANGELOG and snippets
+git commit -m "docs(changelog): clean up snippets released in 4.1.0"
 ```
 
-**Note**: CI will fails if you forget this step, so don't.
+**Note**: CI fails if you forget this step, so don't.
 
 ### 8. Cherry-pick back
 
 Cherry-pick appropriate changes back to `main`. This _should_ just
 involve `CHANGELOG.md` and snippets.
+
+**Note**: CI fails if you forget this step, so don't.
