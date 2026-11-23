@@ -319,6 +319,37 @@ spec:
 
 
 @pytest.mark.compilertest
+def test_invalid_ip_allow_prefix_length():
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Module
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  config:
+    ip_allow:
+    - remote: 10.0.0.0/-1
+"""
+
+    cache = Cache(logger)
+    r1 = Compile(logger, yaml, k8s=True)
+    r2 = Compile(logger, yaml, k8s=True, cache=cache)
+
+    wanted = [
+        (
+            "ambassador.default.1",
+            "ip_allow principal 10.0.0.0/-1 is not valid: "
+            "Invalid prefix length for IPv4 address 10.0.0.0/-1",
+        )
+    ]
+
+    require_errors(r1["ir"], wanted)
+    require_errors(r2["ir"], wanted)
+
+
+@pytest.mark.compilertest
 def test_valid_grpc_stats_empty():
     yaml = """
 ---

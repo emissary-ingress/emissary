@@ -56,7 +56,7 @@ class CIDRRange:
 
         if pfx_len is None:
             pfx_len = addr.max_prefixlen
-        elif pfx_len > addr.max_prefixlen:
+        elif pfx_len < 0 or pfx_len > addr.max_prefixlen:
             self.error = f"Invalid prefix length for IPv{addr.version} address {address}/{pfx_len}"
             return
 

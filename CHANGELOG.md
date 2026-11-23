@@ -36,6 +36,12 @@ from the Helm charts.
   matching `TLSContext` is still used; otherwise the `TCPMapping` is disabled
   with an error. ([#5732])
 
+- Fix: A negative prefix length in an `ip_allow` or `ip_deny` principal, such as
+  `10.0.0.0/-1`, is now reported as a configuration error. Previously it was
+  accepted and written into Envoy's RBAC filter as `prefix_len: -1`, which is
+  not a valid value for that field, so the generated configuration did not load
+  and nothing in the diagnostics pointed at the bad principal.
+
 [#5732]: https://github.com/emissary-ingress/emissary/issues/5732
 
 ## [4.2.0] 5 November 2026

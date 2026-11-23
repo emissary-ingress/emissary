@@ -46,6 +46,20 @@ def test_cidrrange():
             None,
             "Invalid prefix length for IPv6 address 2001:2000::/199",
         ),
+        (
+            "10.0.0.0/-1",
+            False,
+            None,
+            None,
+            "Invalid prefix length for IPv4 address 10.0.0.0/-1",
+        ),
+        (
+            "2001:2000::/-64",
+            False,
+            None,
+            None,
+            "Invalid prefix length for IPv6 address 2001:2000::/-64",
+        ),
     ]:
         c = CIDRRange(spec)
 
@@ -94,6 +108,20 @@ def test_cidrrange_v3():
             None,
             None,
             "Invalid prefix length for IPv6 address 2001:2000::/199",
+        ),
+        (
+            "10.0.0.0/-1",
+            False,
+            None,
+            None,
+            "Invalid prefix length for IPv4 address 10.0.0.0/-1",
+        ),
+        (
+            "2001:2000::/-64",
+            False,
+            None,
+            None,
+            "Invalid prefix length for IPv6 address 2001:2000::/-64",
         ),
     ]:
         c = CIDRRange(spec)
