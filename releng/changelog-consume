@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""Delete changelog snippets that have already been released.
+
+Usage: releng/changelog-consume [TAG...]
+
+A snippet in docs/changes/ is "consumed" once a non-RC release tag contains
+an identical copy of it: that release's CHANGELOG.md section was built from
+it, so it must not show up in the next release's notes. This deletes (with
+`git rm`) every such snippet from the working tree, and leaves everything
+else alone, including snippets that landed after the release was cut.
+
+A snippet that was released but has been modified since is ambiguous (a typo
+fix to a released entry, or a new entry reusing the name?), so it is an
+error: it is reported and the script exits non-zero. Rename or delete it.
+
+With no arguments, every non-RC `v*` tag is considered. Run it on the release
+branch right after tagging a GA or patch release, and again on `main` (when
+bringing the release's CHANGELOG.md commit back there). It is idempotent, so
+it also works as a check: if it leaves the tree dirty, there were stale
+snippets.
+
+Snippets are only ever consumed by this script, never by releng/changelog-update,
+so that the changelog can be rebuilt repeatedly while a release is prepared.
+"""
+
+import os
+import re
+import subprocess
+import sys
+
+SNIPPET_DIR = "docs/changes"
+NOT_SNIPPETS = {"README.md", "_template.md.jinja"}
+RELEASE_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+$")
+
+
+def git(*args: str, check: bool = True) -> bytes:
+    return subprocess.run(["git", *args], check=check, capture_output=True).stdout
+
+
+def release_tags() -> list[str]:
+    """All non-RC release tags (vX.Y.Z)."""
+    tags = git("tag", "--list", "v*").decode().split()
+    return [t for t in tags if RELEASE_TAG_RE.match(t)]
+
+
+def snippets_in(tag: str) -> list[str]:
+    out = git("ls-tree", "-r", "--name-only", tag, "--", SNIPPET_DIR).decode().splitlines()
+    return [p for p in out if os.path.basename(p) not in NOT_SNIPPETS]
+
+
+def consume(tags: list[str]) -> tuple[list[str], list[str]]:
+    """`git rm` every snippet identical to one in any of `tags`.
+
+    Returns (removed, modified), where modified are snippets that exist in a tag but differ.
+    """
+    removed: list[str] = []
+    modified: list[str] = []
+    for tag in tags:
+        for path in snippets_in(tag):
+            if path in removed or not os.path.isfile(path):
+                continue
+            with open(path, "rb") as f:
+                current = f.read()
+            if current != git("show", f"{tag}:{path}"):
+                if path not in modified:
+                    modified.append(path)
+                continue
+            git("rm", "-q", "--", path)
+            removed.append(path)
+            if path in modified:
+                modified.remove(path)
+    return removed, modified
+
+
+def main() -> int:
+    tags = sys.argv[1:]
+    bad = [t for t in tags if not RELEASE_TAG_RE.match(t)]
+    if bad:
+        print(f"ERROR: not a non-RC release tag (vX.Y.Z): {', '.join(bad)}", file=sys.stderr)
+        return 2
+    tags = tags or release_tags()
+    removed, modified = consume(tags)
+    for path in removed:
+        print(f"consumed {path}")
+    for path in modified:
+        print(
+            f"ERROR: {path} was released but has been modified since; rename or delete it",
+            file=sys.stderr,
+        )
+    return 1 if modified else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

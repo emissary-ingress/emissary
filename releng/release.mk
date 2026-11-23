@@ -12,12 +12,22 @@ release/start:
 	@$(OSS_HOME)/releng/00-release-start --next-version $(START_VERSION)
 .PHONY: release/start
 
-# `make release/ga/changelog-update CHANGELOG_VERSION=X.Y.Z` is meant
-# to be run by the human maintainer when preparing the final version
-# of the `rel/vX.Y.Z` branch.
-release/ga/changelog-update:
-	$(OSS_HOME)/releng/release-go-changelog-update --quiet $(CHANGELOG_VERSION)
-.PHONY: release/ga/changelog-update
+# `make release/changelog-update CHANGELOG_VERSION=X.Y.Z[-rc.N]` is meant
+# to be run by the human maintainer when preparing a release branch for
+# tagging. It rebuilds the CHANGELOG.md section for that version from the
+# snippets in `docs/changes/`, replacing any earlier RC (or GA) sections for
+# the same X.Y.Z. It never deletes snippets, so it can be re-run freely.
+release/changelog-update: $(OSS_HOME)/.venv
+	uv run --dev -- python $(OSS_HOME)/releng/changelog-update "$(CHANGELOG_VERSION)"
+.PHONY: release/changelog-update
+
+# `make release/changelog-consume` is run by the human maintainer *after*
+# tagging a GA or patch release (and again on `main`). It deletes the
+# snippets that have been released, as identified by the non-RC release
+# tags, so they don't appear in the next release's notes.
+release/changelog-consume:
+	$(OSS_HOME)/releng/changelog-consume
+.PHONY: release/changelog-consume
 
 ########################################################################
 # CI commands

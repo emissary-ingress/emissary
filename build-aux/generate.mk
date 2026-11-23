@@ -29,7 +29,6 @@ generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(O
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
 generate/files      += $(OSS_HOME)/DEPENDENCY_LICENSES.md
-# generate-fast/files += $(OSS_HOME)/CHANGELOG.md
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.conversion.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.conversion-spoke.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.deepcopy.go
@@ -228,12 +227,3 @@ $(OSS_HOME)/DEPENDENCY_LICENSES.md: $(OSS_HOME)/.venv $(OSS_HOME)/build-aux/pip-
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource) --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"'; \
 		rm -rf vendor; \
 	} | sort | uniq | sed -e 's/\[\([^]]*\)]()/\1/' >> $@
-
-#
-# Misc. other `make generate` rules
-
-$(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releaseNotes.yml
-	docker run --rm \
-	  -v $(OSS_HOME)/docs/CHANGELOG.tpl:/tmp/CHANGELOG.tpl \
-	  -v $(OSS_HOME)/docs/releaseNotes.yml:/tmp/releaseNotes.yml \
-	  hairyhenderson/gomplate --verbose --file /tmp/CHANGELOG.tpl --datasource relnotes=/tmp/releaseNotes.yml > CHANGELOG.md
